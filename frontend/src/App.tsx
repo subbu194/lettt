@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
-import { api } from './services/api'
-
+import { healthCheck } from './api/client'
 function App() {
   const [count, setCount] = useState(0)
   const [backendStatus, setBackendStatus] = useState<string>('Checking...')
 
   useEffect(() => {
     // Test backend connection using the API service
-    api.healthCheck()
+    healthCheck()
       .then(({ data, error }) => {
         if (error) {
           setBackendStatus('Not connected')
