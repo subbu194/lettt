@@ -1,22 +1,24 @@
-import axios from 'axios';
 import type { AxiosInstance } from 'axios';
+import client from '../utils/client';
 
-const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:80';
-const API_PREFIX = '/api/v1';
+// NOTE:
+// - The production axios instance lives at `src/utils/client.ts` (per mandatory structure).
+// - This file keeps your convenient typed wrapper helpers.
+// - If your backend uses a prefix like `/api/v1`, set `VITE_API_URL` to include it, e.g.:
+//   VITE_API_URL=http://localhost:80/api/v1
 
-type ApiResponse<T> = { data?: T; error?: string };
+export type ApiResponse<T> = { data?: T; error?: string };
 
-const apiClient: AxiosInstance = axios.create({
-  baseURL: `${BASE_URL}${API_PREFIX}`,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-});
+const apiClient: AxiosInstance = client;
 
 export function setAuthToken(token?: string) {
-  if (token) apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  else delete apiClient.defaults.headers.common['Authorization'];
+  if (token) {
+    localStorage.setItem('token', token);
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    localStorage.removeItem('token');
+    delete apiClient.defaults.headers.common['Authorization'];
+  }
 }
 
 async function request<T>(

@@ -1,1 +1,103 @@
 @import "tailwindcss";
+
+/* Tailwind v4 theme tokens (MANDATORY color system) */
+@theme {
+  --color-bg: #000000;
+  --color-accent: #ff0000;
+  --color-highlight: #ffd700;
+  --color-fg: #ffffff;
+}
+
+/* Lenis (smooth scrolling) base styles */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+@keyframes luxe-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+    background: var(--color-bg);
+    color: var(--color-fg);
+  }
+
+  body {
+    @apply antialiased;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-highlight) 35%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-highlight);
+    outline-offset: 3px;
+  }
+}
+
+@layer utilities {
+  .luxe-gradient {
+    background: radial-gradient(1200px 700px at 20% 20%, rgba(255, 0, 0, 0.22), transparent 60%),
+      radial-gradient(900px 600px at 80% 60%, rgba(255, 215, 0, 0.12), transparent 55%),
+      linear-gradient(120deg, #000000, #120000, #220000, #000000);
+    background-size: 240% 240%;
+    animation: luxe-gradient 12s ease-in-out infinite;
+  }
+
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  /* Cursor-following premium glow. Apply with `luxe-glow` on hoverable elements. */
+  .luxe-glow {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+  }
+
+  .luxe-glow::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 180ms ease, transform 180ms ease;
+    background:
+      radial-gradient(240px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(255, 215, 0, 0.32), transparent 60%),
+      radial-gradient(320px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(255, 0, 0, 0.16), transparent 65%);
+    filter: blur(12px);
+  }
+
+  .luxe-glow:hover::before {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+
+  .luxe-glow:hover {
+    border-color: color-mix(in oklab, var(--color-highlight) 22%, rgba(255, 255, 255, 0.10));
+  }
+}

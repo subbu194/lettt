@@ -1,70 +1,92 @@
-import { useState, useEffect } from 'react'
-import { healthCheck } from './api/client'
-function App() {
-  const [count, setCount] = useState(0)
-  const [backendStatus, setBackendStatus] = useState<string>('Checking...')
+import { AnimatePresence } from 'framer-motion';
+import { Suspense, lazy } from 'react';
+import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { SmoothScrollProvider } from './animations/lenis';
+import { PageTransition } from './components/layout/PageTransition';
+import { Shell } from './components/layout/Shell';
 
-  useEffect(() => {
-    // Test backend connection using the API service
-    healthCheck()
-      .then(({ data, error }) => {
-        if (error) {
-          setBackendStatus('Not connected')
-        } else if (data) {
-          setBackendStatus(`Connected: ${data.message}`)
-        }
-      })
-  }, [])
+const Home = lazy(() => import('./pages/Home'));
+const Events = lazy(() => import('./pages/Events'));
+const TalkShow = lazy(() => import('./pages/TalkShow'));
+const About = lazy(() => import('./pages/About'));
+const Login = lazy(() => import('./pages/Login'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+function AppRoutes() {
+  const location = useLocation();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
-      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 shadow-2xl max-w-md w-full mx-4">
-        <h1 className="text-4xl font-bold text-white text-center mb-6">
-          React + Tailwind
-        </h1>
-        
-        <div className="space-y-4">
-          {/* Backend Status */}
-          <div className="bg-gray-800/50 rounded-lg p-4">
-            <p className="text-gray-400 text-sm">Backend Status</p>
-            <p className={`font-medium ${backendStatus.includes('Connected') ? 'text-green-400' : 'text-yellow-400'}`}>
-              {backendStatus}
-            </p>
-          </div>
-
-          {/* Counter */}
-          <div className="bg-gray-800/50 rounded-lg p-4 text-center">
-            <p className="text-gray-400 text-sm mb-2">Counter</p>
-            <p className="text-5xl font-bold text-white mb-4">{count}</p>
-            <div className="flex gap-2 justify-center">
-              <button
-                onClick={() => setCount(c => c - 1)}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors font-medium"
-              >
-                -1
-              </button>
-              <button
-                onClick={() => setCount(0)}
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors font-medium"
-              >
-                Reset
-              </button>
-              <button
-                onClick={() => setCount(c => c + 1)}
-                className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors font-medium"
-              >
-                +1
-              </button>
-            </div>
-          </div>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-bg text-fg flex items-center justify-center">
+          <div className="glass rounded-2xl px-6 py-4 text-white/80">Loading…</div>
         </div>
-
-        <p className="text-gray-500 text-center text-sm mt-6">
-          TypeScript + Tailwind CSS working!
-        </p>
-      </div>
-    </div>
-  )
+      }
+    >
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route element={<Shell />}>
+            <Route
+              path="/"
+              element={
+                <PageTransition>
+                  <Home />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/events"
+              element={
+                <PageTransition>
+                  <Events />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/talk-show"
+              element={
+                <PageTransition>
+                  <TalkShow />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <PageTransition>
+                  <About />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PageTransition>
+                  <Login />
+                </PageTransition>
+              }
+            />
+            <Route
+              path="*"
+              element={
+                <PageTransition>
+                  <NotFound />
+                </PageTransition>
+              }
+            />
+          </Route>
+        </Routes>
+      </AnimatePresence>
+    </Suspense>
+  );
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <SmoothScrollProvider>
+        <AppRoutes />
+      </SmoothScrollProvider>
+    </BrowserRouter>
+  );
+}
