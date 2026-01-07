@@ -14,7 +14,7 @@ import { useMedia } from '../../hooks/useMedia';
 
 export function HeroParticles() {
   const [ready, setReady] = useState(false);
-  const { isMobile, reduceMotion, lowEnd } = useMedia();
+  const { isMobile, isTouch, reduceMotion, lowEnd } = useMedia();
 
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -30,7 +30,8 @@ export function HeroParticles() {
     interactivity: {
       events: {
         onHover: {
-          enable: !reduceMotion,
+          // Disable hover/touch interactions on mobile or when reduced motion is requested
+          enable: !reduceMotion && !isMobile,
           mode: ['attract', 'bounce'],
         },
         resize: { enable: true },
@@ -92,8 +93,13 @@ export function HeroParticles() {
 
   if (!ready) return null;
 
+  // When interactions are disabled (mobile / reduced motion / touch devices), make the
+  // particles container non-interactive so touches pass through to the page and allow normal scrolling.
+  const interactionsEnabled = !reduceMotion && !isMobile && !isTouch;
+  const wrapperClass = `absolute inset-0 ${interactionsEnabled ? '' : 'pointer-events-none'}`;
+
   return (
-    <div className="absolute inset-0">
+    <div className={wrapperClass}>
       <Particles id="heroParticles" options={options} className="w-full h-full" />
     </div>
   );

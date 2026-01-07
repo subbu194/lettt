@@ -16,9 +16,24 @@ function getIsLowEndDevice() {
   return typeof cores === 'number' ? cores <= 4 : false;
 }
 
+function getIsTouchDevice() {
+  if (typeof navigator === 'undefined' && typeof window === 'undefined') return false;
+  try {
+    // Prefer feature detection via maxTouchPoints when available
+    // Fall back to ontouchstart for older browsers
+    const hasMax = typeof navigator !== 'undefined' && typeof (navigator as any).maxTouchPoints === 'number' && (navigator as any).maxTouchPoints > 0;
+    const hasTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
+    const msPoints = typeof (navigator as any).msMaxTouchPoints === 'number' && (navigator as any).msMaxTouchPoints > 0;
+    return hasMax || hasTouch || msPoints;
+  } catch {
+    return false;
+  }
+}
+
 export function useMedia() {
   const [isMobile, setIsMobile] = useState(getIsMobile);
   const [reduceMotion, setReduceMotion] = useState(getPrefersReducedMotion);
+  const isTouch = getIsTouchDevice();
 
   useEffect(() => {
     const mmMobile = window.matchMedia('(max-width: 768px)');
@@ -39,9 +54,11 @@ export function useMedia() {
 
   return {
     isMobile,
+    isTouch,
     reduceMotion,
     lowEnd,
-    enable3D: !isMobile && !reduceMotion && !lowEnd,
+    // Disable 3D on narrow screens, touch-capable devices, reduced-motion, and low-end devices
+    enable3D: !isMobile && !isTouch && !reduceMotion && !lowEnd,
   };
 }
 

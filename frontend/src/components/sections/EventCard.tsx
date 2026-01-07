@@ -1,5 +1,5 @@
 import Atropos from 'atropos/react';
-import 'atropos/atropos.css';
+import { useEffect } from 'react';
 import type { Event } from '../../types';
 import { useMedia } from '../../hooks/useMedia';
 import { Button } from '../ui/Button';
@@ -61,6 +61,11 @@ export function EventCard({ event }: { event: Event }) {
   );
 
   if (!enable3D) return card;
+  useEffect(() => {
+    // Only load Atropos CSS when 3D is enabled (desktop). Prevents mobile touch-action rules
+    // from being injected unnecessarily.
+    import('atropos/atropos.css');
+  }, [enable3D]);
 
   return (
     <Atropos
