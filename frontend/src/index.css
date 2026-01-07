@@ -43,6 +43,7 @@ html.lenis {
     height: 100%;
     background: var(--color-bg);
     color: var(--color-fg);
+    font-family: 'Luckiest Guy', cursive;
   }
 
   body {
@@ -100,4 +101,48 @@ html.lenis {
   .luxe-glow:hover {
     border-color: color-mix(in oklab, var(--color-highlight) 22%, rgba(255, 255, 255, 0.10));
   }
+}
+
+/* Utility: explicit class if you want to use the Luckiest Guy font selectively */
+.luckiest-guy-regular {
+  font-family: 'Luckiest Guy', cursive;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Floating icons used in hero */
+@layer utilities {
+  @keyframes float-y {
+    0% { transform: translateY(0) translateX(0) rotate(0deg); }
+    50% { transform: translateY(-10px) translateX(2px) rotate(3deg); }
+    100% { transform: translateY(0) translateX(0) rotate(0deg); }
+  }
+
+  .floating-icon {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    opacity: 0.95;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.45));
+    transform-origin: center;
+    animation-name: float-y;
+    animation-duration: 4.6s;
+    animation-iteration-count: infinite;
+    animation-timing-function: ease-in-out;
+  }
+
+  .floating-icon.left { left: 6%; }
+  .floating-icon.right { right: 8%; }
+  .floating-icon.top { top: 18%; }
+  .floating-icon.mid { top: 40%; }
+  .floating-icon.left-bottom { left: 14%; bottom: 22%; animation-duration: 5.2s; }
+  .floating-icon.right-top { right: 18%; top: 8%; animation-duration: 3.8s; }
+
+  /* Slight stagger via nth-child-like overrides using specific helpers */
+  .floating-icon.left { animation-delay: 0s; }
+  .floating-icon.right { animation-delay: 0.45s; }
+  .floating-icon.left-bottom { animation-delay: 0.9s; }
+  .floating-icon.right-top { animation-delay: 1.25s; }
+
+  .floating-icon svg { color: currentColor; }
 }

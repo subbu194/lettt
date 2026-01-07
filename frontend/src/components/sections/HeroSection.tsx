@@ -5,6 +5,7 @@ import { useLenis } from '../../animations/lenis';
 import { Button } from '../ui/Button';
 import { Container } from '../ui/Container';
 import { HeroParticles } from './HeroParticles';
+import { FloatingIcons } from '../ui/FloatingIcons';
 import { useMedia } from '../../hooks/useMedia';
 
 function splitWords(text: string) {
@@ -16,7 +17,7 @@ export function HeroSection() {
   const { scrollTo } = useLenis();
   const { isMobile, reduceMotion } = useMedia();
 
-  const headline = useMemo(() => splitWords('Luxury Art & Talent, Elevated.'), []);
+  const headline = useMemo(() => splitWords('Let the Talent talks out loud.'), []);
 
   useLayoutEffect(() => {
     if (reduceMotion) return;
@@ -55,6 +56,7 @@ export function HeroSection() {
       className="relative -mt-16 min-h-[calc(100vh+4rem)] pt-16 overflow-hidden luxe-gradient"
     >
       <HeroParticles />
+      <FloatingIcons />
       <div className="absolute inset-0 bg-black/55" />
 
       <Container className="relative pt-28 sm:pt-32">
