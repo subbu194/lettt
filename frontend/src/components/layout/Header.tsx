@@ -22,7 +22,7 @@ export function Header() {
   );
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-[color:var(--color-bg)]/95 backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-[var(--color-primary-gold)] backdrop-blur">
       <div className="lux-container flex h-16 items-center justify-between gap-4">
         <button
           className="text-left luckiest-guy-regular text-xl tracking-[0.18em]"
@@ -46,7 +46,7 @@ export function Header() {
               to={item.to}
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `relative text-sm font-semibold tracking-wide text-[var(--color-text)]/80 hover:text-[var(--color-text)] ${isActive ? activeUnderline : ''}`
+                `relative text-sm font-semibold tracking-wide text-[var(--color-text)]/80 hover:text-[var(--color-primary-red)] ${isActive ? activeUnderline : ''}`
               }
             >
               {item.label}
@@ -55,7 +55,7 @@ export function Header() {
         </nav>
 
         <button
-          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-[var(--color-bg)] md:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-[var(--color-primary-gold)] md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
           aria-expanded={open}
@@ -67,7 +67,7 @@ export function Header() {
 
       {open ? (
         <div
-          className="border-t border-black/10 bg-[var(--color-bg)] md:hidden"
+          className="border-t border-black/10 bg-[var(--color-primary-gold)] md:hidden"
           style={{ animation: 'slideDown 220ms ease both' }}
         >
           <div className="lux-container py-4">
@@ -79,7 +79,7 @@ export function Header() {
                   onClick={() => setOpen(false)}
                   className={({ isActive }) =>
                     `rounded-xl px-4 py-3 text-sm font-semibold tracking-wide ${
-                      isActive ? 'bg-black/5' : 'hover:bg-black/5'
+                      isActive ? 'bg-black/5 text-[var(--color-primary-red)]' : 'hover:bg-black/5 hover:text-[var(--color-primary-red)]'
                     }`
                   }
                 >
