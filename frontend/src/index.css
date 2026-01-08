@@ -1,148 +1,84 @@
 @import "tailwindcss";
 
-/* Tailwind v4 theme tokens (MANDATORY color system) */
-@theme {
-  --color-bg: #000000;
-  --color-accent: #ff0000;
-  --color-highlight: #ffd700;
-  --color-fg: #ffffff;
+:root {
+  --color-primary-red: #CF4647;
+  --color-primary-gold: #F5D061;
+  --color-bg: #F8F6F6;
+  --color-text: #2A363B;
+  --color-muted: rgba(42, 54, 59, 0.72);
 }
 
-/* Lenis (smooth scrolling) base styles */
-html.lenis {
-  height: auto;
+/* Custom glow classes */
+.glow-red { box-shadow: 0 0 20px rgba(207, 70, 71, 0.5); }
+.glow-gold { box-shadow: 0 0 20px rgba(245, 208, 97, 0.5); }
+
+.luckiest-guy-regular {
+  font-family: "Luckiest Guy", cursive;
+  font-weight: 400;
+  font-style: normal;
 }
 
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes luxe-gradient {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @layer base {
-  :root {
-    color-scheme: dark;
-  }
-
-  html,
-  body {
+  html, body {
     height: 100%;
     background: var(--color-bg);
-    color: var(--color-fg);
-    font-family: 'Luckiest Guy', cursive;
+    color: var(--color-text);
   }
 
   body {
     @apply antialiased;
-  }
-
-  ::selection {
-    background: color-mix(in oklab, var(--color-highlight) 35%, transparent);
+    font-family: "Luckiest Guy", cursive;
+    font-weight: 400;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-highlight);
+    outline: 2px solid var(--color-primary-gold);
     outline-offset: 3px;
   }
 }
 
 @layer utilities {
-  .luxe-gradient {
-    background: radial-gradient(1200px 700px at 20% 20%, rgba(255, 0, 0, 0.22), transparent 60%),
-      radial-gradient(900px 600px at 80% 60%, rgba(255, 215, 0, 0.12), transparent 55%),
-      linear-gradient(120deg, #000000, #120000, #220000, #000000);
-    background-size: 240% 240%;
-    animation: luxe-gradient 12s ease-in-out infinite;
+  .lux-container {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
   }
 
-  .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  .aspect-16-10 {
+    aspect-ratio: 16 / 10;
   }
 
-  /* Cursor-following premium glow. Apply with `luxe-glow` on hoverable elements. */
-  .luxe-glow {
-    position: relative;
-    overflow: hidden;
-    transform: translateZ(0);
+  .animated-gradient-text {
+    background: linear-gradient(90deg, var(--color-primary-red), var(--color-primary-gold), var(--color-primary-red));
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientShift 6s ease-in-out infinite;
   }
 
-  .luxe-glow::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    pointer-events: none;
+  .fade-in {
     opacity: 0;
-    transition: opacity 180ms ease, transform 180ms ease;
-    background:
-      radial-gradient(240px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(255, 215, 0, 0.32), transparent 60%),
-      radial-gradient(320px circle at var(--glow-x, 50%) var(--glow-y, 50%), rgba(255, 0, 0, 0.16), transparent 65%);
-    filter: blur(12px);
+    transform: translateY(10px);
+    transition: opacity 600ms ease, transform 600ms ease;
   }
 
-  .luxe-glow:hover::before {
+  .fade-in.is-visible {
     opacity: 1;
-    transform: scale(1.02);
+    transform: translateY(0);
   }
-
-  .luxe-glow:hover {
-    border-color: color-mix(in oklab, var(--color-highlight) 22%, rgba(255, 255, 255, 0.10));
-  }
-}
-
-/* Utility: explicit class if you want to use the Luckiest Guy font selectively */
-.luckiest-guy-regular {
-  font-family: 'Luckiest Guy', cursive;
-  font-weight: 400;
-  font-style: normal;
-}
-
-/* Floating icons used in hero */
-@layer utilities {
-  @keyframes float-y {
-    0% { transform: translateY(0) translateX(0) rotate(0deg); }
-    50% { transform: translateY(-10px) translateX(2px) rotate(3deg); }
-    100% { transform: translateY(0) translateX(0) rotate(0deg); }
-  }
-
-  .floating-icon {
-    position: absolute;
-    display: grid;
-    place-items: center;
-    opacity: 0.95;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.45));
-    transform-origin: center;
-    animation-name: float-y;
-    animation-duration: 4.6s;
-    animation-iteration-count: infinite;
-    animation-timing-function: ease-in-out;
-  }
-
-  .floating-icon.left { left: 6%; }
-  .floating-icon.right { right: 8%; }
-  .floating-icon.top { top: 18%; }
-  .floating-icon.mid { top: 40%; }
-  .floating-icon.left-bottom { left: 14%; bottom: 22%; animation-duration: 5.2s; }
-  .floating-icon.right-top { right: 18%; top: 8%; animation-duration: 3.8s; }
-
-  /* Slight stagger via nth-child-like overrides using specific helpers */
-  .floating-icon.left { animation-delay: 0s; }
-  .floating-icon.right { animation-delay: 0.45s; }
-  .floating-icon.left-bottom { animation-delay: 0.9s; }
-  .floating-icon.right-top { animation-delay: 1.25s; }
-
-  .floating-icon svg { color: currentColor; }
 }

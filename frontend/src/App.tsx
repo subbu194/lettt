@@ -1,92 +1,57 @@
-import { AnimatePresence } from 'framer-motion';
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { SmoothScrollProvider } from './animations/lenis';
-import { PageTransition } from './components/layout/PageTransition';
-import { Shell } from './components/layout/Shell';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { Footer } from '@/components/layout/Footer';
+import { Header } from '@/components/layout/Header';
+import { Modal } from '@/components/shared/Modal';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
+import { useUIStore } from '@/store/useUIStore';
 
-const Home = lazy(() => import('./pages/Home'));
-const Events = lazy(() => import('./pages/Events'));
-const TalkShow = lazy(() => import('./pages/TalkShow'));
-const About = lazy(() => import('./pages/About'));
-const Login = lazy(() => import('./pages/Login'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Home = lazy(() => import('@/pages/Home'));
+const Events = lazy(() => import('@/pages/Events'));
+const TalkShow = lazy(() => import('@/pages/TalkShow'));
+const Purchase = lazy(() => import('@/pages/Purchase'));
+const About = lazy(() => import('@/pages/About'));
+const Auth = lazy(() => import('@/pages/Auth'));
 
-function AppRoutes() {
-  const location = useLocation();
+function AppShell() {
+  useScrollToTop();
+  const { isModalOpen, modalContent, closeModal } = useUIStore();
 
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-bg text-fg flex items-center justify-center">
-          <div className="glass rounded-2xl px-6 py-4 text-white/80">Loading…</div>
-        </div>
-      }
-    >
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route element={<Shell />}>
-            <Route
-              path="/"
-              element={
-                <PageTransition>
-                  <Home />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/events"
-              element={
-                <PageTransition>
-                  <Events />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/talk-show"
-              element={
-                <PageTransition>
-                  <TalkShow />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <PageTransition>
-                  <About />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="/login"
-              element={
-                <PageTransition>
-                  <Login />
-                </PageTransition>
-              }
-            />
-            <Route
-              path="*"
-              element={
-                <PageTransition>
-                  <NotFound />
-                </PageTransition>
-              }
-            />
-          </Route>
-        </Routes>
-      </AnimatePresence>
-    </Suspense>
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
+      <Header />
+      <main className="pt-16">
+        <Suspense
+          fallback={
+            <div className="lux-container py-16">
+              <div className="rounded-2xl border border-black/10 bg-[var(--color-bg)] p-6 shadow-sm">Loading…</div>
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/events" element={<Events />} />
+            <Route path="/talkshow" element={<TalkShow />} />
+            <Route path="/purchase" element={<Purchase />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </main>
+      <Footer />
+
+      <Modal isOpen={isModalOpen} onClose={closeModal}>
+        {modalContent}
+      </Modal>
+    </div>
   );
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <SmoothScrollProvider>
-        <AppRoutes />
-      </SmoothScrollProvider>
+      <AppShell />
     </BrowserRouter>
   );
 }

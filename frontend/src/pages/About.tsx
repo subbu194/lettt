@@ -1,23 +1,19 @@
-import { Container } from '../components/ui/Container';
-import { usePageMeta } from '../hooks/usePageMeta';
+import { AboutContent } from '@/components/about/AboutContent';
 
-export default function About() {
-  usePageMeta({
-    title: 'About — Let the talent talk',
-    description: 'Learn about Let the talent talk and our premium art & talent mission.',
-  });
-
+export default function AboutPage() {
   return (
-    <section className="py-16 sm:py-24">
-      <Container>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">About</h1>
-        <p className="mt-3 text-white/70">
-          Let the talent talk is built to feel exclusive—premium motion, refined visuals, and a platform structure ready for
-          production APIs.
-        </p>
-      </Container>
+    <section className="bg-[var(--color-bg)]">
+      <div className="lux-container py-16">
+        <div className="max-w-3xl">
+          <h1 className="text-4xl font-extrabold tracking-tight">About Us</h1>
+          <p className="mt-3 text-[var(--color-muted)]">
+            A   platform designed to elevate art, spotlight talent, and connect a    community.
+          </p>
+        </div>
+        <div className="mt-10">
+          <AboutContent />
+        </div>
+      </div>
     </section>
   );
 }
-
-

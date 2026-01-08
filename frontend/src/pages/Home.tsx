@@ -1,28 +1,38 @@
-import { usePageMeta } from '../hooks/usePageMeta';
-import { AboutSection } from '../components/sections/AboutSection';
-import { CtaSection } from '../components/sections/CtaSection';
-import { FeaturedEventsSection } from '../components/sections/FeaturedEventsSection';
-import { Footer } from '../components/sections/Footer';
-import { HeroSection } from '../components/sections/HeroSection';
-import { TalkShowSection } from '../components/sections/TalkShowSection';
+import { useEffect } from 'react';
+import { About } from '@/components/home/About';
+import { CTA } from '@/components/home/CTA';
+import { FeaturedEvents } from '@/components/home/FeaturedEvents';
+import { Hero } from '@/components/home/Hero';
+import { TalkShowVideos } from '@/components/home/TalkShowVideos';
 
-export default function Home() {
-  usePageMeta({
-    title: 'Let the talent talk — Luxury Art & Talent Platform',
-    description:
-      'Exclusive events, cinematic talk shows, and premium community engagement — designed to feel luxury, smooth, and high-end.',
-  });
+export default function HomePage() {
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll('.fade-in'));
+    if (!els.length) return;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            (e.target as HTMLElement).classList.add('is-visible');
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { threshold: 0.12 }
+    );
+
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
 
   return (
-    <>
-      <HeroSection />
-      <AboutSection />
-      <FeaturedEventsSection />
-      <TalkShowSection />
-      <CtaSection />
-      <Footer />
-    </>
+    <div>
+      <Hero />
+      <About />
+      <FeaturedEvents />
+      <TalkShowVideos />
+      <CTA />
+    </div>
   );
 }
-
-
