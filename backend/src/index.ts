@@ -3,7 +3,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { connectDatabase } from "./config/database";
-import apiRoutes from "./routes";
+import apiRoutes from "./routes/health";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
