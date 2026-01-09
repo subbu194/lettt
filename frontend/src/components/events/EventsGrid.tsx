@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { get } from '@/api/client';
+import apiClient from '@/api/client';
+import { getApiErrorMessage } from '@/api/error';
 import { EventCard } from '@/components/events/EventCard';
 
 type EventLike = Record<string, unknown>;
@@ -11,10 +12,14 @@ export function EventsGrid() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const { data, error } = await get<EventLike[]>('/events');
-      if (error) setError(error);
-      else setEvents(data || []);
-      setLoading(false);
+      try {
+        const resp = await apiClient.get<EventLike[]>('/events');
+        setEvents(resp.data || []);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
     };
     fetchEvents();
   }, []);

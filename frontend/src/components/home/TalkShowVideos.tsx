@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { get } from '@/api/client';
+import apiClient from '@/api/client';
+import { getApiErrorMessage } from '@/api/error';
 import { Card } from '@/components/shared/Card';
 import { useUIStore } from '@/store/useUIStore';
 import { VideoPlayer } from '@/components/talkshow/VideoPlayer';
@@ -14,10 +15,14 @@ export function TalkShowVideos() {
 
   useEffect(() => {
     const fetchVideos = async () => {
-      const { data, error } = await get<VideoLike[]>('/videos');
-      if (error) setError(error);
-      else setVideos(data || []);
-      setLoading(false);
+      try {
+        const resp = await apiClient.get<VideoLike[]>('/videos');
+        setVideos(resp.data || []);
+      } catch (err) {
+        setError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
     };
     fetchVideos();
   }, []);

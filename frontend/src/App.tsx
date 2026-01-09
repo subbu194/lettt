@@ -12,6 +12,10 @@ const TalkShow = lazy(() => import('@/pages/TalkShow'));
 const Purchase = lazy(() => import('@/pages/Purchase'));
 const About = lazy(() => import('@/pages/About'));
 const Auth = lazy(() => import('@/pages/Auth'));
+const AdminLogin = lazy(() => import('@/pages/AdminLogin'));
+const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+
+import { AdminRoute } from '@/routes/AdminRoute';
 
 function AppShell() {
   useScrollToTop();
@@ -35,6 +39,13 @@ function AppShell() {
             <Route path="/purchase" element={<Purchase />} />
             <Route path="/about" element={<About />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/login" element={<Auth initialTab="login" />} />
+            <Route path="/signup" element={<Auth initialTab="signup" />} />
+
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route element={<AdminRoute />}>
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
