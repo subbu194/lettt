@@ -4,6 +4,7 @@ import { CTA } from '@/components/home/CTA';
 import { FeaturedEvents } from '@/components/home/FeaturedEvents';
 import { Hero } from '@/components/home/Hero';
 import { TalkShowVideos } from '@/components/home/TalkShowVideos';
+import { PageTransition } from '@/components/shared/PageTransition';
 
 export default function HomePage() {
   useEffect(() => {
@@ -27,12 +28,14 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div>
-      <Hero />
-      <About />
-      <FeaturedEvents />
-      <TalkShowVideos />
-      <CTA />
-    </div>
+    <PageTransition>
+      <div>
+        <Hero />
+        <About />
+        <FeaturedEvents />
+        <TalkShowVideos />
+        <CTA />
+      </div>
+    </PageTransition>
   );
 }

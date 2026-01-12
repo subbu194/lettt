@@ -1,8 +1,10 @@
 import { Suspense, lazy } from 'react';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/shared/Modal';
+import { Spinner } from '@/components/shared/Spinner';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { useUIStore } from '@/store/useUIStore';
 
@@ -19,6 +21,7 @@ import { AdminRoute } from '@/routes/AdminRoute';
 
 function AppShell() {
   useScrollToTop();
+  const location = useLocation();
   const { isModalOpen, modalContent, closeModal } = useUIStore();
 
   return (
@@ -27,27 +30,29 @@ function AppShell() {
       <main className="pt-16">
         <Suspense
           fallback={
-            <div className="lux-container py-16">
-              <div className="rounded-2xl border border-black/10 bg-[var(--color-bg)] p-6 shadow-sm">Loading…</div>
+            <div className="flex min-h-[60vh] items-center justify-center">
+              <Spinner size="lg" />
             </div>
           }
         >
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/talkshow" element={<TalkShow />} />
-            <Route path="/purchase" element={<Purchase />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/login" element={<Auth initialTab="login" />} />
-            <Route path="/signup" element={<Auth initialTab="signup" />} />
+          <AnimatePresence mode="wait">
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Home />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/talkshow" element={<TalkShow />} />
+              <Route path="/purchase" element={<Purchase />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/login" element={<Auth initialTab="login" />} />
+              <Route path="/signup" element={<Auth initialTab="signup" />} />
 
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route element={<AdminRoute />}>
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route element={<AdminRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </AnimatePresence>
         </Suspense>
       </main>
       <Footer />

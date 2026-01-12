@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { EventCard } from '@/components/events/EventCard';
+import { SkeletonCard } from '@/components/shared/Skeleton';
+import { staggerContainer, staggerItem } from '@/utils/animations';
 
 type EventLike = Record<string, unknown>;
 
@@ -28,32 +31,55 @@ export function EventsGrid() {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-[320px] rounded-2xl border border-black/10 bg-white shadow-sm" />
+          <SkeletonCard key={i} />
         ))}
       </div>
     );
   }
 
   if (error) {
-    return <div className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70">Error: {error}</div>;
+    return (
+      <motion.div
+        className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        Error: {error}
+      </motion.div>
+    );
   }
 
   if (!events.length) {
     return (
-      <div className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70">
+      <motion.div
+        className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
         No events available yet. Please check back soon.
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <motion.div
+      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       {events.map((event, idx) => {
         const rawId = event.id ?? event._id ?? event.slug ?? event.name;
         const key = rawId ? String(rawId) : `event-${idx}`;
-        return <EventCard key={key} event={event} fallbackId={key} />;
+        return (
+          <motion.div key={key} variants={staggerItem}>
+            <EventCard event={event} fallbackId={key} />
+          </motion.div>
+        );
       })}
-    </div>
+    </motion.div>
   );
 }
 
