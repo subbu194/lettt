@@ -6,6 +6,7 @@ type CartItem = {
   price: number;
   qty: number;
   image?: string;
+  itemType?: 'art' | 'event';
 };
 
 type CartState = {

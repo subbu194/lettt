@@ -20,7 +20,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
 
   const handleAddToCart = async () => {
     setAddingToCart(true);
-    addItem({ id, name, price: price || 0, image });
+    addItem({ id, name, price: price || 0, image, itemType: 'event' });
     
     // Simulate a brief delay for feedback
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -34,7 +34,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
           <>
             {!imageLoaded && (
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5"
+                className="absolute inset-0 bg-linear-to-r from-black/5 via-black/10 to-black/5"
                 animate={{
                   backgroundPosition: ['0% 0%', '100% 0%'],
                 }}

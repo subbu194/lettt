@@ -16,8 +16,8 @@ export function EventsGrid() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const resp = await apiClient.get<EventLike[]>('/events');
-        setEvents(resp.data || []);
+        const resp = await apiClient.get<{ items: EventLike[] }>('/events');
+        setEvents(resp.data?.items || []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {

@@ -12,12 +12,12 @@
 .glow-red { box-shadow: 0 0 20px rgba(207, 70, 71, 0.5); }
 .glow-gold { box-shadow: 0 0 20px rgba(245, 208, 97, 0.5); }
 
-/* Luckiest Guy font */
-.luckiest-guy-regular {
+/* Luckiest Guy font - Uncomment for production */
+/* .luckiest-guy-regular {
   font-family: "Luckiest Guy", cursive;
   font-weight: 400;
   font-style: normal;
-}
+} */
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -36,12 +36,12 @@
 }
 
 @layer base {
-  /* Apply Luckiest Guy font to everything */
-  *,
+  /* Apply Luckiest Guy font to everything - Uncomment for production */
+  /* *,
   *::before,
   *::after {
     font-family: "Luckiest Guy", cursive;
-  }
+  } */
 
   html, body {
     height: 100%;
@@ -51,7 +51,7 @@
 
   body {
     @apply antialiased;
-    font-family: "Luckiest Guy", cursive;
+    /* font-family: "Luckiest Guy", cursive; */ /* Uncomment for production */
   }
 
   /* Force font inheritance on form elements */
