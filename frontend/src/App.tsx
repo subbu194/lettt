@@ -5,12 +5,14 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { Modal } from '@/components/shared/Modal';
 import { Spinner } from '@/components/shared/Spinner';
+import { FloatingCart } from '@/components/shared/FloatingCart';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { useUIStore } from '@/store/useUIStore';
 
 const Home = lazy(() => import('@/pages/Home'));
 const Events = lazy(() => import('@/pages/Events'));
 const EventDetail = lazy(() => import('@/pages/EventDetail'));
+const EventCheckout = lazy(() => import('@/pages/EventCheckout'));
 const TalkShow = lazy(() => import('@/pages/TalkShow'));
 const Purchase = lazy(() => import('@/pages/Purchase'));
 const About = lazy(() => import('@/pages/About'));
@@ -22,6 +24,7 @@ const ArtDetail = lazy(() => import('@/pages/ArtDetail'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const Orders = lazy(() => import('@/pages/Orders'));
 const MyTickets = lazy(() => import('@/pages/MyTickets'));
+const Profile = lazy(() => import('@/pages/Profile'));
 
 import { AdminRoute } from '@/routes/AdminRoute';
 
@@ -49,6 +52,7 @@ function AppShell() {
               <Route path="/" element={<Home />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:id" element={<EventDetail />} />
+              <Route path="/event-checkout/:id" element={<EventCheckout />} />
               <Route path="/art" element={<Art />} />
               <Route path="/art/:id" element={<ArtDetail />} />
               <Route path="/talkshow" element={<TalkShow />} />
@@ -56,6 +60,7 @@ function AppShell() {
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/my-tickets" element={<MyTickets />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/login" element={<Auth initialTab="login" />} />
@@ -71,6 +76,9 @@ function AppShell() {
         </Suspense>
       </main>
       <Footer />
+
+      {/* Floating Cart Button */}
+      {!isAdminPage && <FloatingCart />}
 
       <Modal isOpen={isModalOpen} onClose={closeModal}>
         {modalContent}

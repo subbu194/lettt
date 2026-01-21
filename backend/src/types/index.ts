@@ -12,6 +12,8 @@ export type SafeUser = {
   name?: string;
   role: UserRole;
   profileImage?: string;
+  phone?: string;
+  address?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };

@@ -47,7 +47,7 @@ export function AdminRoute() {
   // Show loading spinner while verifying
   if (isVerifying) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
+      <div className="flex min-h-screen items-center justify-center bg-(--color-bg)">
         <Spinner size="lg" />
       </div>
     );

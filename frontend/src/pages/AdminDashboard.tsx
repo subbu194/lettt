@@ -265,6 +265,20 @@ function Input({
   min?: number;
   icon?: React.ElementType;
 }) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+    
+    // For number inputs, remove leading zeros unless it's just "0" or empty
+    if (type === 'number' && newValue) {
+      // Remove leading zeros but preserve "0" and decimal values
+      if (newValue !== '0' && !newValue.includes('.')) {
+        newValue = newValue.replace(/^0+/, '') || '0';
+      }
+    }
+    
+    onChange(newValue);
+  };
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">
@@ -278,7 +292,7 @@ function Input({
           type={type}
           required={required}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={handleChange}
           min={min}
           placeholder={placeholder}
           className={`w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 ${Icon ? 'pl-11' : ''}`}
@@ -348,7 +362,7 @@ function Toggle({
           className="sr-only"
         />
         <div className={`h-6 w-11 rounded-full transition-colors ${checked ? 'bg-indigo-600' : 'bg-gray-300'}`}>
-          <div className={`h-5 w-5 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+          <div className={`h-5 w-5 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
         </div>
       </div>
     </label>
@@ -940,7 +954,7 @@ function EventFormModal({
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${uploadProgress}%` }}
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500"
+                className="h-full bg-linear-to-r from-indigo-500 to-purple-500"
               />
             </div>
           </div>
@@ -1274,12 +1288,12 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-gray-100 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
@@ -1402,7 +1416,7 @@ export default function AdminDashboardPage() {
                       <div className="mt-5 space-y-3">
                         <button 
                           onClick={() => { setActiveTab('art'); setArtModal({ open: true }); }}
-                          className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-amber-500/25 transition-all hover:shadow-amber-500/40"
+                          className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-amber-500/25 transition-all hover:shadow-amber-500/40"
                         >
                           <Plus className="h-5 w-5" />
                           Add New Artwork
@@ -1410,7 +1424,7 @@ export default function AdminDashboardPage() {
                         </button>
                         <button 
                           onClick={() => { setActiveTab('events'); setEventModal({ open: true }); }}
-                          className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-rose-500 to-pink-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40"
+                          className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-rose-500 to-pink-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40"
                         >
                           <Plus className="h-5 w-5" />
                           Create New Event
@@ -1429,7 +1443,7 @@ export default function AdminDashboardPage() {
                         <Ticket className="h-5 w-5 text-emerald-500" />
                       </div>
                       <div className="mt-5 flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-50 to-teal-50">
                           <Ticket className="h-8 w-8 text-emerald-600" />
                         </div>
                         <div>
@@ -1675,7 +1689,7 @@ export default function AdminDashboardPage() {
                                 {event.coverImage ? (
                                   <img src={event.coverImage} alt={event.title} className="h-full w-full object-cover" />
                                 ) : (
-                                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-rose-100 to-pink-100">
+                                  <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-rose-100 to-pink-100">
                                     <Calendar className="h-6 w-6 text-rose-400" />
                                   </div>
                                 )}

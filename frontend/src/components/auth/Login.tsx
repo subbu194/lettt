@@ -51,10 +51,10 @@ export function Login() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-3xl font-extrabold tracking-tight text-[var(--color-text)]">
+          <h2 className="text-3xl font-extrabold tracking-tight text-(--color-text)">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
+          <p className="mt-2 text-sm text-(--color-muted)">
             Sign in to continue to your account
           </p>
         </motion.div>
@@ -71,13 +71,13 @@ export function Login() {
               <Mail 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'email' 
-                    ? 'text-[var(--color-primary-gold)]' 
-                    : 'text-[var(--color-muted)]'
+                    ? 'text-(--color-primary-gold)' 
+                    : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-[var(--color-text)] outline-none transition-all duration-200 hover:border-black/25 focus:border-[var(--color-primary-gold)] focus:shadow-lg focus:shadow-[var(--color-primary-gold)]/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedField('email')}
@@ -87,7 +87,7 @@ export function Login() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-[var(--color-primary-gold)]">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
                 Email Address
               </label>
             </div>
@@ -104,13 +104,13 @@ export function Login() {
               <Lock 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'password' 
-                    ? 'text-[var(--color-primary-gold)]' 
-                    : 'text-[var(--color-muted)]'
+                    ? 'text-(--color-primary-gold)' 
+                    : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-[var(--color-text)] outline-none transition-all duration-200 hover:border-black/25 focus:border-[var(--color-primary-gold)] focus:shadow-lg focus:shadow-[var(--color-primary-gold)]/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setFocusedField('password')}
@@ -120,13 +120,13 @@ export function Login() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-[var(--color-primary-gold)]">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
                 Password
               </label>
               <motion.button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-(--color-muted) hover:text-(--color-text) transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -145,10 +145,10 @@ export function Login() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl border border-[var(--color-primary-red)]/30 bg-[var(--color-primary-red)]/5 px-4 py-3.5 text-sm text-[var(--color-text)] flex items-start gap-3">
-                  <AlertCircle className="text-[var(--color-primary-red)] flex-shrink-0 mt-0.5" size={18} />
+                <div className="rounded-xl border border-(--color-primary-red)/30 bg-(--color-primary-red)/5 px-4 py-3.5 text-sm text-(--color-text) flex items-start gap-3">
+                  <AlertCircle className="text-(--color-primary-red) shrink-0 mt-0.5" size={18} />
                   <div>
-                    <span className="font-semibold text-[var(--color-primary-red)]">Error:</span>{' '}
+                    <span className="font-semibold text-(--color-primary-red)">Error:</span>{' '}
                     {error}
                   </div>
                 </div>
@@ -217,7 +217,7 @@ export function Login() {
         >
           <a 
             href="#" 
-            className="text-sm text-[var(--color-primary-gold)] hover:underline transition-all duration-200 hover:text-[var(--color-primary-gold)]/80"
+            className="text-sm text-(--color-primary-gold) hover:underline transition-all duration-200 hover:text-(--color-primary-gold)/80"
           >
             Forgot your password?
           </a>

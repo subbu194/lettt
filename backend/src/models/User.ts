@@ -9,6 +9,8 @@ export interface UserDocument extends mongoose.Document {
   name?: string;
   role: UserRole;
   profileImage?: string;
+  phone?: string;
+  address?: string;
   comparePassword: (candidate: string) => Promise<boolean>;
   generateToken: (secret?: string) => string;
   toSafeJSON: () => SafeUser;
@@ -38,6 +40,14 @@ const UserSchema = new Schema<UserDocument>(
       default: "user",
     },
     profileImage: {
+      type: String,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    address: {
       type: String,
       trim: true,
     },
@@ -75,6 +85,8 @@ UserSchema.methods.toSafeJSON = function () {
     name: this.name,
     role: this.role,
     profileImage: this.profileImage,
+    phone: this.phone,
+    address: this.address,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

@@ -3,7 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Calendar, Clock, MapPin, Users, Ticket, Share2, Heart, 
-  Check, ChevronLeft, ChevronRight, X, AlertCircle, Navigation 
+  ChevronLeft, ChevronRight, X, AlertCircle, Navigation 
 } from 'lucide-react';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
@@ -11,7 +11,6 @@ import { PageTransition } from '@/components/shared/PageTransition';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { Spinner } from '@/components/shared/Spinner';
-import { useCartStore } from '@/store/useCartStore';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -66,8 +65,8 @@ function ImageGallery({ coverImage, galleryImages, title }: {
 
   if (!allImages.length) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--color-primary-red)]/20 to-[var(--color-primary-gold)]/20">
-        <Calendar className="h-20 w-20 text-[var(--color-primary-red)]/30" />
+      <div className="flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
+        <Calendar className="h-20 w-20 text-(--color-primary-red)/30" />
       </div>
     );
   }
@@ -96,13 +95,13 @@ function ImageGallery({ coverImage, galleryImages, title }: {
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
+                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-(--color-text) opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
+                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-(--color-text) opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -127,9 +126,9 @@ function ImageGallery({ coverImage, galleryImages, title }: {
                   setSelectedIndex(idx);
                   setImageLoaded(false);
                 }}
-                className={`relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-xl transition-all ${
+                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl transition-all ${
                   idx === selectedIndex
-                    ? 'ring-2 ring-[var(--color-primary-red)] ring-offset-2'
+                    ? 'ring-2 ring-(--color-primary-red) ring-offset-2'
                     : 'opacity-60 hover:opacity-100'
                 }`}
               >
@@ -183,22 +182,22 @@ function RelatedEventCard({ event }: { event: EventItem }) {
           {event.coverImage ? (
             <img src={event.coverImage} alt={event.title} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-[var(--color-primary-red)]/10 to-[var(--color-primary-gold)]/10">
-              <Calendar className="h-10 w-10 text-[var(--color-primary-red)]/30" />
+            <div className="flex h-full items-center justify-center bg-gradient-to-br from-(--color-primary-red)/10 to-(--color-primary-gold)/10">
+              <Calendar className="h-10 w-10 text-(--color-primary-red)/30" />
             </div>
           )}
           <div className="absolute left-3 top-3 rounded-lg bg-white/95 p-2 text-center shadow-md backdrop-blur-sm">
-            <span className="block text-lg font-extrabold text-[var(--color-primary-red)]">
+            <span className="block text-lg font-extrabold text-(--color-primary-red)">
               {eventDate.getDate()}
             </span>
-            <span className="block text-xs font-semibold uppercase text-[var(--color-muted)]">
+            <span className="block text-xs font-semibold uppercase text-(--color-muted)">
               {eventDate.toLocaleDateString('en-US', { month: 'short' })}
             </span>
           </div>
         </div>
         <div className="p-4">
           <h4 className="font-bold line-clamp-1">{event.title}</h4>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-primary-red)]">
+          <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
             ₹{event.ticketPrice.toLocaleString('en-IN')}
           </p>
         </div>
@@ -219,8 +218,6 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [addedToCart, setAddedToCart] = useState(false);
-  const addItem = useCartStore((s) => s.addItem);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -238,23 +235,19 @@ export default function EventDetailPage() {
     };
     if (id) {
       fetchEvent();
-      setAddedToCart(false);
       setQuantity(1);
     }
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleBookTickets = () => {
     if (!event) return;
-    addItem({
-      id: event._id,
-      name: event.title,
-      price: event.ticketPrice,
-      image: event.coverImage,
-      itemType: 'event',
-      qty: quantity,
+    // Navigate to event checkout with event data
+    navigate(`/event-checkout/${event._id}`, { 
+      state: { 
+        event,
+        quantity 
+      } 
     });
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
   };
 
   if (loading) {
@@ -274,7 +267,7 @@ export default function EventDetailPage() {
           <Card className="mx-auto max-w-lg p-8 text-center">
             <div className="mb-4 text-5xl">😢</div>
             <h2 className="text-xl font-extrabold">Unable to load event</h2>
-            <p className="mt-2 text-[var(--color-muted)]">{error}</p>
+            <p className="mt-2 text-(--color-muted)">{error}</p>
             <div className="mt-6 flex justify-center gap-3">
               <Button variant="ghost" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-4 w-4" />
@@ -297,7 +290,7 @@ export default function EventDetailPage() {
           <Card className="mx-auto max-w-lg p-8 text-center">
             <div className="mb-4 text-5xl">🎭</div>
             <h2 className="text-xl font-extrabold">Event not found</h2>
-            <p className="mt-2 text-[var(--color-muted)]">This event may have been removed or is no longer available.</p>
+            <p className="mt-2 text-(--color-muted)">This event may have been removed or is no longer available.</p>
             <div className="mt-6">
               <Button variant="gold" onClick={() => navigate('/events')}>
                 Browse All Events
@@ -327,7 +320,7 @@ export default function EventDetailPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-[var(--color-bg)]">
+      <section className="min-h-screen bg-(--color-bg)">
         <div className="lux-container py-8">
           {/* Breadcrumb */}
           <motion.nav
@@ -335,15 +328,15 @@ export default function EventDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8 flex items-center gap-2 text-sm"
           >
-            <Link to="/" className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]">
+            <Link to="/" className="text-(--color-muted) transition-colors hover:text-(--color-text)">
               Home
             </Link>
-            <span className="text-[var(--color-muted)]">/</span>
-            <Link to="/events" className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]">
+            <span className="text-(--color-muted)">/</span>
+            <Link to="/events" className="text-(--color-muted) transition-colors hover:text-(--color-text)">
               Events
             </Link>
-            <span className="text-[var(--color-muted)]">/</span>
-            <span className="font-semibold text-[var(--color-text)] line-clamp-1">{event.title}</span>
+            <span className="text-(--color-muted)">/</span>
+            <span className="font-semibold text-(--color-text) line-clamp-1">{event.title}</span>
           </motion.nav>
 
           <div className="grid gap-12 lg:grid-cols-3">
@@ -365,7 +358,7 @@ export default function EventDetailPage() {
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   {event.featured && (
-                    <span className="rounded-full bg-[var(--color-primary-gold)] px-3 py-1 text-xs font-bold text-[var(--color-primary-red)]">
+                    <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red)">
                       Featured Event
                     </span>
                   )}
@@ -386,16 +379,16 @@ export default function EventDetailPage() {
 
                 {/* Organizer */}
                 {event.organizer && (
-                  <p className="mt-2 text-lg text-[var(--color-muted)]">
-                    Organized by <span className="font-semibold text-[var(--color-text)]">{event.organizer}</span>
+                  <p className="mt-2 text-lg text-(--color-muted)">
+                    Organized by <span className="font-semibold text-(--color-text)">{event.organizer}</span>
                   </p>
                 )}
 
                 {/* Description */}
                 {event.description && (
                   <div className="mt-6">
-                    <h3 className="font-bold text-[var(--color-muted)]">About this event</h3>
-                    <p className="mt-2 leading-relaxed text-[var(--color-text)] whitespace-pre-line">{event.description}</p>
+                    <h3 className="font-bold text-(--color-muted)">About this event</h3>
+                    <p className="mt-2 leading-relaxed text-(--color-text) whitespace-pre-line">{event.description}</p>
                   </div>
                 )}
 
@@ -404,13 +397,13 @@ export default function EventDetailPage() {
                   <div className="mt-6 grid grid-cols-2 gap-4">
                     {event.duration && (
                       <div className="rounded-xl bg-black/5 p-4">
-                        <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Duration</span>
+                        <span className="text-xs font-semibold uppercase text-(--color-muted)">Duration</span>
                         <p className="mt-1 font-bold">{event.duration}</p>
                       </div>
                     )}
                     {event.ageRestriction && (
                       <div className="rounded-xl bg-black/5 p-4">
-                        <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Age Restriction</span>
+                        <span className="text-xs font-semibold uppercase text-(--color-muted)">Age Restriction</span>
                         <p className="mt-1 font-bold">{event.ageRestriction}</p>
                       </div>
                     )}
@@ -428,19 +421,19 @@ export default function EventDetailPage() {
               <div className="sticky top-24">
                 <Card className="p-6">
                   {/* Date Card */}
-                  <div className="mb-6 flex items-center gap-4 rounded-xl bg-gradient-to-br from-[var(--color-primary-red)]/10 to-[var(--color-primary-gold)]/10 p-4">
+                  <div className="mb-6 flex items-center gap-4 rounded-xl bg-gradient-to-br from-(--color-primary-red)/10 to-(--color-primary-gold)/10 p-4">
                     <div className="flex h-16 w-16 flex-col items-center justify-center rounded-xl bg-white shadow-md">
-                      <span className="text-2xl font-extrabold text-[var(--color-primary-red)]">
+                      <span className="text-2xl font-extrabold text-(--color-primary-red)">
                         {eventDate.getDate()}
                       </span>
-                      <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">
+                      <span className="text-xs font-semibold uppercase text-(--color-muted)">
                         {eventDate.toLocaleDateString('en-US', { month: 'short' })}
                       </span>
                     </div>
                     <div>
                       <p className="font-bold">{formatDate(eventDate)}</p>
                       {event.time && (
-                        <p className="text-sm text-[var(--color-muted)]">{event.time}</p>
+                        <p className="text-sm text-(--color-muted)">{event.time}</p>
                       )}
                     </div>
                   </div>
@@ -449,10 +442,10 @@ export default function EventDetailPage() {
                   <div className="space-y-4">
                     {event.venue && (
                       <div className="flex items-start gap-3">
-                        <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-[var(--color-primary-red)]" />
+                        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-(--color-primary-red)" />
                         <div>
                           <p className="font-semibold">{event.venue}</p>
-                          <button className="mt-1 flex items-center gap-1 text-sm text-[var(--color-primary-red)] hover:underline">
+                          <button className="mt-1 flex items-center gap-1 text-sm text-(--color-primary-red) hover:underline">
                             <Navigation className="h-3 w-3" />
                             Get Directions
                           </button>
@@ -462,15 +455,15 @@ export default function EventDetailPage() {
 
                     {event.time && (
                       <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 flex-shrink-0 text-[var(--color-primary-red)]" />
+                        <Clock className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
                         <p className="font-semibold">{event.time}</p>
                       </div>
                     )}
 
                     {isUpcoming && (
                       <div className="flex items-center gap-3">
-                        <Users className="h-5 w-5 flex-shrink-0 text-[var(--color-primary-red)]" />
-                        <p className={`font-semibold ${lowSeats ? 'text-[var(--color-primary-red)]' : ''}`}>
+                        <Users className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
+                        <p className={`font-semibold ${lowSeats ? 'text-(--color-primary-red)' : ''}`}>
                           {soldOut ? 'No seats available' : `${seatsLeft} seats left`}
                         </p>
                       </div>
@@ -482,19 +475,19 @@ export default function EventDetailPage() {
 
                   {/* Price */}
                   <div className="flex items-baseline justify-between">
-                    <span className="text-sm text-[var(--color-muted)]">Ticket Price</span>
+                    <span className="text-sm text-(--color-muted)">Ticket Price</span>
                     <div>
-                      <span className="text-3xl font-extrabold text-[var(--color-primary-red)]">
+                      <span className="text-3xl font-extrabold text-(--color-primary-red)">
                         ₹{event.ticketPrice.toLocaleString('en-IN')}
                       </span>
-                      <span className="ml-1 text-sm text-[var(--color-muted)]">/ person</span>
+                      <span className="ml-1 text-sm text-(--color-muted)">/ person</span>
                     </div>
                   </div>
 
                   {/* Low Seats Warning */}
                   {isUpcoming && lowSeats && !soldOut && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-[var(--color-primary-red)]/10 p-3 text-sm text-[var(--color-primary-red)]">
-                      <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-(--color-primary-red)/10 p-3 text-sm text-(--color-primary-red)">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
                       <span className="font-semibold">Only {seatsLeft} seats remaining!</span>
                     </div>
                   )}
@@ -503,7 +496,7 @@ export default function EventDetailPage() {
                   {isUpcoming && !soldOut && (
                     <>
                       <div className="mt-6">
-                        <label className="mb-2 block text-sm font-semibold text-[var(--color-muted)]">
+                        <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
                           Number of Tickets
                         </label>
                         <div className="flex items-center rounded-xl border border-black/10 bg-white">
@@ -527,7 +520,7 @@ export default function EventDetailPage() {
                       {/* Total */}
                       <div className="mt-4 flex items-baseline justify-between rounded-xl bg-black/5 p-4">
                         <span className="font-semibold">Total</span>
-                        <span className="text-2xl font-extrabold text-[var(--color-primary-red)]">
+                        <span className="text-2xl font-extrabold text-(--color-primary-red)">
                           ₹{(event.ticketPrice * quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
@@ -537,20 +530,10 @@ export default function EventDetailPage() {
                         variant="gold"
                         size="lg"
                         className="mt-6 w-full"
-                        onClick={handleAddToCart}
-                        disabled={addedToCart}
+                        onClick={handleBookTickets}
                       >
-                        {addedToCart ? (
-                          <>
-                            <Check className="h-5 w-5" />
-                            Added to Cart!
-                          </>
-                        ) : (
-                          <>
-                            <Ticket className="h-5 w-5" />
-                            Book {quantity} {quantity === 1 ? 'Ticket' : 'Tickets'}
-                          </>
-                        )}
+                        <Ticket className="h-5 w-5" />
+                        Book {quantity} {quantity === 1 ? 'Ticket' : 'Tickets'}
                       </Button>
                     </>
                   )}
@@ -595,7 +578,7 @@ export default function EventDetailPage() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-extrabold tracking-tight">More Events You Might Like</h2>
-                <Link to="/events" className="text-sm font-semibold text-[var(--color-primary-red)] hover:underline">
+                <Link to="/events" className="text-sm font-semibold text-(--color-primary-red) hover:underline">
                   View All →
                 </Link>
               </div>

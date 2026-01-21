@@ -6,7 +6,7 @@ import { fadeInUp } from '@/utils/animations';
 export default function AboutPage() {
   return (
     <PageTransition>
-      <section className="bg-[var(--color-bg)]">
+      <section className="bg-(--color-bg)">
         <div className="lux-container py-16">
           <motion.div
             className="max-w-3xl"
@@ -16,7 +16,7 @@ export default function AboutPage() {
             transition={{ duration: 0.4 }}
           >
             <h1 className="text-4xl font-extrabold tracking-tight">About Us</h1>
-            <p className="mt-3 text-[var(--color-muted)]">
+            <p className="mt-3 text-(--color-muted)">
               A   platform designed to elevate art, spotlight talent, and connect a    community.
             </p>
           </motion.div>

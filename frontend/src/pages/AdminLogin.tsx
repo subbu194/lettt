@@ -45,21 +45,21 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <section className="relative bg-[var(--color-bg)]">
+    <section className="relative bg-(--color-bg)">
       <div className="relative">
         <AuthBackground />
         <div className="lux-container py-12 sm:py-16">
           <div className="mx-auto max-w-xl">
             <Card className="p-6 bg-white/70 backdrop-blur border border-black/10">
               <div className="text-center">
-                <h1 className="text-2xl font-extrabold tracking-tight text-[var(--color-text)]">Admin Access</h1>
-                <p className="mt-2 text-sm text-[var(--color-muted)]">Restricted area.</p>
+                <h1 className="text-2xl font-extrabold tracking-tight text-(--color-text)">Admin Access</h1>
+                <p className="mt-2 text-sm text-(--color-muted)">Restricted area.</p>
               </div>
 
               {blockedByUserSession ? (
                 <div className="mt-6 space-y-4">
-                  <div className="rounded-xl border border-[var(--color-primary-red)]/30 bg-white/70 px-4 py-3 text-sm text-[var(--color-text)]">
-                    <span className="font-semibold text-[var(--color-primary-red)]">Blocked:</span> Logout from your
+                  <div className="rounded-xl border border-(--color-primary-red)/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
+                    <span className="font-semibold text-(--color-primary-red)">Blocked:</span> Logout from your
                     user session to access the hidden admin login.
                   </div>
                   <Button variant="ghost" className="w-full" onClick={logout}>
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
                 <form className="mt-6 space-y-4" onSubmit={onSubmit}>
                   <div className="relative">
                     <input
-                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-[var(--color-text)] outline-none focus:border-[var(--color-primary-gold)]"
+                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-(--color-primary-gold)"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       type="email"
@@ -78,14 +78,14 @@ export default function AdminLoginPage() {
                       placeholder=" "
                       required
                     />
-                    <label className="pointer-events-none absolute left-4 top-3 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs">
+                    <label className="pointer-events-none absolute left-4 top-3 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs">
                       Email
                     </label>
                   </div>
 
                   <div className="relative">
                     <input
-                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-[var(--color-text)] outline-none focus:border-[var(--color-primary-gold)]"
+                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-(--color-primary-gold)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type="password"
@@ -93,14 +93,14 @@ export default function AdminLoginPage() {
                       placeholder=" "
                       required
                     />
-                    <label className="pointer-events-none absolute left-4 top-3 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs">
+                    <label className="pointer-events-none absolute left-4 top-3 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-sm peer-focus:top-2 peer-focus:text-xs">
                       Password
                     </label>
                   </div>
 
                   {error ? (
-                    <div className="rounded-xl border border-[var(--color-primary-red)]/30 bg-white/70 px-4 py-3 text-sm text-[var(--color-text)]">
-                      <span className="font-semibold text-[var(--color-primary-red)]">Error:</span> {error}
+                    <div className="rounded-xl border border-(--color-primary-red)/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
+                      <span className="font-semibold text-(--color-primary-red)">Error:</span> {error}
                     </div>
                   ) : null}
 

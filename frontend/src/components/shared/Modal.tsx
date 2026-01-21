@@ -33,7 +33,7 @@ export function Modal({ isOpen, onClose, title, children }: Props) {
       }}
     >
       <div className="absolute inset-0 bg-black/40" />
-      <div className="relative w-full max-w-3xl rounded-2xl border border-black/10 bg-[var(--color-bg)] text-[var(--color-text)] shadow-xl">
+      <div className="relative w-full max-w-3xl rounded-2xl border border-black/10 bg-(--color-bg) text-(--color-text) shadow-xl">
         <div className="flex items-center justify-between gap-3 border-b border-black/10 px-5 py-4">
           <div className="min-w-0">
             {title ? (

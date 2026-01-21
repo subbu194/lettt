@@ -1,17 +1,20 @@
 import { ArrowDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/shared/Button';
+import logo from '@/assets/lettt-logo.png';
 
 export function Hero() {
   const navigate = useNavigate();
 
   return (
     <section id="hero" className="relative flex min-h-[calc(100vh-4rem)] items-center">
-      <div className="lux-container py-16">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-semibold tracking-[0.22em] text-black/60">  ART & TALENT PLATFORM</p>
+      <div className="w-full px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-4xl text-center">
+          <div className="flex justify-center">
+            <img src={logo} alt="Let the talent talk" className="h-32 w-auto sm:h-40 md:h-52 lg:h-64" />
+          </div>
           <h1 className="mt-4 luckiest-guy-regular text-4xl tracking-tight sm:text-5xl md:text-6xl">
-            <span className="animated-gradient-text">Elevate Art.</span> <span className="animated-gradient-text">Celebrate Talent.</span>
+            <span className="animated-gradient-text">Let the Talent talk</span>
           </h1>
           <p className="mt-5 text-base leading-relaxed text-black/70 sm:text-lg">
             Discover exclusive events, cinematic talk shows, and a    community where talent rises.

@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 
+// Cart now ONLY handles art items
+// Events use direct payment flow from EventDetail page
 type CartItem = {
   id: string;
   name: string;
   price: number;
   qty: number;
   image?: string;
-  itemType?: 'art' | 'event';
 };
 
 type CartState = {
@@ -24,7 +25,11 @@ function loadInitial(): CartItem[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as CartItem[]) : [];
+    if (!Array.isArray(parsed)) return [];
+    // Filter out any event items from old cart data
+    return (parsed as any[]).filter((item: any) => 
+      !item.itemType || item.itemType === 'art'
+    );
   } catch {
     return [];
   }

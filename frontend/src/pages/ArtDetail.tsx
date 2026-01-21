@@ -87,7 +87,7 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
           {/* Zoom Button */}
           <button
             onClick={() => setIsZoomed(true)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
+            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-(--color-text) opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
           >
             <ZoomIn className="h-5 w-5" />
           </button>
@@ -97,13 +97,13 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
             <>
               <button
                 onClick={handlePrev}
-                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
+                className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-(--color-text) opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={handleNext}
-                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[var(--color-text)] opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
+                className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-(--color-text) opacity-0 shadow-lg backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -128,9 +128,9 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
                   setSelectedIndex(idx);
                   setImageLoaded(false);
                 }}
-                className={`relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl transition-all ${
+                className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl transition-all ${
                   idx === selectedIndex
-                    ? 'ring-2 ring-[var(--color-primary-red)] ring-offset-2'
+                    ? 'ring-2 ring-(--color-primary-red) ring-offset-2'
                     : 'opacity-60 hover:opacity-100'
                 }`}
               >
@@ -211,7 +211,7 @@ function RelatedArtCard({ art }: { art: ArtItem }) {
         </div>
         <div className="p-4">
           <h4 className="font-bold line-clamp-1">{art.title}</h4>
-          <p className="mt-1 text-sm font-semibold text-[var(--color-primary-red)]">
+          <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
             ₹{art.price.toLocaleString('en-IN')}
           </p>
         </div>
@@ -274,7 +274,6 @@ export default function ArtDetailPage() {
       name: selectedSize ? `${art.title} (${selectedSize})` : art.title,
       price: art.price,
       image: art.images?.[0],
-      itemType: 'art',
       qty: quantity,
     });
     setAddedToCart(true);
@@ -298,7 +297,7 @@ export default function ArtDetailPage() {
           <Card className="mx-auto max-w-lg p-8 text-center">
             <div className="mb-4 text-5xl">😢</div>
             <h2 className="text-xl font-extrabold">Unable to load artwork</h2>
-            <p className="mt-2 text-[var(--color-muted)]">{error}</p>
+            <p className="mt-2 text-(--color-muted)">{error}</p>
             <div className="mt-6 flex justify-center gap-3">
               <Button variant="ghost" onClick={() => navigate(-1)}>
                 <ArrowLeft className="h-4 w-4" />
@@ -321,7 +320,7 @@ export default function ArtDetailPage() {
           <Card className="mx-auto max-w-lg p-8 text-center">
             <div className="mb-4 text-5xl">🎨</div>
             <h2 className="text-xl font-extrabold">Artwork not found</h2>
-            <p className="mt-2 text-[var(--color-muted)]">This artwork may have been removed or is no longer available.</p>
+            <p className="mt-2 text-(--color-muted)">This artwork may have been removed or is no longer available.</p>
             <div className="mt-6">
               <Button variant="gold" onClick={() => navigate('/art')}>
                 Browse All Artworks
@@ -335,7 +334,7 @@ export default function ArtDetailPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-[var(--color-bg)]">
+      <section className="min-h-screen bg-(--color-bg)">
         <div className="lux-container py-8">
           {/* Breadcrumb */}
           <motion.nav
@@ -343,15 +342,15 @@ export default function ArtDetailPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-8 flex items-center gap-2 text-sm"
           >
-            <Link to="/" className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]">
+            <Link to="/" className="text-(--color-muted) transition-colors hover:text-(--color-text)">
               Home
             </Link>
-            <span className="text-[var(--color-muted)]">/</span>
-            <Link to="/art" className="text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)]">
+            <span className="text-(--color-muted)">/</span>
+            <Link to="/art" className="text-(--color-muted) transition-colors hover:text-(--color-text)">
               Art Gallery
             </Link>
-            <span className="text-[var(--color-muted)]">/</span>
-            <span className="font-semibold text-[var(--color-text)] line-clamp-1">{art.title}</span>
+            <span className="text-(--color-muted)">/</span>
+            <span className="font-semibold text-(--color-text) line-clamp-1">{art.title}</span>
           </motion.nav>
 
           <div className="grid gap-12 lg:grid-cols-2">
@@ -374,12 +373,12 @@ export default function ArtDetailPage() {
               {/* Category & Badges */}
               <div className="flex flex-wrap items-center gap-2">
                 {art.category && (
-                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-[var(--color-muted)]">
+                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--color-muted)">
                     {art.category}
                   </span>
                 )}
                 {art.featured && (
-                  <span className="rounded-full bg-[var(--color-primary-gold)] px-3 py-1 text-xs font-bold text-[var(--color-primary-red)]">
+                  <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red)">
                     Featured
                   </span>
                 )}
@@ -395,24 +394,24 @@ export default function ArtDetailPage() {
 
               {/* Artist */}
               {art.artist && (
-                <p className="mt-2 text-lg text-[var(--color-muted)]">
-                  by <span className="font-semibold text-[var(--color-text)]">{art.artist}</span>
+                <p className="mt-2 text-lg text-(--color-muted)">
+                  by <span className="font-semibold text-(--color-text)">{art.artist}</span>
                 </p>
               )}
 
               {/* Price */}
               <div className="mt-6">
-                <span className="text-4xl font-extrabold text-[var(--color-primary-red)]">
+                <span className="text-4xl font-extrabold text-(--color-primary-red)">
                   ₹{art.price.toLocaleString('en-IN')}
                 </span>
-                <span className="ml-2 text-sm text-[var(--color-muted)]">Inclusive of all taxes</span>
+                <span className="ml-2 text-sm text-(--color-muted)">Inclusive of all taxes</span>
               </div>
 
               {/* Description */}
               {art.description && (
                 <div className="mt-6">
-                  <h3 className="font-bold text-[var(--color-muted)]">Description</h3>
-                  <p className="mt-2 leading-relaxed text-[var(--color-text)]">{art.description}</p>
+                  <h3 className="font-bold text-(--color-muted)">Description</h3>
+                  <p className="mt-2 leading-relaxed text-(--color-text)">{art.description}</p>
                 </div>
               )}
 
@@ -420,19 +419,19 @@ export default function ArtDetailPage() {
               <div className="mt-6 grid grid-cols-2 gap-4">
                 {art.dimensions && (
                   <div className="rounded-xl bg-black/5 p-4">
-                    <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Dimensions</span>
+                    <span className="text-xs font-semibold uppercase text-(--color-muted)">Dimensions</span>
                     <p className="mt-1 font-bold">{art.dimensions}</p>
                   </div>
                 )}
                 {art.medium && (
                   <div className="rounded-xl bg-black/5 p-4">
-                    <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Medium</span>
+                    <span className="text-xs font-semibold uppercase text-(--color-muted)">Medium</span>
                     <p className="mt-1 font-bold">{art.medium}</p>
                   </div>
                 )}
                 {art.year && (
                   <div className="rounded-xl bg-black/5 p-4">
-                    <span className="text-xs font-semibold uppercase text-[var(--color-muted)]">Year</span>
+                    <span className="text-xs font-semibold uppercase text-(--color-muted)">Year</span>
                     <p className="mt-1 font-bold">{art.year}</p>
                   </div>
                 )}
@@ -441,7 +440,7 @@ export default function ArtDetailPage() {
               {/* Frame Size Selector */}
               {frameSizes.length > 0 && (
                 <div className="mt-6">
-                  <h3 className="font-bold text-[var(--color-muted)]">Frame Size</h3>
+                  <h3 className="font-bold text-(--color-muted)">Frame Size</h3>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {frameSizes.map((size) => (
                       <button
@@ -449,7 +448,7 @@ export default function ArtDetailPage() {
                         onClick={() => setSelectedSize(size)}
                         className={`rounded-xl border-2 px-4 py-2 text-sm font-semibold transition-all ${
                           selectedSize === size
-                            ? 'border-[var(--color-primary-red)] bg-[var(--color-primary-red)]/10 text-[var(--color-primary-red)]'
+                            ? 'border-(--color-primary-red) bg-(--color-primary-red)/10 text-(--color-primary-red)'
                             : 'border-black/10 hover:border-black/20'
                         }`}
                       >
@@ -498,7 +497,7 @@ export default function ArtDetailPage() {
                     </>
                   )}
                 </Button>
-                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/10 bg-white transition-colors hover:border-[var(--color-primary-red)] hover:text-[var(--color-primary-red)]">
+                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/10 bg-white transition-colors hover:border-(--color-primary-red) hover:text-(--color-primary-red)">
                   <Heart className="h-5 w-5" />
                 </button>
                 <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/10 bg-white transition-colors hover:border-black/20">
@@ -509,17 +508,17 @@ export default function ArtDetailPage() {
               {/* Trust Badges */}
               <div className="mt-8 grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-3 rounded-xl bg-black/5 p-4">
-                  <Truck className="h-6 w-6 text-[var(--color-primary-red)]" />
+                  <Truck className="h-6 w-6 text-(--color-primary-red)" />
                   <div>
                     <p className="text-sm font-bold">Free Shipping</p>
-                    <p className="text-xs text-[var(--color-muted)]">On orders over ₹5,000</p>
+                    <p className="text-xs text-(--color-muted)">On orders over ₹5,000</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 rounded-xl bg-black/5 p-4">
-                  <Shield className="h-6 w-6 text-[var(--color-primary-red)]" />
+                  <Shield className="h-6 w-6 text-(--color-primary-red)" />
                   <div>
                     <p className="text-sm font-bold">Authenticity</p>
-                    <p className="text-xs text-[var(--color-muted)]">Certificate included</p>
+                    <p className="text-xs text-(--color-muted)">Certificate included</p>
                   </div>
                 </div>
               </div>
@@ -536,7 +535,7 @@ export default function ArtDetailPage() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-extrabold tracking-tight">You May Also Like</h2>
-                <Link to="/art" className="text-sm font-semibold text-[var(--color-primary-red)] hover:underline">
+                <Link to="/art" className="text-sm font-semibold text-(--color-primary-red) hover:underline">
                   View All →
                 </Link>
               </div>

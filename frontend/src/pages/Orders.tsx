@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Package, Ticket, Calendar, ChevronRight, ChevronLeft, Search, 
+  Package, Ticket, Calendar, ChevronRight, ChevronLeft,
   Filter, X, CheckCircle2, Clock, XCircle, AlertCircle, Eye 
 } from 'lucide-react';
 import apiClient from '@/api/client';
@@ -109,7 +109,7 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
                 <h3 className="font-extrabold">Order #{order._id.slice(-8).toUpperCase()}</h3>
                 <StatusBadge status={order.paymentStatus} />
               </div>
-              <p className="mt-1 flex items-center gap-2 text-sm text-[var(--color-muted)]">
+              <p className="mt-1 flex items-center gap-2 text-sm text-(--color-muted)">
                 <Calendar className="h-4 w-4" />
                 {orderDate.toLocaleDateString('en-IN', {
                   day: 'numeric',
@@ -121,10 +121,10 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-extrabold text-[var(--color-primary-red)]">
+              <p className="text-2xl font-extrabold text-(--color-primary-red)">
                 ₹{order.totalAmount.toLocaleString('en-IN')}
               </p>
-              <p className="text-xs text-[var(--color-muted)]">
+              <p className="text-xs text-(--color-muted)">
                 {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
               </p>
             </div>
@@ -139,16 +139,16 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
                   className="inline-flex items-center gap-1.5 rounded-lg bg-black/5 px-2 py-1 text-xs"
                 >
                   {item.itemType === 'event' ? (
-                    <Ticket className="h-3 w-3 text-[var(--color-primary-red)]" />
+                    <Ticket className="h-3 w-3 text-(--color-primary-red)" />
                   ) : (
-                    <Package className="h-3 w-3 text-[var(--color-primary-gold)]" />
+                    <Package className="h-3 w-3 text-(--color-primary-gold)" />
                   )}
                   <span className="max-w-[150px] truncate">{item.title}</span>
-                  <span className="text-[var(--color-muted)]">×{item.quantity}</span>
+                  <span className="text-(--color-muted)">×{item.quantity}</span>
                 </span>
               ))}
               {order.items.length > 3 && (
-                <span className="inline-flex items-center rounded-lg bg-black/5 px-2 py-1 text-xs text-[var(--color-muted)]">
+                <span className="inline-flex items-center rounded-lg bg-black/5 px-2 py-1 text-xs text-(--color-muted)">
                   +{order.items.length - 3} more
                 </span>
               )}
@@ -159,13 +159,13 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
           <div className="mt-4 flex items-center justify-between border-t border-black/5 pt-4">
             <div className="flex items-center gap-3">
               {hasEvents && (
-                <span className="flex items-center gap-1 text-xs text-[var(--color-muted)]">
+                <span className="flex items-center gap-1 text-xs text-(--color-muted)">
                   <Ticket className="h-4 w-4" />
                   Event Tickets
                 </span>
               )}
               {hasArt && (
-                <span className="flex items-center gap-1 text-xs text-[var(--color-muted)]">
+                <span className="flex items-center gap-1 text-xs text-(--color-muted)">
                   <Package className="h-4 w-4" />
                   Artwork
                 </span>
@@ -256,7 +256,7 @@ function OrderDetailModal({
               {/* Order Info */}
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-[var(--color-muted)]">Order ID</p>
+                  <p className="text-sm text-(--color-muted)">Order ID</p>
                   <p className="font-bold">#{order._id.slice(-8).toUpperCase()}</p>
                 </div>
                 <StatusBadge status={order.paymentStatus} />
@@ -264,7 +264,7 @@ function OrderDetailModal({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-[var(--color-muted)]">Date</p>
+                  <p className="text-sm text-(--color-muted)">Date</p>
                   <p className="font-semibold">
                     {new Date(order.createdAt).toLocaleDateString('en-IN', {
                       day: 'numeric',
@@ -274,7 +274,7 @@ function OrderDetailModal({
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-[var(--color-muted)]">Payment ID</p>
+                  <p className="text-sm text-(--color-muted)">Payment ID</p>
                   <p className="font-semibold truncate">
                     {order.razorpayPaymentId || 'N/A'}
                   </p>
@@ -293,14 +293,14 @@ function OrderDetailModal({
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
                           {item.itemType === 'event' ? (
-                            <Ticket className="h-5 w-5 text-[var(--color-primary-red)]" />
+                            <Ticket className="h-5 w-5 text-(--color-primary-red)" />
                           ) : (
-                            <Package className="h-5 w-5 text-[var(--color-primary-gold)]" />
+                            <Package className="h-5 w-5 text-(--color-primary-gold)" />
                           )}
                         </div>
                         <div>
                           <p className="font-semibold leading-tight">{item.title}</p>
-                          <p className="text-sm text-[var(--color-muted)]">
+                          <p className="text-sm text-(--color-muted)">
                             ₹{item.price.toLocaleString('en-IN')} × {item.quantity}
                           </p>
                         </div>
@@ -318,12 +318,12 @@ function OrderDetailModal({
                 <div>
                   <h3 className="mb-3 font-bold">Event Tickets</h3>
                   <Link to="/my-tickets">
-                    <div className="flex items-center justify-between rounded-xl border border-[var(--color-primary-gold)] bg-[var(--color-primary-gold)]/10 p-4">
+                    <div className="flex items-center justify-between rounded-xl border border-(--color-primary-gold) bg-(--color-primary-gold)/10 p-4">
                       <div className="flex items-center gap-3">
-                        <Ticket className="h-6 w-6 text-[var(--color-primary-red)]" />
+                        <Ticket className="h-6 w-6 text-(--color-primary-red)" />
                         <div>
                           <p className="font-bold">{tickets.length} {tickets.length === 1 ? 'Ticket' : 'Tickets'}</p>
-                          <p className="text-sm text-[var(--color-muted)]">Click to view your tickets</p>
+                          <p className="text-sm text-(--color-muted)">Click to view your tickets</p>
                         </div>
                       </div>
                       <ChevronRight className="h-5 w-5" />
@@ -339,14 +339,14 @@ function OrderDetailModal({
                   <div className="rounded-xl bg-black/5 p-4">
                     <p className="text-sm">{order.address}</p>
                     {order.phone && (
-                      <p className="mt-2 text-sm text-[var(--color-muted)]">Phone: {order.phone}</p>
+                      <p className="mt-2 text-sm text-(--color-muted)">Phone: {order.phone}</p>
                     )}
                   </div>
                 </div>
               )}
 
               {/* Total */}
-              <div className="flex items-center justify-between rounded-xl bg-[var(--color-primary-red)] p-4 text-white">
+              <div className="flex items-center justify-between rounded-xl bg-(--color-primary-red) p-4 text-white">
                 <span className="font-bold">Total Paid</span>
                 <span className="text-2xl font-extrabold">
                   ₹{order.totalAmount.toLocaleString('en-IN')}
@@ -419,9 +419,9 @@ export default function OrdersPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-[var(--color-bg)]">
+      <section className="min-h-screen bg-(--color-bg)">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-[var(--color-primary-red)] to-[#8B2E2F] py-12 text-white">
+        <div className="bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F] py-12 text-white">
           <div className="lux-container">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -437,8 +437,8 @@ export default function OrdersPage() {
           {/* Filters */}
           <div className="mb-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-[var(--color-muted)]" />
-              <span className="text-sm font-semibold text-[var(--color-muted)]">Filter by status:</span>
+              <Filter className="h-5 w-5 text-(--color-muted)" />
+              <span className="text-sm font-semibold text-(--color-muted)">Filter by status:</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {['', 'paid', 'created', 'failed'].map((status) => (
@@ -447,8 +447,8 @@ export default function OrdersPage() {
                   onClick={() => setStatusFilter(status)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                     statusFilter === status
-                      ? 'bg-[var(--color-primary-red)] text-white'
-                      : 'bg-white text-[var(--color-text)] hover:bg-black/5'
+                      ? 'bg-(--color-primary-red) text-white'
+                      : 'bg-white text-(--color-text) hover:bg-black/5'
                   }`}
                 >
                   {status === '' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -490,10 +490,10 @@ export default function OrdersPage() {
               className="flex flex-col items-center justify-center py-16 text-center"
             >
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
-                <Package className="h-12 w-12 text-[var(--color-muted)]" />
+                <Package className="h-12 w-12 text-(--color-muted)" />
               </div>
               <h3 className="text-xl font-extrabold">No orders yet</h3>
-              <p className="mt-2 max-w-sm text-[var(--color-muted)]">
+              <p className="mt-2 max-w-sm text-(--color-muted)">
                 {statusFilter 
                   ? 'No orders match your current filter. Try a different status.'
                   : 'Start exploring our art gallery and events to place your first order.'}
@@ -539,7 +539,7 @@ export default function OrdersPage() {
                     <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
-                  <span className="text-sm text-[var(--color-muted)]">
+                  <span className="text-sm text-(--color-muted)">
                     Page {pagination.page} of {pagination.totalPages}
                   </span>
                   <Button

@@ -22,7 +22,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
             <p className="mt-2 text-black/70">{this.state.message}</p>
             <button
-              className="mt-5 inline-flex items-center justify-center rounded-xl bg-[var(--color-primary-red)] px-5 py-3 font-semibold text-[var(--color-primary-gold)] glow-gold hover:glow-red transition"
+              className="mt-5 inline-flex items-center justify-center rounded-xl bg-(--color-primary-red) px-5 py-3 font-semibold text-(--color-primary-gold) glow-gold hover:glow-red transition"
               onClick={() => window.location.reload()}
             >
               Reload

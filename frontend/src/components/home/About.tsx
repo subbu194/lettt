@@ -9,13 +9,13 @@ export function About() {
   ];
 
   return (
-    <section id="about" className="border-t border-black/10 bg-[var(--color-bg)]">
-      <div className="lux-container py-16">
+    <section id="about" className="border-t border-black/10 bg-(--color-bg)">
+      <div className="w-full px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-3xl text-center fade-in">
           <h2 className="text-3xl font-extrabold tracking-tight">
             A    home for <span className="animated-gradient-text">art</span> and <span className="animated-gradient-text">talent</span>.
           </h2>
-          <p className="mt-4 text-[var(--color-muted)]">
+          <p className="mt-4 text-(--color-muted)">
             Let the talent talk connects artists, audiences, and communities through curated events, unforgettable performances, and
             talk shows designed with   in mind.
           </p>

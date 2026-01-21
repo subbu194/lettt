@@ -8,7 +8,6 @@ import { PageTransition } from '@/components/shared/PageTransition';
 import { SkeletonCard } from '@/components/shared/Skeleton';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
-import { useCartStore } from '@/store/useCartStore';
 import { useDebounce } from '@/hooks/useDebounce';
 
 // ─────────────────────────────────────────────────────────────
@@ -52,7 +51,7 @@ interface VenuesResponse {
 // Event Card Component
 // ─────────────────────────────────────────────────────────────
 
-function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () => void }) {
+function EventCard({ event }: { event: EventItem }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const eventDate = new Date(event.date);
   const isUpcoming = eventDate >= new Date();
@@ -79,7 +78,7 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
     >
       <Card className="group overflow-hidden">
         {/* Image */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-[var(--color-primary-red)]/20 to-[var(--color-primary-gold)]/20">
+        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
           {event.coverImage ? (
             <>
               {!imageLoaded && (
@@ -94,16 +93,16 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
             </>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Calendar className="h-16 w-16 text-[var(--color-primary-red)]/30" />
+              <Calendar className="h-16 w-16 text-(--color-primary-red)/30" />
             </div>
           )}
 
           {/* Date Badge */}
           <div className="absolute left-4 top-4 rounded-xl bg-white/95 p-3 text-center shadow-lg backdrop-blur-sm">
-            <span className="block text-2xl font-extrabold text-[var(--color-primary-red)]">
+            <span className="block text-2xl font-extrabold text-(--color-primary-red)">
               {eventDate.getDate()}
             </span>
-            <span className="block text-xs font-semibold uppercase text-[var(--color-muted)]">
+            <span className="block text-xs font-semibold uppercase text-(--color-muted)">
               {eventDate.toLocaleDateString('en-US', { month: 'short' })}
             </span>
           </div>
@@ -111,7 +110,7 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
           {/* Status Badges */}
           <div className="absolute right-4 top-4 flex flex-col gap-2">
             {event.featured && (
-              <span className="rounded-full bg-[var(--color-primary-gold)] px-3 py-1 text-xs font-bold text-[var(--color-primary-red)] shadow-md">
+              <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red) shadow-md">
                 Featured
               </span>
             )}
@@ -126,7 +125,7 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
               </span>
             )}
             {isUpcoming && lowSeats && !soldOut && (
-              <span className="rounded-full bg-[var(--color-primary-red)] px-3 py-1 text-xs font-bold text-white shadow-md">
+              <span className="rounded-full bg-(--color-primary-red) px-3 py-1 text-xs font-bold text-white shadow-md">
                 Only {seatsLeft} left!
               </span>
             )}
@@ -136,32 +135,32 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
         {/* Content */}
         <div className="p-5">
           <Link to={`/events/${event._id}`}>
-            <h3 className="text-xl font-extrabold tracking-tight transition-colors hover:text-[var(--color-primary-red)] line-clamp-2">
+            <h3 className="text-xl font-extrabold tracking-tight transition-colors hover:text-(--color-primary-red) line-clamp-2">
               {event.title}
             </h3>
           </Link>
 
           {/* Event Meta */}
           <div className="mt-4 space-y-2">
-            <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-              <Calendar className="h-4 w-4 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-sm text-(--color-muted)">
+              <Calendar className="h-4 w-4 shrink-0" />
               <span>{formatDate(eventDate)}</span>
               {event.time && (
                 <>
-                  <Clock className="ml-2 h-4 w-4 flex-shrink-0" />
+                  <Clock className="ml-2 h-4 w-4 shrink-0" />
                   <span>{event.time}</span>
                 </>
               )}
             </div>
             {event.venue && (
-              <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                <MapPin className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-sm text-(--color-muted)">
+                <MapPin className="h-4 w-4 shrink-0" />
                 <span className="line-clamp-1">{event.venue}</span>
               </div>
             )}
             {isUpcoming && seatsLeft > 0 && (
-              <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
-                <Users className="h-4 w-4 flex-shrink-0" />
+              <div className="flex items-center gap-2 text-sm text-(--color-muted)">
+                <Users className="h-4 w-4 shrink-0" />
                 <span>{seatsLeft} seats available</span>
               </div>
             )}
@@ -170,10 +169,10 @@ function EventCard({ event, onAddToCart }: { event: EventItem; onAddToCart: () =
           {/* Price and Action */}
           <div className="mt-5 flex items-center justify-between">
             <div>
-              <span className="text-2xl font-extrabold text-[var(--color-primary-red)]">
+              <span className="text-2xl font-extrabold text-(--color-primary-red)">
                 ₹{event.ticketPrice.toLocaleString('en-IN')}
               </span>
-              <span className="ml-1 text-sm text-[var(--color-muted)]">/ ticket</span>
+              <span className="ml-1 text-sm text-(--color-muted)">/ ticket</span>
             </div>
             <Link to={`/events/${event._id}`}>
               <Button
@@ -239,11 +238,11 @@ function FilterPanel({
         <div className="flex flex-wrap items-start gap-6">
           {/* Venue Filter */}
           <div className="min-w-[160px]">
-            <label className="mb-2 block text-sm font-semibold text-[var(--color-muted)]">Venue</label>
+            <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Venue</label>
             <select
               value={selectedVenue}
               onChange={(e) => onVenueChange(e.target.value)}
-              className="h-11 w-full rounded-xl border border-black/10 bg-white px-4 text-sm focus:border-[var(--color-primary-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-gold)]/20"
+              className="h-11 w-full rounded-xl border border-black/10 bg-white px-4 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
             >
               <option value="">All Venues</option>
               {venues.map((venue) => (
@@ -256,35 +255,35 @@ function FilterPanel({
 
           {/* Price Range */}
           <div className="min-w-[200px]">
-            <label className="mb-2 block text-sm font-semibold text-[var(--color-muted)]">Ticket Price (₹)</label>
+            <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Ticket Price (₹)</label>
             <div className="flex gap-2">
               <input
                 type="number"
                 placeholder="Min"
                 value={priceRange.min}
                 onChange={(e) => onPriceChange({ ...priceRange, min: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-[var(--color-primary-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-gold)]/20"
+                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
               />
-              <span className="flex items-center text-[var(--color-muted)]">–</span>
+              <span className="flex items-center text-(--color-muted)">–</span>
               <input
                 type="number"
                 placeholder="Max"
                 value={priceRange.max}
                 onChange={(e) => onPriceChange({ ...priceRange, max: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-[var(--color-primary-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-gold)]/20"
+                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
               />
             </div>
           </div>
 
           {/* Checkboxes */}
           <div className="flex flex-col gap-3">
-            <label className="mb-1 block text-sm font-semibold text-[var(--color-muted)]">Quick Filters</label>
+            <label className="mb-1 block text-sm font-semibold text-(--color-muted)">Quick Filters</label>
             <label className="flex cursor-pointer items-center gap-2">
               <input
                 type="checkbox"
                 checked={showFeatured}
                 onChange={(e) => onFeaturedChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-[var(--color-primary-red)] focus:ring-[var(--color-primary-gold)]"
+                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
               />
               <span className="text-sm">Featured Events</span>
             </label>
@@ -293,7 +292,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showUpcoming}
                 onChange={(e) => onUpcomingChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-[var(--color-primary-red)] focus:ring-[var(--color-primary-gold)]"
+                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
               />
               <span className="text-sm">Upcoming Only</span>
             </label>
@@ -302,7 +301,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showAvailable}
                 onChange={(e) => onAvailableChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-[var(--color-primary-red)] focus:ring-[var(--color-primary-gold)]"
+                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
               />
               <span className="text-sm">Has Available Seats</span>
             </label>
@@ -352,7 +351,7 @@ function Pagination({
 
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-      <span className="text-sm text-[var(--color-muted)]">
+      <span className="text-sm text-(--color-muted)">
         Showing {((page - 1) * pagination.limit) + 1}–{Math.min(page * pagination.limit, total)} of {total} events
       </span>
       <div className="flex items-center gap-2">
@@ -371,7 +370,7 @@ function Pagination({
             >
               1
             </button>
-            {start > 2 && <span className="px-1 text-[var(--color-muted)]">...</span>}
+            {start > 2 && <span className="px-1 text-(--color-muted)">...</span>}
           </>
         )}
         {pages.map((p) => (
@@ -380,7 +379,7 @@ function Pagination({
             onClick={() => onPageChange(p)}
             className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-colors ${
               p === page
-                ? 'border-[var(--color-primary-red)] bg-[var(--color-primary-red)] font-bold text-white'
+                ? 'border-(--color-primary-red) bg-(--color-primary-red) font-bold text-white'
                 : 'border-black/10 bg-white hover:border-black/20'
             }`}
           >
@@ -389,7 +388,7 @@ function Pagination({
         ))}
         {end < totalPages && (
           <>
-            {end < totalPages - 1 && <span className="px-1 text-[var(--color-muted)]">...</span>}
+            {end < totalPages - 1 && <span className="px-1 text-(--color-muted)">...</span>}
             <button
               onClick={() => onPageChange(totalPages)}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20"
@@ -440,9 +439,6 @@ export default function EventsPage() {
   
   // UI State
   const [showFilters, setShowFilters] = useState(false);
-  
-  // Cart
-  const addItem = useCartStore((s) => s.addItem);
   
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 400);
@@ -498,16 +494,6 @@ export default function EventsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleAddToCart = (event: EventItem) => {
-    addItem({
-      id: event._id,
-      name: event.title,
-      price: event.ticketPrice,
-      image: event.coverImage,
-      itemType: 'event',
-    });
-  };
-
   const resetFilters = () => {
     setSelectedVenue('');
     setPriceRange({ min: '', max: '' });
@@ -528,11 +514,11 @@ export default function EventsPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-[var(--color-bg)]">
+      <section className="min-h-screen bg-(--color-bg)">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-[var(--color-primary-red)] to-[#8B2E2F] py-16 text-white">
+        <div className="relative overflow-hidden bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F] py-16 text-white">
           <div className="absolute inset-0 opacity-10">
-            <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-[var(--color-primary-gold)] blur-3xl" />
+            <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-(--color-primary-gold) blur-3xl" />
             <div className="absolute bottom-1/4 right-1/4 h-48 w-48 rounded-full bg-white blur-3xl" />
           </div>
           <div className="lux-container relative">
@@ -543,7 +529,7 @@ export default function EventsPage() {
               className="max-w-2xl"
             >
               <h1 className="text-5xl font-extrabold tracking-tight md:text-6xl">
-                Upcoming <span className="text-[var(--color-primary-gold)]">Events</span>
+                Upcoming <span className="text-(--color-primary-gold)">Events</span>
               </h1>
               <p className="mt-4 text-lg text-white/80">
                 Discover amazing talent showcases, art exhibitions, and cultural events. Book your tickets now!
@@ -557,13 +543,13 @@ export default function EventsPage() {
           <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             {/* Search Input */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--color-muted)]" />
+              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-(--color-muted)" />
               <input
                 type="text"
                 placeholder="Search events, venues..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 w-full rounded-xl border border-black/10 bg-white pl-12 pr-4 text-sm transition-all focus:border-[var(--color-primary-gold)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-gold)]/20"
+                className="h-12 w-full rounded-xl border border-black/10 bg-white pl-12 pr-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
               />
             </div>
 
@@ -578,7 +564,7 @@ export default function EventsPage() {
                 <Filter className="h-4 w-4" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-primary-gold)] text-xs font-bold text-[var(--color-primary-red)]">
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--color-primary-gold) text-xs font-bold text-(--color-primary-red)">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -592,7 +578,7 @@ export default function EventsPage() {
                   setSortBy(newSortBy);
                   setSortOrder(newSortOrder as 'asc' | 'desc');
                 }}
-                className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-[var(--color-primary-gold)] focus:outline-none"
+                className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none"
               >
                 <option value="date-asc">Date: Soonest First</option>
                 <option value="date-desc">Date: Latest First</option>
@@ -655,10 +641,10 @@ export default function EventsPage() {
               className="flex flex-col items-center justify-center py-20 text-center"
             >
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
-                <Calendar className="h-12 w-12 text-[var(--color-primary-red)]/50" />
+                <Calendar className="h-12 w-12 text-(--color-primary-red)/50" />
               </div>
               <h3 className="text-xl font-extrabold">No events found</h3>
-              <p className="mt-2 max-w-sm text-[var(--color-muted)]">
+              <p className="mt-2 max-w-sm text-(--color-muted)">
                 Try adjusting your search or filters to discover more events.
               </p>
               {activeFiltersCount > 0 && (
@@ -679,7 +665,6 @@ export default function EventsPage() {
                     <EventCard
                       key={event._id}
                       event={event}
-                      onAddToCart={() => handleAddToCart(event)}
                     />
                   ))}
                 </AnimatePresence>

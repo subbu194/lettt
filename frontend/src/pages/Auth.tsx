@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { LogIn, UserPlus, LogOut, Sparkles } from 'lucide-react';
+import { LogIn, UserPlus, LogOut } from 'lucide-react';
 import { Login } from '@/components/auth/Login';
 import { Signup } from '@/components/auth/Signup';
 import { useUserStore } from '@/store/useUserStore';
@@ -16,24 +16,16 @@ type Props = {
 export default function AuthPage({ initialTab }: Props) {
   const [tab, setTab] = useState<'login' | 'signup'>(initialTab ?? 'login');
   const { isAuthenticated, logout } = useUserStore();
-  const [isChangingTab, setIsChangingTab] = useState(false);
-
-  useEffect(() => {
-    if (initialTab) setTab(initialTab);
-  }, [initialTab]);
 
   const handleTabChange = (newTab: 'login' | 'signup') => {
-    if (newTab === tab) return;
-    setIsChangingTab(true);
-    setTimeout(() => {
+    if (newTab !== tab) {
       setTab(newTab);
-      setIsChangingTab(false);
-    }, 150);
+    }
   };
 
   return (
     <PageTransition>
-      <section className="relative min-h-screen bg-[var(--color-bg)]">
+      <section className="relative min-h-screen bg-(--color-bg)">
         <div className="relative">
           <AuthBackground />
           
@@ -66,7 +58,7 @@ export default function AuthPage({ initialTab }: Props) {
                 </h1>
                 
                 <motion.p
-                  className="text-sm md:text-base text-[var(--color-muted)]"
+                  className="text-sm md:text-base text-(--color-muted)"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
@@ -87,7 +79,7 @@ export default function AuthPage({ initialTab }: Props) {
                 <div className="relative grid grid-cols-2 gap-2">
                   {/* Animated Background Slider */}
                   <motion.div
-                    className="absolute h-11 rounded-xl bg-[var(--color-text)] shadow-md"
+                    className="absolute h-11 rounded-xl bg-(--color-text) shadow-md"
                     initial={false}
                     animate={{
                       x: tab === 'login' ? 0 : '100%',
@@ -109,8 +101,8 @@ export default function AuthPage({ initialTab }: Props) {
                     type="button"
                     className={`relative z-10 h-11 rounded-xl text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${
                       tab === 'login'
-                        ? 'text-[var(--color-primary-gold)]'
-                        : 'text-[var(--color-text)] hover:text-[var(--color-text)]/80'
+                        ? 'text-(--color-primary-gold)'
+                        : 'text-(--color-text) hover:text-(--color-text)/80'
                     }`}
                     onClick={() => handleTabChange('login')}
                     whileHover={{ scale: 1.02 }}
@@ -125,8 +117,8 @@ export default function AuthPage({ initialTab }: Props) {
                     type="button"
                     className={`relative z-10 h-11 rounded-xl text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${
                       tab === 'signup'
-                        ? 'text-[var(--color-primary-gold)]'
-                        : 'text-[var(--color-text)] hover:text-[var(--color-text)]/80'
+                        ? 'text-(--color-primary-gold)'
+                        : 'text-(--color-text) hover:text-(--color-text)/80'
                     }`}
                     onClick={() => handleTabChange('signup')}
                     whileHover={{ scale: 1.02 }}
@@ -210,13 +202,13 @@ export default function AuthPage({ initialTab }: Props) {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
               >
-                <p className="text-xs text-[var(--color-muted)]">
+                <p className="text-xs text-(--color-muted)">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-[var(--color-primary-gold)] hover:underline">
+                  <a href="#" className="text-(--color-primary-gold) hover:underline">
                     Terms
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-[var(--color-primary-gold)] hover:underline">
+                  <a href="#" className="text-(--color-primary-gold) hover:underline">
                     Privacy Policy
                   </a>
                 </p>

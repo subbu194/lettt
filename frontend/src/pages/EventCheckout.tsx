@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
   CreditCard, MapPin, Phone, User, Mail, Shield, Lock, 
-  CheckCircle2, AlertCircle, ArrowLeft, Package
+  CheckCircle2, AlertCircle, ArrowLeft, Ticket, Calendar, Clock
 } from 'lucide-react';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
@@ -11,7 +11,6 @@ import { PageTransition } from '@/components/shared/PageTransition';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { Spinner } from '@/components/shared/Spinner';
-import { useCartStore } from '@/store/useCartStore';
 import { useUserStore } from '@/store/useUserStore';
 
 declare global {
@@ -33,41 +32,70 @@ interface FormErrors {
   name?: string;
   email?: string;
   phone?: string;
-  address?: string;
 }
 
-export default function CheckoutPage() {
+interface EventItem {
+  _id: string;
+  title: string;
+  description?: string;
+  date: string;
+  time?: string;
+  venue?: string;
+  ticketPrice: number;
+  coverImage?: string;
+  seatsLeft?: number;
+}
+
+export default function EventCheckoutPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const { items, clearCart } = useCartStore();
+  const location = useLocation();
   const { isAuthenticated, user } = useUserStore();
   
+  // Event data from navigation state or fetch
+  const [event, setEvent] = useState<EventItem | null>(location.state?.event || null);
+  const [quantity, setQuantity] = useState<number>(location.state?.quantity || 1);
+  const [loading, setLoading] = useState(!event);
+  const [fetchError, setFetchError] = useState('');
+  
   // Form State
-  const [name, setName] = useState<string>(String(user?.name || ''));
-  const [email, setEmail] = useState<string>(String(user?.email || ''));
+  const [name, setName] = useState<string>((user?.name as string) || '');
+  const [email, setEmail] = useState<string>((user?.email as string) || '');
   const [phone, setPhone] = useState<string>('');
-  const [address, setAddress] = useState<string>('');
-  const [city, setCity] = useState<string>('');
-  const [pincode, setPincode] = useState<string>('');
   
   // UI State
-  const [loading, setLoading] = useState(false);
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/auth?redirect=/checkout');
+      navigate(`/auth?redirect=/event-checkout/${id}`);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, id]);
 
+  // Fetch event if not in state
   useEffect(() => {
-    if (items.length === 0 && !success) {
-      navigate('/art');
-    }
-  }, [items, success, navigate]);
+    const fetchEvent = async () => {
+      if (event || !id) return;
+      
+      setLoading(true);
+      setFetchError('');
+      try {
+        const resp = await apiClient.get<{ item: EventItem }>(`/events/${id}`);
+        setEvent(resp.data?.item ?? null);
+      } catch (err) {
+        setFetchError(getApiErrorMessage(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvent();
+  }, [id, event]);
 
-  const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+  const total = event ? event.ticketPrice * quantity : 0;
+  const maxQuantity = event?.seatsLeft ? Math.min(event.seatsLeft, 10) : 10;
 
   const validateForm = (): boolean => {
     const errors: FormErrors = {};
@@ -78,32 +106,27 @@ export default function CheckoutPage() {
     if (!phone.trim()) errors.phone = 'Phone number is required';
     else if (!/^\d{10}$/.test(phone.replace(/\s/g, ''))) errors.phone = 'Enter a valid 10-digit phone number';
     
-    // Address is required for art purchases
-    if (!address.trim()) errors.address = 'Delivery address is required';
-    
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const onCheckout = async () => {
-    if (!validateForm()) return;
+    if (!event || !validateForm()) return;
     
     setError('');
-    setLoading(true);
+    setPaymentLoading(true);
     
     try {
-      const fullAddress = `${address}${city ? `, ${city}` : ''}${pincode ? ` - ${pincode}` : ''}`;
-
       // 1. Create order on backend
       const resp = await apiClient.post('/orders/create', {
-        items: items.map((it) => ({ 
-          itemType: 'art', 
-          itemId: it.id, 
-          title: it.name, 
-          quantity: it.qty, 
-          price: it.price 
-        })),
-        address: fullAddress,
+        items: [{ 
+          itemType: 'event', 
+          itemId: event._id, 
+          title: event.title, 
+          quantity, 
+          price: event.ticketPrice 
+        }],
+        address: 'Digital Ticket - No shipping required',
         phone: phone.replace(/\s/g, ''),
       });
       
@@ -118,7 +141,7 @@ export default function CheckoutPage() {
         key: keyId,
         order_id: orderId,
         name: 'Let The Talent Talk',
-        description: `Payment for ${items.length} ${items.length === 1 ? 'item' : 'items'}`,
+        description: `${event.title} - ${quantity} ${quantity === 1 ? 'Ticket' : 'Tickets'}`,
         prefill: {
           name,
           email,
@@ -130,38 +153,37 @@ export default function CheckoutPage() {
           razorpay_signature: string;
         }) => {
           try {
-            setLoading(true);
+            setPaymentLoading(true);
             const verify = await apiClient.post('/orders/verify', {
               razorpay_order_id: payment.razorpay_order_id,
               razorpay_payment_id: payment.razorpay_payment_id,
               razorpay_signature: payment.razorpay_signature,
-              items: items.map((it) => ({ 
-                itemType: 'art', 
-                itemId: it.id, 
-                title: it.name, 
-                quantity: it.qty, 
-                price: it.price 
-              })),
-              address: fullAddress,
+              items: [{ 
+                itemType: 'event', 
+                itemId: event._id, 
+                title: event.title, 
+                quantity, 
+                price: event.ticketPrice 
+              }],
+              address: 'Digital Ticket - No shipping required',
               phone: phone.replace(/\s/g, ''),
             });
             
             if (verify.data?.success) {
               setSuccess(true);
-              clearCart();
               setTimeout(() => {
-                navigate('/orders');
+                navigate('/my-tickets');
               }, 3000);
             }
           } catch (err) {
             setError(getApiErrorMessage(err));
           } finally {
-            setLoading(false);
+            setPaymentLoading(false);
           }
         },
         modal: {
           ondismiss: () => {
-            setLoading(false);
+            setPaymentLoading(false);
           },
         },
         theme: { 
@@ -174,9 +196,40 @@ export default function CheckoutPage() {
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
-      setLoading(false);
+      setPaymentLoading(false);
     }
   };
+
+  // Loading State
+  if (loading) {
+    return (
+      <PageTransition>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      </PageTransition>
+    );
+  }
+
+  // Fetch Error
+  if (fetchError || !event) {
+    return (
+      <PageTransition>
+        <div className="lux-container py-16">
+          <Card className="mx-auto max-w-lg p-8 text-center">
+            <div className="mb-4 text-5xl">😢</div>
+            <h2 className="text-xl font-extrabold">Unable to load event</h2>
+            <p className="mt-2 text-(--color-muted)">{fetchError || 'Event not found'}</p>
+            <div className="mt-6">
+              <Button variant="gold" onClick={() => navigate('/events')}>
+                Browse Events
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </PageTransition>
+    );
+  }
 
   // Success State
   if (success) {
@@ -197,16 +250,16 @@ export default function CheckoutPage() {
               >
                 <CheckCircle2 className="h-12 w-12 text-green-600" />
               </motion.div>
-              <h1 className="text-3xl font-extrabold tracking-tight">Payment Successful!</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight">Booking Successful!</h1>
               <p className="mt-3 text-(--color-muted)">
-                Thank you for your purchase. Your order has been confirmed and you will receive a confirmation email shortly.
+                Your tickets have been confirmed! You will receive them via email shortly.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button variant="gold" onClick={() => navigate('/orders')}>
-                  View My Orders
+                <Button variant="gold" onClick={() => navigate('/my-tickets')}>
+                  View My Tickets
                 </Button>
-                <Button variant="ghost" onClick={() => navigate('/art')}>
-                  Continue Shopping
+                <Button variant="ghost" onClick={() => navigate('/events')}>
+                  Browse More Events
                 </Button>
               </div>
             </motion.div>
@@ -215,6 +268,8 @@ export default function CheckoutPage() {
       </PageTransition>
     );
   }
+
+  const eventDate = new Date(event.date);
 
   return (
     <PageTransition>
@@ -227,15 +282,15 @@ export default function CheckoutPage() {
             className="mb-8"
           >
             <Link 
-              to="/art" 
+              to={`/events/${event._id}`}
               className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-(--color-muted) hover:text-(--color-text)"
             >
               <ArrowLeft className="h-4 w-4" />
-              Continue Shopping
+              Back to Event
             </Link>
-            <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Checkout</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight md:text-4xl">Complete Booking</h1>
             <p className="mt-2 text-(--color-muted)">
-              Complete your purchase securely
+              Secure your tickets now
             </p>
           </motion.div>
 
@@ -255,7 +310,7 @@ export default function CheckoutPage() {
                   </div>
                   <div>
                     <h2 className="font-bold">Contact Information</h2>
-                    <p className="text-sm text-(--color-muted)">We'll use this to send your order confirmation</p>
+                    <p className="text-sm text-(--color-muted)">We'll send your tickets here</p>
                   </div>
                 </div>
 
@@ -337,73 +392,18 @@ export default function CheckoutPage() {
                 </div>
               </Card>
 
-              {/* Delivery Address */}
-              <Card className="p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary-gold)/20">
-                    <MapPin className="h-5 w-5 text-(--color-primary-red)" />
-                  </div>
+              {/* Ticket Delivery Info */}
+              <Card className="border-(--color-primary-gold)/30 bg-(--color-primary-gold)/5 p-6">
+                <div className="flex items-start gap-3">
+                  <Ticket className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
                   <div>
-                    <h2 className="font-bold">Delivery Address</h2>
-                    <p className="text-sm text-(--color-muted)">Where should we deliver your artwork?</p>
+                    <h3 className="font-bold">Digital Tickets</h3>
+                    <p className="mt-1 text-sm text-(--color-muted)">
+                      Your event tickets will be sent to your email instantly after payment and will be available in your account.
+                    </p>
                   </div>
                 </div>
-
-                <div className="space-y-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
-                        Street Address *
-                      </label>
-                      <textarea
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="House/Flat no., Building name, Street name"
-                        rows={3}
-                        className={`w-full rounded-xl border bg-white p-4 text-sm transition-all focus:outline-none focus:ring-2 ${
-                          formErrors.address 
-                            ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
-                        }`}
-                      />
-                      {formErrors.address && (
-                        <p className="mt-1 text-xs text-red-500">{formErrors.address}</p>
-                      )}
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
-                          City
-                        </label>
-                        <input
-                          type="text"
-                          value={city}
-                          onChange={(e) => setCity(e.target.value)}
-                          placeholder="Mumbai"
-                          className="h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
-                          PIN Code
-                        </label>
-                        <input
-                          type="text"
-                          value={pincode}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, '');
-                            if (value.length <= 6) {
-                              setPincode(value);
-                            }
-                          }}
-                          placeholder="400001"
-                          maxLength={6}
-                          className="h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+              </Card>
 
               {/* Error Message */}
               {error && (
@@ -421,7 +421,7 @@ export default function CheckoutPage() {
               )}
             </motion.div>
 
-            {/* Right: Order Summary (1 col) */}
+            {/* Right: Booking Summary (1 col) */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -429,50 +429,93 @@ export default function CheckoutPage() {
             >
               <div className="sticky top-24">
                 <Card className="p-6">
-                  <h2 className="text-lg font-extrabold tracking-tight">Order Summary</h2>
+                  <h2 className="text-lg font-extrabold tracking-tight">Booking Summary</h2>
                   
-                  {/* Items */}
-                  <div className="mt-4 max-h-75 space-y-4 overflow-y-auto">
-                    {items.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black/5">
-                          {item.image ? (
-                            <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center">
-                              <Package className="h-6 w-6 text-(--color-muted)" />
-                            </div>
-                          )}
+                  {/* Event Preview */}
+                  <div className="mt-4">
+                    <div className="relative aspect-video overflow-hidden rounded-xl bg-black/5">
+                      {event.coverImage ? (
+                        <img src={event.coverImage} alt={event.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center">
+                          <Ticket className="h-12 w-12 text-(--color-muted)" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold leading-tight line-clamp-2">{item.name}</p>
-                          <p className="mt-1 text-sm text-(--color-muted)">
-                            ₹{item.price.toLocaleString('en-IN')} × {item.qty}
-                          </p>
-                        </div>
-                        <div className="text-right font-semibold">
-                          ₹{(item.price * item.qty).toLocaleString('en-IN')}
-                        </div>
+                      )}
+                    </div>
+                    <h3 className="mt-4 font-bold line-clamp-2">{event.title}</h3>
+                  </div>
+
+                  {/* Event Details */}
+                  <div className="mt-4 space-y-3">
+                    <div className="flex items-center gap-3 text-sm">
+                      <Calendar className="h-4 w-4 shrink-0 text-(--color-primary-red)" />
+                      <span className="text-(--color-muted)">
+                        {eventDate.toLocaleDateString('en-IN', { 
+                          weekday: 'short',
+                          day: 'numeric', 
+                          month: 'short', 
+                          year: 'numeric' 
+                        })}
+                      </span>
+                    </div>
+                    {event.time && (
+                      <div className="flex items-center gap-3 text-sm">
+                        <Clock className="h-4 w-4 shrink-0 text-(--color-primary-red)" />
+                        <span className="text-(--color-muted)">{event.time}</span>
                       </div>
-                    ))}
+                    )}
+                    {event.venue && (
+                      <div className="flex items-start gap-3 text-sm">
+                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-(--color-primary-red)" />
+                        <span className="text-(--color-muted)">{event.venue}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Divider */}
                   <div className="my-4 border-t border-black/10" />
 
-                  {/* Totals */}
-                  <div className="space-y-2">
+                  {/* Quantity Selector */}
+                  <div>
+                    <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
+                      Number of Tickets
+                    </label>
+                    <div className="flex items-center rounded-xl border border-black/10 bg-white">
+                      <button
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5"
+                      >
+                        −
+                      </button>
+                      <span className="flex-1 text-center font-bold">{quantity}</span>
+                      <button
+                        onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
+                        disabled={quantity >= maxQuantity}
+                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5 disabled:opacity-50"
+                      >
+                        +
+                      </button>
+                    </div>
+                    {event.seatsLeft && event.seatsLeft <= 10 && (
+                      <p className="mt-2 text-xs text-(--color-primary-red)">
+                        Only {event.seatsLeft} seats left!
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Price Breakdown */}
+                  <div className="mt-4 space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-(--color-muted)">Subtotal</span>
-                      <span className="font-semibold">₹{total.toLocaleString('en-IN')}</span>
+                      <span className="text-(--color-muted)">Ticket Price</span>
+                      <span className="font-semibold">₹{event.ticketPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-(--color-muted)">Quantity</span>
+                      <span className="font-semibold">× {quantity}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-(--color-muted)">Taxes & Fees</span>
                       <span className="font-semibold text-green-600">Included</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-(--color-muted)">Shipping</span>
-                      <span className="font-semibold text-green-600">Free</span>
                     </div>
                   </div>
 
@@ -490,13 +533,11 @@ export default function CheckoutPage() {
                     size="lg"
                     className="mt-6 w-full"
                     onClick={onCheckout}
-                    disabled={loading || items.length === 0}
+                    disabled={paymentLoading}
+                    loading={paymentLoading}
                   >
-                    {loading ? (
-                      <>
-                        <Spinner className="h-5 w-5" />
-                        Processing...
-                      </>
+                    {paymentLoading ? (
+                      'Processing...'
                     ) : (
                       <>
                         <CreditCard className="h-5 w-5" />

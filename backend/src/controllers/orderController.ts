@@ -25,8 +25,8 @@ const orderItemSchema = z.object({
 
 const createOrderSchema = z.object({
   items: z.array(orderItemSchema).min(1, "Cart cannot be empty"),
-  address: z.string().min(10, "Address must be at least 10 characters"),
-  phone: z.string().regex(/^[6-9]\d{9}$/, "Please enter a valid 10-digit Indian phone number"),
+  address: z.string().min(10, "Address must be at least 10 characters").optional(),
+  phone: z.string().regex(/^\d{10}$/, "Please enter a valid 10-digit phone number"),
 });
 
 const listQuerySchema = z.object({

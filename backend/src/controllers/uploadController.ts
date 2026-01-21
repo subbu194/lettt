@@ -74,6 +74,43 @@ export const getUploadUrl: RequestHandler = async (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// Get Presigned Upload URL for Profile Image (User)
+// ─────────────────────────────────────────────────────────────
+export const getProfileImageUploadUrl: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new AppError("Unauthorized", 401);
+    }
+
+    const { fileType, fileName } = getUploadUrlSchema.parse(req.body);
+
+    // Only allow image uploads for profile
+    if (!fileType.startsWith("image/")) {
+      throw new AppError("Only image files are allowed for profile pictures", 400);
+    }
+
+    // Generate presigned URL for uploading to profile-images folder
+    const { uploadUrl, publicUrl } = await generateUploadUrlProfile(
+      fileType,
+      fileName,
+      "profile-images",
+      req.user.userId,
+      true // permanent storage
+    );
+
+    return res.status(200).json({
+      success: true,
+      uploadUrl,
+      publicUrl,
+      fileType,
+      fileName,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // Delete File from R2 (Admin only)
 // ─────────────────────────────────────────────────────────────
 export const deleteFile: RequestHandler = async (req, res, next) => {

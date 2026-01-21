@@ -6,7 +6,7 @@ import { fadeInUp } from '@/utils/animations';
 export default function PurchasePage() {
   return (
     <PageTransition>
-      <section className="bg-[var(--color-bg)]">
+      <section className="bg-(--color-bg)">
         <div className="lux-container py-16">
           <motion.div
             className="max-w-3xl"
@@ -16,7 +16,7 @@ export default function PurchasePage() {
             transition={{ duration: 0.4 }}
           >
             <h1 className="text-4xl font-extrabold tracking-tight">Purchase</h1>
-            <p className="mt-3 text-[var(--color-muted)]">Review your tickets and complete your purchase.</p>
+            <p className="mt-3 text-(--color-muted)">Review your tickets and complete your purchase.</p>
           </motion.div>
           <motion.div
             className="mt-10"

@@ -5,6 +5,7 @@ import cors from "cors";
 import { connectDatabase } from "./config/database";
 import healthRoutes from "./routes/health";
 import authRoutes from "./routes/authRoutes";
+import userRoutes from "./routes/userRoutes";
 import artRoutes from "./routes/artRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import orderRoutes from "./routes/orderRoutes";
@@ -33,6 +34,9 @@ app.use("/api/v1", healthRoutes);
 // Auth routes: satisfy spec (/api/auth/*) AND keep existing frontend compatibility (/api/v1/auth/*)
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/auth", authRoutes);
+
+// User routes (profile management)
+app.use("/api/v1/user", userRoutes);
 
 // Phase 1 routes
 app.use("/api/v1/art", artRoutes);

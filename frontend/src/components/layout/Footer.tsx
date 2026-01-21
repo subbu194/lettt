@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
-    <footer className="border-t border-black/10 bg-[var(--color-bg)]">
+    <footer className="border-t border-black/10 bg-(--color-bg)">
       <div className="lux-container py-12">
         <div className="grid gap-10 md:grid-cols-4">
           <div className="space-y-3">
@@ -54,21 +54,21 @@ export function Footer() {
             <div className="text-sm font-semibold tracking-wide">Social</div>
             <div className="mt-3 flex items-center gap-3">
               <a
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-[var(--color-primary-gold)] hover:border-black/20"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-(--color-primary-gold) hover:border-black/20"
                 href="#"
                 aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </a>
               <a
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-[var(--color-primary-gold)] hover:border-black/20"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-(--color-primary-gold) hover:border-black/20"
                 href="#"
                 aria-label="Twitter"
               >
                 <Twitter className="h-5 w-5" />
               </a>
               <a
-                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-[var(--color-primary-gold)] hover:border-black/20"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white text-(--color-primary-gold) hover:border-black/20"
                 href="#"
                 aria-label="YouTube"
               >

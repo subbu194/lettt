@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion';
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { motion, type HTMLMotionProps } from 'framer-motion';
+import type { ReactNode } from 'react';
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
+type Props = Omit<HTMLMotionProps<"button">, 'children'> & {
   children: ReactNode;
-  variant?: 'red' | 'gold' | 'ghost';
+  variant?: 'red' | 'gold' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 };
@@ -17,15 +17,17 @@ export function Button({ children, className = '', variant = 'red', size = 'md',
         : 'h-11 px-5 text-sm';
 
   const base = `inline-flex min-h-11 items-center justify-center gap-2 rounded-xl font-semibold tracking-wide transition
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-white
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--color-primary-gold) focus-visible:ring-offset-2 focus-visible:ring-offset-white
     disabled:opacity-60 disabled:cursor-not-allowed`;
 
   const variantClass =
     variant === 'gold'
-      ? 'bg-[var(--color-primary-gold)] text-[var(--color-primary-red)] glow-red hover:glow-gold'
+      ? 'bg-(--color-primary-gold) text-(--color-primary-red) glow-red hover:glow-gold'
       : variant === 'ghost'
         ? 'bg-white text-black border border-black/15 hover:border-black/30'
-        : 'bg-[var(--color-primary-red)] text-[var(--color-primary-gold)] glow-gold hover:glow-red';
+        : variant === 'danger'
+          ? 'bg-red-600 text-white hover:bg-red-700'
+          : 'bg-(--color-primary-red) text-(--color-primary-gold) glow-gold hover:glow-red';
 
   const isDisabled = disabled || loading;
 

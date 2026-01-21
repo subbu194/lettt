@@ -77,10 +77,10 @@ export function Signup() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-3xl font-extrabold tracking-tight text-[var(--color-text)]">
+          <h2 className="text-3xl font-extrabold tracking-tight text-(--color-text)">
             Create Account
           </h2>
-          <p className="mt-2 text-sm text-[var(--color-muted)]">
+          <p className="mt-2 text-sm text-(--color-muted)">
             Join us today and start your journey
           </p>
         </motion.div>
@@ -97,13 +97,13 @@ export function Signup() {
               <User 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'name' 
-                    ? 'text-[var(--color-primary-gold)]' 
-                    : 'text-[var(--color-muted)]'
+                    ? 'text-(--color-primary-gold)' 
+                    : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-[var(--color-text)] outline-none transition-all duration-200 hover:border-black/25 focus:border-[var(--color-primary-gold)] focus:shadow-lg focus:shadow-[var(--color-primary-gold)]/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onFocus={() => setFocusedField('name')}
@@ -113,7 +113,7 @@ export function Signup() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-[var(--color-primary-gold)]">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
                 Full Name
               </label>
             </div>
@@ -130,13 +130,13 @@ export function Signup() {
               <Mail 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'email' 
-                    ? 'text-[var(--color-primary-gold)]' 
-                    : 'text-[var(--color-muted)]'
+                    ? 'text-(--color-primary-gold)' 
+                    : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-[var(--color-text)] outline-none transition-all duration-200 hover:border-black/25 focus:border-[var(--color-primary-gold)] focus:shadow-lg focus:shadow-[var(--color-primary-gold)]/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedField('email')}
@@ -146,7 +146,7 @@ export function Signup() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-[var(--color-primary-gold)]">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
                 Email Address
               </label>
             </div>
@@ -163,13 +163,13 @@ export function Signup() {
               <Lock 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'password' 
-                    ? 'text-[var(--color-primary-gold)]' 
-                    : 'text-[var(--color-muted)]'
+                    ? 'text-(--color-primary-gold)' 
+                    : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-[var(--color-text)] outline-none transition-all duration-200 hover:border-black/25 focus:border-[var(--color-primary-gold)] focus:shadow-lg focus:shadow-[var(--color-primary-gold)]/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setFocusedField('password')}
@@ -179,13 +179,13 @@ export function Signup() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-[var(--color-muted)] transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-[var(--color-primary-gold)]">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
                 Password
               </label>
               <motion.button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-muted)] hover:text-[var(--color-text)] transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-(--color-muted) hover:text-(--color-text) transition-colors"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -202,7 +202,7 @@ export function Signup() {
             className="space-y-3"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="text-[var(--color-muted)] font-medium">Password Strength</span>
+              <span className="text-(--color-muted) font-medium">Password Strength</span>
               <motion.span
                 key={strength}
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -235,7 +235,7 @@ export function Signup() {
               ))}
             </div>
             
-            <p className="text-xs text-[var(--color-muted)] leading-relaxed">
+            <p className="text-xs text-(--color-muted) leading-relaxed">
               Use 8+ characters with uppercase, lowercase, and numbers
             </p>
           </motion.div>
@@ -247,14 +247,14 @@ export function Signup() {
             transition={{ delay: 0.7 }}
           >
             <motion.label
-              className="flex items-start gap-3 rounded-xl border border-black/10 bg-white/60 px-4 py-4 text-sm text-[var(--color-text)] cursor-pointer transition-all duration-200 hover:bg-white/80 hover:border-black/20"
+              className="flex items-start gap-3 rounded-xl border border-black/10 bg-white/60 px-4 py-4 text-sm text-(--color-text) cursor-pointer transition-all duration-200 hover:bg-white/80 hover:border-black/20"
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
               <div className="relative flex items-center justify-center">
                 <input
                   type="checkbox"
-                  className="peer h-5 w-5 appearance-none rounded border-2 border-black/20 bg-white checked:bg-[var(--color-primary-gold)] checked:border-[var(--color-primary-gold)] transition-all duration-200 cursor-pointer"
+                  className="peer h-5 w-5 appearance-none rounded border-2 border-black/20 bg-white checked:bg-(--color-primary-gold) checked:border-(--color-primary-gold) transition-all duration-200 cursor-pointer"
                   checked={acceptTerms}
                   onChange={(e) => setAcceptTerms(e.target.checked)}
                 />
@@ -265,11 +265,11 @@ export function Signup() {
               </div>
               <span className="leading-relaxed">
                 I agree to the{' '}
-                <a href="#" className="font-semibold text-[var(--color-primary-gold)] hover:underline">
+                <a href="#" className="font-semibold text-(--color-primary-gold) hover:underline">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="font-semibold text-[var(--color-primary-gold)] hover:underline">
+                <a href="#" className="font-semibold text-(--color-primary-gold) hover:underline">
                   Privacy Policy
                 </a>
               </span>
@@ -286,10 +286,10 @@ export function Signup() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl border border-[var(--color-primary-red)]/30 bg-[var(--color-primary-red)]/5 px-4 py-3.5 text-sm text-[var(--color-text)] flex items-start gap-3">
-                  <AlertCircle className="text-[var(--color-primary-red)] flex-shrink-0 mt-0.5" size={18} />
+                <div className="rounded-xl border border-(--color-primary-red)/30 bg-(--color-primary-red)/5 px-4 py-3.5 text-sm text-(--color-text) flex items-start gap-3">
+                  <AlertCircle className="text-(--color-primary-red) shrink-0 mt-0.5" size={18} />
                   <div>
-                    <span className="font-semibold text-[var(--color-primary-red)]">Error:</span>{' '}
+                    <span className="font-semibold text-(--color-primary-red)">Error:</span>{' '}
                     {error}
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export function Signup() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.9 }}
-          className="mt-6 flex items-center justify-center gap-2 text-xs text-[var(--color-muted)]"
+          className="mt-6 flex items-center justify-center gap-2 text-xs text-(--color-muted)"
         >
           <Shield size={14} />
           <span>Your data is encrypted and secure</span>

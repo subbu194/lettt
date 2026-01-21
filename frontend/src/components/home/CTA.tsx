@@ -5,8 +5,8 @@ export function CTA() {
   const navigate = useNavigate();
 
   return (
-    <section id="cta" className="bg-[var(--color-primary-red)]">
-      <div className="lux-container py-16">
+    <section id="cta" className="bg-(--color-primary-red)">
+      <div className="w-full px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-3xl text-center fade-in">
           <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             Join the community where talent rises.

@@ -118,7 +118,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--color-primary-red)] to-[#8B2E2F]">
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F]">
                 <Ticket className="h-12 w-12 text-white/50" />
               </div>
             )}
@@ -126,7 +126,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
             {/* Date Badge */}
             {eventDate && (
               <div className="absolute left-3 top-3 rounded-lg bg-white/95 px-2 py-1 text-center shadow-lg backdrop-blur-sm">
-                <div className="text-xs font-bold uppercase text-[var(--color-primary-red)]">
+                <div className="text-xs font-bold uppercase text-(--color-primary-red)">
                   {eventDate.toLocaleDateString('en-IN', { month: 'short' })}
                 </div>
                 <div className="text-xl font-extrabold leading-tight">{eventDate.getDate()}</div>
@@ -142,7 +142,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                 <h3 className="text-lg font-extrabold leading-tight line-clamp-2">
                   {event?.title || 'Event'}
                 </h3>
-                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-[var(--color-primary-red)]">
+                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-(--color-primary-red)">
                   Ticket #{ticket.ticketId}
                 </p>
               </div>
@@ -152,7 +152,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
             {/* Event Info */}
             <div className="mt-4 space-y-2">
               {eventDate && (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                <div className="flex items-center gap-2 text-sm text-(--color-muted)">
                   <Calendar className="h-4 w-4" />
                   <span>
                     {eventDate.toLocaleDateString('en-IN', {
@@ -170,7 +170,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                 </div>
               )}
               {event?.venue && (
-                <div className="flex items-center gap-2 text-sm text-[var(--color-muted)]">
+                <div className="flex items-center gap-2 text-sm text-(--color-muted)">
                   <MapPin className="h-4 w-4" />
                   <span className="truncate">{event.venue}</span>
                 </div>
@@ -180,7 +180,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
             {/* Footer */}
             <div className="mt-auto flex items-center justify-between border-t border-black/5 pt-4">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-[var(--color-muted)]" />
+                <Users className="h-4 w-4 text-(--color-muted)" />
                 <span className="text-sm font-semibold">
                   {ticket.quantity} {ticket.quantity === 1 ? 'Guest' : 'Guests'}
                 </span>
@@ -188,7 +188,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
               
               <div className="flex items-center gap-2">
                 {ticket.status === 'active' && isUpcoming && (
-                  <span className="rounded-full bg-[var(--color-primary-gold)] px-2 py-0.5 text-xs font-bold text-black">
+                  <span className="rounded-full bg-(--color-primary-gold) px-2 py-0.5 text-xs font-bold text-black">
                     Upcoming
                   </span>
                 )}
@@ -197,7 +197,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                     Past
                   </span>
                 )}
-                <ChevronRight className="h-5 w-5 text-[var(--color-muted)] transition-transform group-hover:translate-x-1" />
+                <ChevronRight className="h-5 w-5 text-(--color-muted) transition-transform group-hover:translate-x-1" />
               </div>
             </div>
           </div>
@@ -287,7 +287,7 @@ function TicketDetailModal({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[var(--color-primary-red)] to-[#8B2E2F]">
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F]">
                     <Ticket className="h-16 w-16 text-white/50" />
                   </div>
                 )}
@@ -297,7 +297,7 @@ function TicketDetailModal({
               {/* Event Title */}
               <div>
                 <h3 className="text-xl font-extrabold">{event?.title || 'Event'}</h3>
-                <p className="mt-1 text-sm text-[var(--color-muted)]">
+                <p className="mt-1 text-sm text-(--color-muted)">
                   Ticket ID: {ticket.ticketId}
                 </p>
               </div>
@@ -307,7 +307,7 @@ function TicketDetailModal({
                 {eventDate && (
                   <>
                     <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-[var(--color-primary-red)]" />
+                      <Calendar className="h-5 w-5 text-(--color-primary-red)" />
                       <div>
                         <p className="font-semibold">
                           {eventDate.toLocaleDateString('en-IN', {
@@ -320,7 +320,7 @@ function TicketDetailModal({
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-[var(--color-primary-red)]" />
+                      <Clock className="h-5 w-5 text-(--color-primary-red)" />
                       <p className="font-semibold">
                         {eventDate.toLocaleTimeString('en-IN', {
                           hour: '2-digit',
@@ -332,18 +332,18 @@ function TicketDetailModal({
                 )}
                 {event?.venue && (
                   <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-[var(--color-primary-red)]" />
+                    <MapPin className="h-5 w-5 text-(--color-primary-red)" />
                     <p className="font-semibold">{event.venue}</p>
                   </div>
                 )}
               </div>
 
               {/* Ticket Info */}
-              <div className="flex items-center justify-between rounded-xl border border-[var(--color-primary-gold)] bg-[var(--color-primary-gold)]/10 p-4">
+              <div className="flex items-center justify-between rounded-xl border border-(--color-primary-gold) bg-(--color-primary-gold)/10 p-4">
                 <div className="flex items-center gap-3">
-                  <Users className="h-6 w-6 text-[var(--color-primary-red)]" />
+                  <Users className="h-6 w-6 text-(--color-primary-red)" />
                   <div>
-                    <p className="text-sm text-[var(--color-muted)]">Number of Guests</p>
+                    <p className="text-sm text-(--color-muted)">Number of Guests</p>
                     <p className="text-2xl font-extrabold">{ticket.quantity}</p>
                   </div>
                 </div>
@@ -353,15 +353,15 @@ function TicketDetailModal({
               {ticket.status === 'active' && (
                 <div className="flex flex-col items-center rounded-xl bg-white border-2 border-dashed border-black/20 p-6">
                   <div className="mb-3 flex h-32 w-32 items-center justify-center rounded-xl bg-black/5">
-                    <QrCode className="h-16 w-16 text-[var(--color-muted)]" />
+                    <QrCode className="h-16 w-16 text-(--color-muted)" />
                   </div>
                   <p className="text-sm font-semibold">Scan at Entry</p>
-                  <p className="text-xs text-[var(--color-muted)]">Show this QR code to the event staff</p>
+                  <p className="text-xs text-(--color-muted)">Show this QR code to the event staff</p>
                 </div>
               )}
 
               {/* Purchase Info */}
-              <div className="text-center text-xs text-[var(--color-muted)]">
+              <div className="text-center text-xs text-(--color-muted)">
                 <p>Purchased on {new Date(ticket.purchasedAt).toLocaleDateString('en-IN', {
                   day: 'numeric',
                   month: 'long',
@@ -464,9 +464,9 @@ export default function MyTicketsPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-[var(--color-bg)]">
+      <section className="min-h-screen bg-(--color-bg)">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-[var(--color-primary-gold)] to-[#D4B050] py-12 text-black">
+        <div className="bg-gradient-to-br from-(--color-primary-gold) to-[#D4B050] py-12 text-black">
           <div className="lux-container">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -503,8 +503,8 @@ export default function MyTicketsPage() {
           {/* Filters */}
           <div className="mb-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5 text-[var(--color-muted)]" />
-              <span className="text-sm font-semibold text-[var(--color-muted)]">Filter by status:</span>
+              <Filter className="h-5 w-5 text-(--color-muted)" />
+              <span className="text-sm font-semibold text-(--color-muted)">Filter by status:</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {['', 'active', 'used', 'cancelled', 'expired'].map((status) => (
@@ -513,8 +513,8 @@ export default function MyTicketsPage() {
                   onClick={() => setStatusFilter(status)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                     statusFilter === status
-                      ? 'bg-[var(--color-primary-gold)] text-black'
-                      : 'bg-white text-[var(--color-text)] hover:bg-black/5'
+                      ? 'bg-(--color-primary-gold) text-black'
+                      : 'bg-white text-(--color-text) hover:bg-black/5'
                   }`}
                 >
                   {status === '' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -556,10 +556,10 @@ export default function MyTicketsPage() {
               className="flex flex-col items-center justify-center py-16 text-center"
             >
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
-                <Ticket className="h-12 w-12 text-[var(--color-muted)]" />
+                <Ticket className="h-12 w-12 text-(--color-muted)" />
               </div>
               <h3 className="text-xl font-extrabold">No tickets yet</h3>
-              <p className="mt-2 max-w-sm text-[var(--color-muted)]">
+              <p className="mt-2 max-w-sm text-(--color-muted)">
                 {statusFilter 
                   ? 'No tickets match your current filter. Try a different status.'
                   : 'Book tickets for upcoming events to see them here.'}
@@ -603,7 +603,7 @@ export default function MyTicketsPage() {
                     <ChevronLeft className="h-4 w-4" />
                     Previous
                   </Button>
-                  <span className="text-sm text-[var(--color-muted)]">
+                  <span className="text-sm text-(--color-muted)">
                     Page {pagination.page} of {pagination.totalPages}
                   </span>
                   <Button

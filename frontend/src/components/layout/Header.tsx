@@ -1,10 +1,7 @@
 import { useMemo, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, ShoppingCart, User, LogOut, Package, Ticket } from 'lucide-react';
-import { useCartStore } from '@/store/useCartStore';
-import { useUIStore } from '@/store/useUIStore';
+import { Menu, X, LogOut, Package, Ticket, UserCog } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
-import { Cart } from '@/components/purchase/Cart';
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -19,13 +16,10 @@ export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const items = useCartStore((s) => s.items);
-  const openModal = useUIStore((s) => s.openModal);
-  const { isAuthenticated, logout } = useUserStore();
-  const cartCount = useMemo(() => items.reduce((sum, it) => sum + it.qty, 0), [items]);
+  const { isAuthenticated, logout, user } = useUserStore();
 
   const activeUnderline = useMemo(
-    () => 'after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:bg-[var(--color-primary-gold)]',
+    () => 'after:absolute after:left-0 after:-bottom-2 after:h-[2px] after:w-full after:bg-(--color-primary-gold)',
     []
   );
 
@@ -35,9 +29,21 @@ export function Header() {
     navigate('/');
   };
 
+  const getInitials = () => {
+    if (user && typeof user.name === 'string' && user.name) {
+      return user.name.charAt(0).toUpperCase();
+    }
+    if (user && typeof user.email === 'string' && user.email) {
+      return user.email.charAt(0).toUpperCase();
+    }
+    return 'U';
+  };
+
+  const userProfileImage = user && typeof user.profileImage === 'string' ? user.profileImage : null;
+
   return (
     <header className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-(--color-primary-gold) backdrop-blur">
-      <div className="lux-container flex h-16 items-center justify-between gap-4">
+      <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6">
         <button
           className="text-left luckiest-guy-regular text-xl tracking-[0.18em]"
           onClick={() => {
@@ -67,32 +73,24 @@ export function Header() {
             </NavLink>
           ))}
           
-          {/* Cart Button */}
-          <button
-            className="relative inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-sm font-semibold text-black/70 hover:text-black"
-            onClick={() => openModal(<Cart />)}
-            aria-label="Open cart"
-            type="button"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            <span>Cart</span>
-            {cartCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-(--color-primary-red) px-1 text-xs text-white">
-                {cartCount}
-              </span>
-            )}
-          </button>
-
           {/* User Menu */}
           {isAuthenticated ? (
             <div className="relative">
               <button
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-black/10 bg-white text-black/70 hover:text-black"
+                className="inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border border-black/10 bg-white text-black/70 hover:text-black"
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 aria-label="User menu"
                 type="button"
               >
-                <User className="h-5 w-5" />
+                {userProfileImage ? (
+                  <img
+                    src={userProfileImage}
+                    alt="Profile"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-bold">{getInitials()}</span>
+                )}
               </button>
               {userMenuOpen && (
                 <>
@@ -101,6 +99,14 @@ export function Header() {
                     onClick={() => setUserMenuOpen(false)} 
                   />
                   <div className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-xl border border-black/10 bg-white shadow-lg">
+                    <NavLink
+                      to="/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold hover:bg-black/5"
+                    >
+                      <UserCog className="h-4 w-4" />
+                      Profile
+                    </NavLink>
                     <NavLink
                       to="/orders"
                       onClick={() => setUserMenuOpen(false)}
@@ -140,19 +146,6 @@ export function Header() {
 
         <div className="flex items-center gap-2 md:hidden">
           <button
-            className="relative inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-white"
-            onClick={() => openModal(<Cart />)}
-            aria-label="Open cart"
-            type="button"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 ? (
-              <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-(--color-primary-red) px-1 text-xs text-white">
-                {cartCount}
-              </span>
-            ) : null}
-          </button>
-          <button
           className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-black/10 bg-(--color-primary-gold) md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? 'Close menu' : 'Open menu'}
@@ -169,7 +162,7 @@ export function Header() {
           className="border-t border-black/10 bg-(--color-primary-gold) md:hidden"
           style={{ animation: 'slideDown 220ms ease both' }}
         >
-          <div className="lux-container py-4">
+          <div className="px-4 py-4 sm:px-6">
             <div className="grid gap-2">
               {navItems.map((item) => (
                 <NavLink
@@ -189,6 +182,18 @@ export function Header() {
               {/* Mobile User Links */}
               {isAuthenticated ? (
                 <>
+                  <NavLink
+                    to="/profile"
+                    onClick={() => setOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold tracking-wide ${
+                        isActive ? 'bg-black/5 text-(--color-primary-red)' : 'hover:bg-black/5 hover:text-(--color-primary-red)'
+                      }`
+                    }
+                  >
+                    <UserCog className="h-4 w-4" />
+                    Profile
+                  </NavLink>
                   <NavLink
                     to="/orders"
                     onClick={() => setOpen(false)}

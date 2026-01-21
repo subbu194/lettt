@@ -28,11 +28,11 @@ export function TalkShowVideos() {
   }, []);
 
   return (
-    <section id="talkshow-videos" className="border-t border-black/10 bg-[var(--color-bg)]">
-      <div className="lux-container py-16">
+    <section id="talkshow-videos" className="border-t border-black/10 bg-(--color-bg)">
+      <div className="w-full px-4 py-16 sm:px-6">
         <div className="fade-in">
           <h2 className="text-3xl font-extrabold tracking-tight">Talk Show Videos</h2>
-          <p className="mt-2 text-[var(--color-muted)]">Watch interviews, performances, and behind-the-scenes moments.</p>
+          <p className="mt-2 text-(--color-muted)">Watch interviews, performances, and behind-the-scenes moments.</p>
         </div>
 
         <div className="mt-10 fade-in">
@@ -72,7 +72,7 @@ export function TalkShowVideos() {
                       </div>
                       <div className="p-5">
                         <div className="truncate text-base font-extrabold tracking-tight">{title}</div>
-                        <div className="mt-1 text-sm text-[var(--color-muted)]">
+                        <div className="mt-1 text-sm text-(--color-muted)">
                           {views ? `${views.toLocaleString()} views` : 'New'} · {duration}
                         </div>
                       </div>

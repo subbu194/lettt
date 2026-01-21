@@ -6,7 +6,7 @@ import { fadeInUp } from '@/utils/animations';
 export default function TalkShowPage() {
   return (
     <PageTransition>
-      <div className="bg-[var(--color-bg)]">
+      <div className="bg-(--color-bg)">
         <div className="lux-container py-16">
           <motion.div
             className="max-w-3xl"
@@ -16,7 +16,7 @@ export default function TalkShowPage() {
             transition={{ duration: 0.4 }}
           >
             <h1 className="text-4xl font-extrabold tracking-tight">Talk Show</h1>
-            <p className="mt-3 text-[var(--color-muted)]">   conversations and performances — curated for a   experience.</p>
+            <p className="mt-3 text-(--color-muted)">   conversations and performances — curated for a   experience.</p>
           </motion.div>
         </div>
         <TalkShowVideos />

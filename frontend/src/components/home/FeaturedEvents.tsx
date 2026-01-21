@@ -3,7 +3,7 @@ import { EventsGrid } from '@/components/events/EventsGrid';
 export function FeaturedEvents() {
   return (
     <section id="featured-events" className="border-t border-black/10 bg-(--color-bg)">
-      <div className="lux-container py-16">
+      <div className="w-full px-4 py-16 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-end">
           <div className="fade-in">
             <h2 className="text-3xl font-extrabold tracking-tight">Featured Events</h2>
