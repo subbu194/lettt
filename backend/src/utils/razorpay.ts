@@ -1,16 +1,10 @@
 import Razorpay from "razorpay";
+import { getRazorpayInstance as getInstanceFromConfig, getRazorpayKeyId as getKeyId } from "../config/razorpay";
 
 export function getRazorpayInstance() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET;
-  if (!keyId || !keySecret) {
-    throw new Error("Razorpay credentials are not configured");
-  }
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+  return getInstanceFromConfig();
 }
 
 export function getRazorpayKeyId() {
-  const keyId = process.env.RAZORPAY_KEY_ID;
-  if (!keyId) throw new Error("RAZORPAY_KEY_ID is not configured");
-  return keyId;
+  return getKeyId();
 }

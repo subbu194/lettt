@@ -3,6 +3,8 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { connectDatabase } from "./config/database";
+import { initializeR2 } from "./config/r2";
+import { initializeRazorpay } from "./config/razorpay";
 import healthRoutes from "./routes/health";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
@@ -16,7 +18,10 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
+await initializeR2();
+await initializeRazorpay();
 await connectDatabase();
+
 
 app.use(
   cors({
@@ -53,6 +58,5 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`📍 API available at http://localhost:${PORT}`);
+  console.log(`✅ API available at http://localhost:${PORT}`);
 });

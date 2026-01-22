@@ -2,16 +2,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
-
-// Configure AWS SDK v3 for R2
-const s3Client = new S3Client({
-    endpoint: process.env.R2_ENDPOINT,
-    credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-    },
-    region: 'auto'
-});
+import { getR2Client } from '../config/r2';
 
 const BUCKET_NAME = process.env.R2_BUCKET_NAME || 'lettt';
 const R2_PUBLIC_URL = process.env.R2_PUBLIC_BASE_URL || '';
@@ -25,6 +16,7 @@ export const generateUploadUrlProfile = async (
     isPermanent: boolean = false
 ): Promise<{ uploadUrl: string; publicUrl: string }> => {
     try {
+        const s3Client = getR2Client();
         const fileExtension = fileName.split('.').pop() || 'jpg';
         const uniqueFileName = `${uuidv4()}.${fileExtension}`;
         
@@ -64,6 +56,7 @@ export const generateUploadUrlProfile = async (
 // Delete file from R2 storage
 export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
     try {
+        const s3Client = getR2Client();
         if (!fileUrl) return;
         
         // Extract the key from the URL
