@@ -55,9 +55,12 @@ export const generateUploadUrlProfile = async (
 
 // Delete file from R2 storage
 export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
+    if (!fileUrl) {
+        throw new Error('File URL is required for deletion');
+    }
+    
     try {
         const s3Client = getR2Client();
-        if (!fileUrl) return;
         
         // Extract the key from the URL
         let key: string;
@@ -70,8 +73,9 @@ export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
             key = fileUrl;
         }
         
-        console.log(`Attempting to delete file with key: ${key}`);
-        console.log(`Using bucket: ${BUCKET_NAME}`);
+        if (!key || key.trim() === '') {
+            throw new Error('Invalid file key extracted from URL');
+        }
         
         const command = new DeleteObjectCommand({
             Bucket: BUCKET_NAME,
@@ -79,11 +83,13 @@ export const deleteFileFromR2 = async (fileUrl: string): Promise<void> => {
         });
         
         await s3Client.send(command);
-        console.log(`File deleted: ${key}`);
+        
+        // Log successful deletion (for audit trail)
+        console.log(`✅ File deleted successfully: ${key}`);
     } catch (error) {
-        console.error('Error deleting file from R2:', error);
-        // We don't throw here to prevent the main operation from failing
-        // if file deletion fails
+        // Re-throw error instead of silently failing
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        throw new Error(`Failed to delete file from R2: ${errorMessage}`);
     }
 };
 

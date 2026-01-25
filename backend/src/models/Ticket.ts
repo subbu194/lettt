@@ -25,4 +25,9 @@ const TicketSchema = new Schema<TicketDocument>(
   { timestamps: true }
 );
 
+// Compound indexes for common queries (remove duplicate single-field indexes)
+TicketSchema.index({ userId: 1, status: 1 });
+TicketSchema.index({ userId: 1, createdAt: -1 });
+TicketSchema.index({ eventId: 1, status: 1 });
+
 export const Ticket = mongoose.model<TicketDocument>("Ticket", TicketSchema);

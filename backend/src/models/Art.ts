@@ -56,4 +56,10 @@ const ArtSchema = new Schema<ArtDocument>(
   { timestamps: true }
 );
 
+// Compound indexes for efficient queries
+ArtSchema.index({ category: 1, isAvailable: 1 });
+ArtSchema.index({ artist: 1, isAvailable: 1 });
+ArtSchema.index({ isFeatured: 1, isAvailable: 1 });
+ArtSchema.index({ price: 1, isAvailable: 1 });
+
 export const Art = mongoose.model<ArtDocument>("Art", ArtSchema);

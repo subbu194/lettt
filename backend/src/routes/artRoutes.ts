@@ -1,5 +1,7 @@
 import { Router } from "express";
 import {
+  artAutocomplete,
+  bulkDeleteArt,
   createArt,
   deleteArt,
   getArtById,
@@ -21,12 +23,14 @@ const router = Router();
 router.get("/", listArt);
 router.get("/featured", listFeaturedArt);
 router.get("/categories", getCategories);
+router.get("/autocomplete", artAutocomplete);
 router.get("/:id", getArtById);
 
 // ─────────────────────────────────────────────────────────────
 // Admin Routes (require authentication)
 // ─────────────────────────────────────────────────────────────
 router.post("/", authenticateAdmin, createArt);
+router.post("/bulk-delete", authenticateAdmin, bulkDeleteArt);
 router.put("/:id", authenticateAdmin, updateArt);
 router.delete("/:id", authenticateAdmin, deleteArt);
 router.patch("/:id/toggle-featured", authenticateAdmin, toggleFeatured);

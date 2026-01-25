@@ -20,6 +20,11 @@ router.post("/register", signup);
 
 router.post("/logout", logout);
 
+// Token verification endpoint
+router.get("/verify", authenticateUser, (_req, res) => {
+  return res.status(200).json({ valid: true });
+});
+
 router.get("/profile", authenticateUser, getProfile);
 router.put("/profile", authenticateUser, updateProfile);
 

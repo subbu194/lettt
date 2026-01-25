@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Card } from '@/components/shared/Card';
@@ -27,19 +28,57 @@ export function TalkShowVideos() {
     fetchVideos();
   }, []);
 
+  const scroll = (direction: 'left' | 'right') => {
+    const container = document.getElementById('talkshow-videos-scroll');
+    if (container) {
+      const scrollAmount = 350;
+      container.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
     <section id="talkshow-videos" className="border-t border-black/10 bg-(--color-bg)">
-      <div className="w-full px-4 py-16 sm:px-6">
-        <div className="fade-in">
-          <h2 className="text-3xl font-extrabold tracking-tight">Talk Show Videos</h2>
-          <p className="mt-2 text-(--color-muted)">Watch interviews, performances, and behind-the-scenes moments.</p>
+      <div className="w-full px-4 py-12 sm:px-6">
+        <div className="fade-in flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight">Talk Show Videos</h2>
+            <p className="mt-1 text-sm text-(--color-muted)">Watch interviews and behind-the-scenes moments</p>
+          </div>
+          
+          {!loading && !error && videos.length > 3 && (
+            <div className="hidden gap-2 md:flex">
+              <button
+                onClick={() => scroll('left')}
+                className="rounded-full border border-black/10 bg-white p-2 hover:bg-gray-50 transition"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={() => scroll('right')}
+                className="rounded-full border border-black/10 bg-white p-2 hover:bg-gray-50 transition"
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          )}
         </div>
 
-        <div className="mt-10 fade-in">
+        <div className="mt-6 fade-in">
           {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="flex gap-4 overflow-x-auto pb-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-[240px] rounded-2xl border border-black/10 bg-white shadow-sm" />
+                <div key={i} className="min-w-[240px] h-[220px] rounded-lg bg-white border border-black/5 shadow-sm animate-pulse">
+                  <div className="aspect-video bg-gray-200 rounded-t-lg" />
+                  <div className="p-3 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : error ? (
@@ -49,7 +88,11 @@ export function TalkShowVideos() {
               No videos available yet. Please check back soon.
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div 
+              id="talkshow-videos-scroll"
+              className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x snap-mandatory"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
               {videos.map((video, idx) => {
                 const rawId = video.id ?? video._id ?? video.title ?? video.name;
                 const id = rawId ? String(rawId) : `video-${idx}`;
@@ -62,21 +105,30 @@ export function TalkShowVideos() {
                   <button
                     key={id}
                     type="button"
-                    className="text-left"
+                    className="group min-w-[240px] max-w-[240px] snap-start text-left rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
                     onClick={() => openModal(<VideoPlayer video={video} />)}
                     aria-label={`Play ${title}`}
                   >
-                    <Card className="overflow-hidden hover:border-black/20 transition">
-                      <div className="aspect-16-10 w-full bg-black/5">
-                        {thumb ? <img src={thumb} alt={title} className="h-full w-full object-cover" loading="lazy" /> : null}
-                      </div>
-                      <div className="p-5">
-                        <div className="truncate text-base font-extrabold tracking-tight">{title}</div>
-                        <div className="mt-1 text-sm text-(--color-muted)">
-                          {views ? `${views.toLocaleString()} views` : 'New'} · {duration}
+                    <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-black/5">
+                      {thumb ? (
+                        <img src={thumb} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-4xl">🎬</div>
+                      )}
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="rounded-full bg-white/90 p-3">
+                          <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z" />
+                          </svg>
                         </div>
                       </div>
-                    </Card>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-sm font-bold tracking-tight line-clamp-2 leading-snug" title={title}>{title}</h3>
+                      <p className="mt-1 text-xs text-black/60">
+                        {views ? `${views.toLocaleString()} views` : 'New'} · {duration}
+                      </p>
+                    </div>
                   </button>
                 );
               })}
@@ -87,4 +139,3 @@ export function TalkShowVideos() {
     </section>
   );
 }
-

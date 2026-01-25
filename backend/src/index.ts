@@ -13,6 +13,7 @@ import eventRoutes from "./routes/eventRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import ticketRoutes from "./routes/ticketRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
+import exportRoutes from "./routes/exportRoutes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -33,22 +34,22 @@ app.use(
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-// Existing health route under /api/v1
+// Health route
 app.use("/api/v1", healthRoutes);
 
-// Auth routes: satisfy spec (/api/auth/*) AND keep existing frontend compatibility (/api/v1/auth/*)
-app.use("/api/auth", authRoutes);
+// Auth routes (standardized under /api/v1/auth)
 app.use("/api/v1/auth", authRoutes);
 
 // User routes (profile management)
 app.use("/api/v1/user", userRoutes);
 
-// Phase 1 routes
+// Resource routes
 app.use("/api/v1/art", artRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/orders", orderRoutes);
 app.use("/api/v1/tickets", ticketRoutes);
 app.use("/api/v1/upload", uploadRoutes);
+app.use("/api/v1/export", exportRoutes);
 
 app.get("/", (_req, res) => {
   res.send("Let The Talent Talk Backend is Running!");

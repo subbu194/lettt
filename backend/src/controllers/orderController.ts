@@ -9,6 +9,7 @@ import { Event } from "../models/Event";
 import { Art } from "../models/Art";
 import mongoose from "mongoose";
 import { nanoid } from "nanoid";
+import { jsonToCSV, flattenObject } from "../utils/csvExport";
 
 // ─────────────────────────────────────────────────────────────
 // Validation Schemas
@@ -122,6 +123,8 @@ const verifySchema = z.object({
 });
 
 export const verifyOrder: RequestHandler = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  
   try {
     if (!req.user) throw new AppError("Unauthorized", 401);
     
@@ -150,88 +153,127 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
       throw new AppError("Payment verification failed. Please contact support if amount was deducted.", 400);
     }
 
-    // Re-validate availability (in case items sold out during payment)
-    const availabilityErrors = await validateAvailability(items);
-    if (availabilityErrors.length > 0) {
-      // Refund would need to be initiated here in production
-      throw new AppError(`Order cannot be completed: ${availabilityErrors.join("; ")}. A refund will be processed.`, 400);
-    }
-
-    const session = await mongoose.startSession();
+    // Start transaction
     session.startTransaction();
     
-    try {
-      const totalAmount = items.reduce((s, it) => s + it.price * it.quantity, 0);
-      
-      // Create order
-      const [savedOrder] = await Order.create([{
-        userId: new mongoose.Types.ObjectId(req.user.userId),
-        items,
-        totalAmount,
-        paymentStatus: "paid",
-        razorpayOrderId: razorpay_order_id,
-        razorpayPaymentId: razorpay_payment_id,
-        address,
-        phone,
-      }], { session });
+    const totalAmount = items.reduce((s, it) => s + it.price * it.quantity, 0);
+    
+    // Create order first
+    const [savedOrder] = await Order.create([{
+      userId: new mongoose.Types.ObjectId(req.user.userId),
+      items,
+      totalAmount,
+      paymentStatus: "paid",
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      address,
+      phone,
+    }], { session });
 
-      const tickets: Array<{ ticketId: string; eventTitle: string; quantity: number }> = [];
+    if (!savedOrder) {
+      throw new AppError("Failed to create order", 500);
+    }
 
-      // Process each item
-      for (const item of items) {
-        if (item.itemType === "event") {
-          const eventId = new mongoose.Types.ObjectId(item.itemId);
-          
-          // Decrement seats
-          await Event.updateOne(
-            { _id: eventId }, 
-            { $inc: { seatsLeft: -item.quantity } }, 
+    const tickets: Array<{ ticketId: string; eventTitle: string; quantity: number }> = [];
+
+    // Process each item with atomic operations
+    for (const item of items) {
+      if (item.itemType === "event") {
+        const eventId = new mongoose.Types.ObjectId(item.itemId);
+        
+        // ATOMIC OPERATION: Decrement seats only if enough available (prevents race condition)
+        const updateResult = await Event.findOneAndUpdate(
+          { 
+            _id: eventId, 
+            seatsLeft: { $gte: item.quantity } // Only update if enough seats available
+          }, 
+          { $inc: { seatsLeft: -item.quantity } },
+          { 
+            session,
+            new: true // Return updated document
+          }
+        );
+        
+        // If update failed, it means seats were sold out during payment
+        if (!updateResult) {
+          throw new AppError(
+            `Sorry, only ${(await Event.findById(eventId).session(session))?.seatsLeft || 0} seats left for "${item.title}". ` +
+            `A refund will be initiated automatically.`,
+            400
+          );
+        }
+        
+        // Create ticket
+        const ticketId = `TKT-${Date.now().toString(36).toUpperCase()}-${nanoid(6).toUpperCase()}`;
+        await Ticket.create([{
+          userId: new mongoose.Types.ObjectId(req.user.userId),
+          eventId,
+          orderId: savedOrder._id,
+          ticketId,
+          quantity: item.quantity,
+          status: "active",
+        }], { session });
+        
+        tickets.push({ ticketId, eventTitle: item.title, quantity: item.quantity });
+      } else if (item.itemType === "art") {
+        // ATOMIC OPERATION: Decrement art quantity
+        const artId = new mongoose.Types.ObjectId(item.itemId);
+        const updateResult = await Art.findOneAndUpdate(
+          {
+            _id: artId,
+            isAvailable: true,
+            quantity: { $gte: item.quantity }
+          },
+          { $inc: { quantity: -item.quantity } },
+          { 
+            session,
+            new: true
+          }
+        );
+        
+        if (!updateResult) {
+          throw new AppError(
+            `Sorry, "${item.title}" is no longer available in the requested quantity. ` +
+            `A refund will be initiated automatically.`,
+            400
+          );
+        }
+        
+        // Mark as unavailable if quantity reaches 0
+        if (updateResult.quantity === 0) {
+          await Art.updateOne(
+            { _id: artId },
+            { isAvailable: false },
             { session }
           );
-          
-          // Create ticket
-          if (!savedOrder) {
-            throw new AppError("Failed to save order", 500);
-          }
-          const ticketId = `TKT-${Date.now().toString(36).toUpperCase()}-${nanoid(6).toUpperCase()}`;
-          await Ticket.create([{
-            userId: new mongoose.Types.ObjectId(req.user.userId),
-            eventId,
-            orderId: savedOrder._id,
-            ticketId,
-            quantity: item.quantity,
-            status: "active",
-          }], { session });
-          
-          tickets.push({ ticketId, eventTitle: item.title, quantity: item.quantity });
         }
       }
-
-      await session.commitTransaction();
-      session.endSession();
-
-      if (!savedOrder) {
-        throw new AppError("Failed to save order", 500);
-      }
-
-      return res.status(200).json({ 
-        success: true, 
-        message: "Payment successful! Your order has been placed.",
-        order: {
-          _id: savedOrder._id,
-          totalAmount: savedOrder.totalAmount,
-          paymentStatus: savedOrder.paymentStatus,
-          items: savedOrder.items,
-        },
-        tickets: tickets.length > 0 ? tickets : undefined,
-      });
-    } catch (err) {
-      await session.abortTransaction();
-      session.endSession();
-      throw err;
     }
+
+    // Commit transaction
+    await session.commitTransaction();
+
+    return res.status(200).json({ 
+      success: true, 
+      message: "Payment successful! Your order has been placed.",
+      order: {
+        _id: savedOrder._id,
+        orderNumber: savedOrder.orderNumber,
+        totalAmount: savedOrder.totalAmount,
+        paymentStatus: savedOrder.paymentStatus,
+        items: savedOrder.items,
+      },
+      tickets: tickets.length > 0 ? tickets : undefined,
+    });
   } catch (err) {
+    // Rollback transaction on any error
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(err);
+  } finally {
+    // Always end session
+    session.endSession();
   }
 };
 
@@ -427,6 +469,79 @@ export const getOrderStats: RequestHandler = async (req, res, next) => {
       },
       recentOrders,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN: Export orders to CSV
+// ─────────────────────────────────────────────────────────────
+
+const exportSchema = z.object({
+  status: z.enum(["created", "paid", "failed"]).optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
+export const exportOrdersCSV: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+    
+    const { status, startDate, endDate } = exportSchema.parse(req.query);
+    
+    const filter: Record<string, unknown> = {};
+    if (status) filter.paymentStatus = status;
+    
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) (filter.createdAt as Record<string, unknown>).$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        (filter.createdAt as Record<string, unknown>).$lte = end;
+      }
+    }
+    
+    const orders = await Order.find(filter)
+      .populate("userId", "email name phone")
+      .sort({ createdAt: -1 })
+      .limit(10000) // Limit to prevent memory issues
+      .lean();
+    
+    if (orders.length === 0) {
+      throw new AppError("No orders found for export", 404);
+    }
+    
+    // Flatten orders for CSV
+    const flattenedOrders = orders.map(order => {
+      const flat = flattenObject(order as unknown as Record<string, unknown>);
+      return {
+        OrderNumber: flat.orderNumber,
+        OrderID: flat._id,
+        UserEmail: flat['userId.email'] || '',
+        UserName: flat['userId.name'] || '',
+        TotalAmount: flat.totalAmount,
+        PaymentStatus: flat.paymentStatus,
+        RazorpayOrderID: flat.razorpayOrderId || '',
+        RazorpayPaymentID: flat.razorpayPaymentId || '',
+        Phone: flat.phone,
+        Address: flat.address,
+        ItemCount: Array.isArray(order.items) ? order.items.length : 0,
+        CreatedAt: flat.createdAt,
+        UpdatedAt: flat.updatedAt,
+      };
+    });
+    
+    const csv = jsonToCSV(flattenedOrders);
+    
+    // Set headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename=orders-${Date.now()}.csv`);
+    
+    return res.send(csv);
   } catch (err) {
     next(err);
   }

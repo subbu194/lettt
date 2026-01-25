@@ -6,6 +6,7 @@ import {
   getOrderById,
   adminListOrders,
   getOrderStats,
+  exportOrdersCSV,
 } from "../controllers/orderController";
 import { authenticateAdmin, authenticateUser } from "../middleware/auth";
 
@@ -24,5 +25,6 @@ router.get("/my-orders/:id", authenticateUser, getOrderById);
 // ─────────────────────────────────────────────────────────────
 router.get("/admin", authenticateAdmin, adminListOrders);
 router.get("/admin/stats", authenticateAdmin, getOrderStats);
+router.get("/admin/export-csv", authenticateAdmin, exportOrdersCSV);
 
 export default router;

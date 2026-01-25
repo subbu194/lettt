@@ -16,6 +16,7 @@ const EventCheckout = lazy(() => import('@/pages/EventCheckout'));
 const TalkShow = lazy(() => import('@/pages/TalkShow'));
 const Purchase = lazy(() => import('@/pages/Purchase'));
 const About = lazy(() => import('@/pages/About'));
+const Gallery = lazy(() => import('@/pages/Gallery'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const AdminLogin = lazy(() => import('@/pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
@@ -56,7 +57,8 @@ function AppShell() {
               <Route path="/art" element={<Art />} />
               <Route path="/art/:id" element={<ArtDetail />} />
               <Route path="/talkshow" element={<TalkShow />} />
-              <Route path="/purchase" element={<Purchase />} />
+              <Route path="/gallery" element={<Gallery />} />
+              <Route path="/purchase" element={<Checkout />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/my-tickets" element={<MyTickets />} />

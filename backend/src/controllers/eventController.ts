@@ -14,7 +14,7 @@ const createEventSchema = z.object({
   coverImage: z.string().url("Cover image must be a valid URL"),
   galleryImages: z.array(z.string().url("Each gallery image must be a valid URL")).max(10, "Maximum 10 gallery images allowed").default([]),
   venue: z.string().min(2, "Venue must be at least 2 characters"),
-  date: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date format"),
+  date: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid date format").transform((val) => new Date(val)),
   startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Time must be in HH:MM format"),
   ticketPrice: z.number().min(0, "Ticket price must be positive"),
   totalSeats: z.number().min(1, "Must have at least 1 seat"),
@@ -66,7 +66,8 @@ export const listEvents: RequestHandler = async (req, res, next) => {
 
     // Filter for upcoming events (date >= today)
     if (upcoming) {
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Start of today
       filter.date = { $gte: today };
     }
     
@@ -121,7 +122,8 @@ export const listEvents: RequestHandler = async (req, res, next) => {
 
 export const listFeaturedEvents: RequestHandler = async (_req, res, next) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
     const items = await Event.find({ 
       isFeatured: true,
       date: { $gte: today },
@@ -143,7 +145,8 @@ export const listFeaturedEvents: RequestHandler = async (_req, res, next) => {
 export const listUpcomingEvents: RequestHandler = async (req, res, next) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 6, 20);
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Start of today
     
     const items = await Event.find({ 
       date: { $gte: today },
@@ -195,11 +198,49 @@ export const getEventById: RequestHandler = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────
 // PUBLIC: Get all unique venues
 // ─────────────────────────────────────────────────────────────
+// PUBLIC: Get all unique venues with pagination
+// ─────────────────────────────────────────────────────────────
 
-export const getVenues: RequestHandler = async (_req, res, next) => {
+const venuesQuerySchema = z.object({
+  page: z.coerce.number().min(1).optional().default(1),
+  limit: z.coerce.number().min(1).max(100).optional().default(50),
+  search: z.string().optional(),
+});
+
+export const getVenues: RequestHandler = async (req, res, next) => {
   try {
-    const venues = await Event.distinct("venue");
-    return res.json({ venues: venues.filter(Boolean) });
+    const { page, limit, search } = venuesQuerySchema.parse(req.query);
+    
+    // Build filter
+    const filter: Record<string, unknown> = {};
+    
+    if (search) {
+      filter.venue = { 
+        $regex: search, 
+        $options: "i" 
+      };
+    }
+    
+    const venues = await Event.distinct("venue", filter);
+    const filteredVenues = venues.filter(Boolean).sort();
+    
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    const total = filteredVenues.length;
+    const paginatedVenues = filteredVenues.slice(skip, skip + limit);
+    const totalPages = Math.ceil(total / limit);
+    
+    return res.json({ 
+      venues: paginatedVenues,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -331,6 +372,34 @@ export const toggleFeatured: RequestHandler = async (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// ADMIN: Bulk delete events
+// ─────────────────────────────────────────────────────────────
+
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().refine(isValidObjectId, "Invalid ID format")).min(1, "At least one ID required").max(50, "Maximum 50 items at once"),
+});
+
+export const bulkDeleteEvents: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+
+    const { ids } = bulkDeleteSchema.parse(req.body);
+    
+    // Delete all events with the provided IDs
+    const result = await Event.deleteMany({ _id: { $in: ids } });
+    
+    return res.json({ 
+      message: `Successfully deleted ${result.deletedCount} event(s)`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // ADMIN: Get event statistics
 // ─────────────────────────────────────────────────────────────
 
@@ -340,7 +409,8 @@ export const getEventStats: RequestHandler = async (req, res, next) => {
       throw new AppError("Forbidden: Admin access required", 403);
     }
 
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
     const [total, featured, upcoming, soldOut, totalSeats, totalSold, byVenue] = await Promise.all([
       Event.countDocuments(),
@@ -368,6 +438,53 @@ export const getEventStats: RequestHandler = async (req, res, next) => {
         byVenue: byVenue.map((v) => ({ venue: v._id, count: v.count })),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC: Search autocomplete for events
+// ─────────────────────────────────────────────────────────────
+
+const autocompleteSchema = z.object({
+  q: z.string().min(1, "Search query required"),
+  limit: z.coerce.number().min(1).max(20).optional().default(10),
+});
+
+export const eventAutocomplete: RequestHandler = async (req, res, next) => {
+  try {
+    const { q, limit } = autocompleteSchema.parse(req.query);
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Search in titles and venues for upcoming events only
+    const results = await Event.find({
+      $or: [
+        { title: { $regex: q, $options: "i" } },
+        { venue: { $regex: q, $options: "i" } },
+      ],
+      date: { $gte: today },
+      seatsLeft: { $gt: 0 },
+    })
+      .select("title venue date ticketPrice coverImage")
+      .sort({ date: 1 })
+      .limit(limit)
+      .lean();
+    
+    // Format results for autocomplete
+    const suggestions = results.map(item => ({
+      id: item._id,
+      title: item.title,
+      venue: item.venue,
+      date: item.date,
+      price: item.ticketPrice,
+      image: item.coverImage || null,
+      type: 'event' as const,
+    }));
+    
+    return res.json({ suggestions });
   } catch (err) {
     next(err);
   }

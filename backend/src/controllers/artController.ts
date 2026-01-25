@@ -162,15 +162,52 @@ export const getArtById: RequestHandler = async (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────
-// PUBLIC: Get all unique categories
+// PUBLIC: Get all unique categories with pagination
 // ─────────────────────────────────────────────────────────────
 
-export const getCategories: RequestHandler = async (_req, res, next) => {
+const categoriesQuerySchema = z.object({
+  page: z.coerce.number().min(1).optional().default(1),
+  limit: z.coerce.number().min(1).max(100).optional().default(50),
+  search: z.string().optional(),
+});
+
+export const getCategories: RequestHandler = async (req, res, next) => {
   try {
-    const categories = await Art.distinct("category", { 
+    const { page, limit, search } = categoriesQuerySchema.parse(req.query);
+    
+    // Build filter
+    const filter: Record<string, unknown> = { 
       category: { $nin: [null, ""] } 
+    };
+    
+    if (search) {
+      filter.category = { 
+        $nin: [null, ""],
+        $regex: search, 
+        $options: "i" 
+      };
+    }
+    
+    const categories = await Art.distinct("category", filter);
+    const filteredCategories = categories.filter(Boolean).sort();
+    
+    // Apply pagination
+    const skip = (page - 1) * limit;
+    const total = filteredCategories.length;
+    const paginatedCategories = filteredCategories.slice(skip, skip + limit);
+    const totalPages = Math.ceil(total / limit);
+    
+    return res.json({ 
+      categories: paginatedCategories,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+      }
     });
-    return res.json({ categories: categories.filter(Boolean) });
   } catch (err) {
     next(err);
   }
@@ -317,6 +354,34 @@ export const toggleAvailability: RequestHandler = async (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────
+// ADMIN: Bulk delete art items
+// ─────────────────────────────────────────────────────────────
+
+const bulkDeleteSchema = z.object({
+  ids: z.array(z.string().refine(isValidObjectId, "Invalid ID format")).min(1, "At least one ID required").max(50, "Maximum 50 items at once"),
+});
+
+export const bulkDeleteArt: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+
+    const { ids } = bulkDeleteSchema.parse(req.body);
+    
+    // Delete all art items with the provided IDs
+    const result = await Art.deleteMany({ _id: { $in: ids } });
+    
+    return res.json({ 
+      message: `Successfully deleted ${result.deletedCount} art item(s)`,
+      deletedCount: result.deletedCount
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // ADMIN: Get art statistics
 // ─────────────────────────────────────────────────────────────
 
@@ -345,6 +410,47 @@ export const getArtStats: RequestHandler = async (req, res, next) => {
         byCategory: byCategory.map((c) => ({ category: c._id || "Uncategorized", count: c.count })),
       },
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC: Search autocomplete for art
+// ─────────────────────────────────────────────────────────────
+
+const autocompleteSchema = z.object({
+  q: z.string().min(1, "Search query required"),
+  limit: z.coerce.number().min(1).max(20).optional().default(10),
+});
+
+export const artAutocomplete: RequestHandler = async (req, res, next) => {
+  try {
+    const { q, limit } = autocompleteSchema.parse(req.query);
+    
+    // Search in titles and artists
+    const results = await Art.find({
+      $or: [
+        { title: { $regex: q, $options: "i" } },
+        { artist: { $regex: q, $options: "i" } },
+      ],
+      isAvailable: true,
+    })
+      .select("title artist price images")
+      .limit(limit)
+      .lean();
+    
+    // Format results for autocomplete
+    const suggestions = results.map(item => ({
+      id: item._id,
+      title: item.title,
+      artist: item.artist,
+      price: item.price,
+      image: item.images?.[0] || null,
+      type: 'art' as const,
+    }));
+    
+    return res.json({ suggestions });
   } catch (err) {
     next(err);
   }

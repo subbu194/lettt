@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node --loader ts-node/esm src/index.ts",
     "dev": "bun run --watch src/index.ts",
-    "bun:dev": "bun run --watch src/index.ts"
+    "bun:dev": "bun run --watch src/index.ts",
+    "migrate": "bun run src/migrate.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

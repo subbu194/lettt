@@ -3,6 +3,7 @@ import { z } from "zod";
 import { User } from "../models/User";
 import { AppError } from "../middleware/errorHandler";
 import { isStrongPassword } from "../utils/password";
+import { validateEmail, sanitizeEmail } from "../utils/emailValidator";
 
 const emailSchema = z.string().email();
 
@@ -29,6 +30,16 @@ const updateProfileSchema = z
 export const signup: RequestHandler = async (req, res, next) => {
   try {
     const { name, email, password } = signupSchema.parse(req.body);
+    
+    // Validate email and check for typos
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      throw new AppError(emailValidation.error || "Invalid email", 400);
+    }
+    
+    // Use sanitized email
+    const sanitizedEmail = sanitizeEmail(email);
+    
     if (!isStrongPassword(password)) {
       throw new AppError(
         "Password must include uppercase, lowercase, and number",
@@ -36,10 +47,10 @@ export const signup: RequestHandler = async (req, res, next) => {
       );
     }
 
-    const existing = await User.findOne({ email: email.toLowerCase() });
+    const existing = await User.findOne({ email: sanitizedEmail });
     if (existing) throw new AppError("Email already exists", 400);
 
-    const user = await User.create({ name, email, password, role: "user" });
+    const user = await User.create({ name, email: sanitizedEmail, password, role: "user" });
     const token = user.generateToken(process.env.JWT_SECRET);
 
     return res.status(201).json({ user: user.toSafeJSON(), token });
@@ -52,7 +63,14 @@ export const login: RequestHandler = async (req, res, next) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    const user = await User.findOne({ email: email.toLowerCase() }).select("+password");
+    // Validate and sanitize email
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      throw new AppError(emailValidation.error || "Invalid email", 400);
+    }
+    const sanitizedEmail = sanitizeEmail(email);
+
+    const user = await User.findOne({ email: sanitizedEmail }).select("+password");
     if (!user) throw new AppError("Invalid credentials", 401);
 
     const ok = await user.comparePassword(password);

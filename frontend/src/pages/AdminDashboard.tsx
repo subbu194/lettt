@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Palette, Calendar, ShoppingBag, Ticket, TrendingUp, 
   Plus, Edit2, Trash2, Search, X, ChevronLeft, 
-  ChevronRight, LogOut, DollarSign, AlertCircle,
+  ChevronRight, LogOut, IndianRupee, AlertCircle,
   CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon, 
   LayoutDashboard, Package, ArrowUpRight, Sparkles,
   Activity, Users, Star
@@ -268,8 +268,13 @@ function Input({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
     
-    // For number inputs, remove leading zeros unless it's just "0" or empty
-    if (type === 'number' && newValue) {
+    // For number inputs, handle leading zeros and empty values
+    if (type === 'number') {
+      // Allow empty string
+      if (newValue === '') {
+        onChange(newValue);
+        return;
+      }
       // Remove leading zeros but preserve "0" and decimal values
       if (newValue !== '0' && !newValue.includes('.')) {
         newValue = newValue.replace(/^0+/, '') || '0';
@@ -382,12 +387,24 @@ function ArtFormModal({
   onClose: () => void; 
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    title: string;
+    artist: string;
+    description: string;
+    price: string | number;
+    quantity: string | number;
+    category: string;
+    imageFiles: File[];
+    existingImages: string[];
+    frameSizes: { name: string; width: number; height: number; unit: string }[];
+    isFeatured: boolean;
+    isAvailable: boolean;
+  }>({
     title: art?.title || '',
     artist: art?.artist || '',
     description: '',
-    price: art?.price || 0,
-    quantity: art?.quantity || 1,
+    price: art?.price ?? '',
+    quantity: art?.quantity ?? '',
     category: art?.category || 'painting',
     imageFiles: [] as File[],
     existingImages: art?.images || [],
@@ -441,7 +458,7 @@ function ArtFormModal({
   const addFrameSize = () => {
     setForm({
       ...form,
-      frameSizes: [...form.frameSizes, { name: '', width: 0, height: 0, unit: 'cm' }]
+      frameSizes: [...form.frameSizes, { name: 'Medium', width: 0, height: 0, unit: 'cm' }]
     });
   };
 
@@ -463,6 +480,24 @@ function ArtFormModal({
     setError('');
 
     try {
+      // Validate frame sizes
+      const validFrameSizes = form.frameSizes.filter(size => size.name.trim() !== '');
+      if (validFrameSizes.length === 0) {
+        setError('At least one frame size with a name is required');
+        setLoading(false);
+        return;
+      }
+
+      // Validate price and quantity
+      const price = form.price === '' ? 0 : Number(form.price);
+      const quantity = form.quantity === '' ? 1 : Number(form.quantity);
+      
+      if (price < 0) {
+        setError('Price must be a positive number');
+        setLoading(false);
+        return;
+      }
+
       // Upload new images if any
       let imageUrls = [...form.existingImages];
       if (form.imageFiles.length > 0) {
@@ -476,11 +511,11 @@ function ArtFormModal({
         title: form.title,
         artist: form.artist,
         description: form.description || 'Beautiful artwork piece',
-        price: form.price,
-        quantity: form.quantity,
+        price,
+        quantity,
         category: form.category,
         images: imageUrls,
-        frameSizes: form.frameSizes,
+        frameSizes: validFrameSizes,
         isFeatured: form.isFeatured,
         isAvailable: form.isAvailable,
       };
@@ -532,9 +567,9 @@ function ArtFormModal({
             required
             min={0}
             value={form.price}
-            onChange={(v) => setForm({ ...form, price: Number(v) })}
+            onChange={(v) => setForm({ ...form, price: v })}
             placeholder="0"
-            icon={DollarSign}
+            icon={IndianRupee}
           />
           <Input
             label="Quantity"
@@ -542,7 +577,7 @@ function ArtFormModal({
             required
             min={0}
             value={form.quantity}
-            onChange={(v) => setForm({ ...form, quantity: Number(v) })}
+            onChange={(v) => setForm({ ...form, quantity: v })}
             placeholder="1"
             icon={Package}
           />
@@ -618,8 +653,8 @@ function ArtFormModal({
               <div className="w-24">
                 <input
                   type="number"
-                  value={size.width}
-                  onChange={(e) => updateFrameSize(index, 'width', Number(e.target.value))}
+                  value={size.width || ''}
+                  onChange={(e) => updateFrameSize(index, 'width', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="Width"
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   min={0}
@@ -628,8 +663,8 @@ function ArtFormModal({
               <div className="w-24">
                 <input
                   type="number"
-                  value={size.height}
-                  onChange={(e) => updateFrameSize(index, 'height', Number(e.target.value))}
+                  value={size.height || ''}
+                  onChange={(e) => updateFrameSize(index, 'height', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="Height"
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
                   min={0}
@@ -728,14 +763,23 @@ function EventFormModal({
   onClose: () => void; 
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    title: string;
+    description: string;
+    venue: string;
+    date: string;
+    startTime: string;
+    ticketPrice: string | number;
+    totalSeats: string | number;
+    isFeatured: boolean;
+  }>({
     title: event?.title || '',
     description: '',
     venue: event?.venue || '',
     date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
     startTime: '18:00',
-    ticketPrice: event?.ticketPrice || 0,
-    totalSeats: event?.totalSeats || 50,
+    ticketPrice: event?.ticketPrice ?? '',
+    totalSeats: event?.totalSeats ?? '',
     isFeatured: event?.isFeatured || false,
   });
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -778,6 +822,22 @@ function EventFormModal({
     setError('');
 
     try {
+      // Validate numeric fields
+      const ticketPrice = form.ticketPrice === '' ? 0 : Number(form.ticketPrice);
+      const totalSeats = form.totalSeats === '' ? 1 : Number(form.totalSeats);
+      
+      if (ticketPrice < 0) {
+        setError('Ticket price must be a positive number');
+        setLoading(false);
+        return;
+      }
+      
+      if (totalSeats < 1) {
+        setError('Total seats must be at least 1');
+        setLoading(false);
+        return;
+      }
+
       let coverImage = existingCoverImage;
       const galleryImages = [...existingGalleryImages];
       
@@ -804,8 +864,8 @@ function EventFormModal({
         venue: form.venue,
         date: form.date,
         startTime: form.startTime,
-        ticketPrice: form.ticketPrice,
-        totalSeats: form.totalSeats,
+        ticketPrice,
+        totalSeats,
         coverImage,
         galleryImages,
         isFeatured: form.isFeatured,
@@ -873,8 +933,8 @@ function EventFormModal({
             required
             min={0}
             value={form.ticketPrice}
-            onChange={(v) => setForm({ ...form, ticketPrice: Number(v) })}
-            icon={DollarSign}
+            onChange={(v) => setForm({ ...form, ticketPrice: v })}
+            icon={IndianRupee}
           />
           <Input
             label="Total Seats"
@@ -882,7 +942,7 @@ function EventFormModal({
             required
             min={1}
             value={form.totalSeats}
-            onChange={(v) => setForm({ ...form, totalSeats: Number(v) })}
+            onChange={(v) => setForm({ ...form, totalSeats: v })}
             icon={Users}
           />
         </div>
@@ -1372,7 +1432,7 @@ export default function AdminDashboardPage() {
                   {/* Stats Grid */}
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <StatCard
-                      icon={DollarSign}
+                      icon={IndianRupee}
                       label="Total Revenue"
                       value={`₹${stats.totalRevenue.toLocaleString('en-IN')}`}
                       gradient="bg-gradient-to-br from-emerald-500 to-teal-600"

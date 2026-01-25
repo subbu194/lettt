@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle2, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
@@ -11,6 +12,7 @@ type AuthResponse = { token?: string; user?: Record<string, unknown> };
 
 export function Signup() {
   const login = useUserStore((s) => s.login);
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,6 +20,7 @@ export function Signup() {
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
   const strength = (() => {
@@ -44,6 +47,7 @@ export function Signup() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     if (!acceptTerms) {
       setError('Please accept the terms to continue.');
       return;
@@ -57,6 +61,12 @@ export function Signup() {
         return;
       }
       login(token, resp.data?.user);
+      setSuccess(true);
+      
+      // Redirect to home after 1.5 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -275,6 +285,27 @@ export function Signup() {
               </span>
             </motion.label>
           </motion.div>
+
+          {/* Success Message */}
+          <AnimatePresence mode="wait">
+            {success && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -10 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-xl border border-green-500/30 bg-green-500/5 px-4 py-3.5 text-sm text-(--color-text) flex items-start gap-3">
+                  <CheckCircle2 className="text-green-600 shrink-0 mt-0.5" size={18} />
+                  <div>
+                    <span className="font-semibold text-green-600">Account created successfully!</span>{' '}
+                    Welcome aboard! Redirecting to home...
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Error Message */}
           <AnimatePresence mode="wait">

@@ -6,7 +6,7 @@ export interface EventDocument extends mongoose.Document {
   coverImage: string;
   galleryImages: string[];
   venue: string;
-  date: string; // ISO date string
+  date: Date; // Changed to Date type
   startTime: string; // e.g., "18:00"
   ticketPrice: number;
   totalSeats: number;
@@ -33,7 +33,7 @@ const EventSchema = new Schema<EventDocument>(
       }
     },
     venue: { type: String, required: true, trim: true },
-    date: { type: String, required: true },
+    date: { type: Date, required: true },
     startTime: { type: String, required: true },
     ticketPrice: { type: Number, required: true, min: 0 },
     totalSeats: { type: Number, required: true, min: 0 },
@@ -50,5 +50,10 @@ EventSchema.pre("validate", function (next) {
   }
   next();
 });
+
+// Compound indexes for efficient queries
+EventSchema.index({ date: 1, venue: 1 });
+EventSchema.index({ date: 1, seatsLeft: 1 });
+EventSchema.index({ isFeatured: 1, date: 1 });
 
 export const Event = mongoose.model<EventDocument>("Event", EventSchema);

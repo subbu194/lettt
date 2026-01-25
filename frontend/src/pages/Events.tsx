@@ -432,7 +432,7 @@ export default function EventsPage() {
   const [selectedVenue, setSelectedVenue] = useState('');
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [showFeatured, setShowFeatured] = useState(false);
-  const [showUpcoming, setShowUpcoming] = useState(true);
+  const [showUpcoming, setShowUpcoming] = useState(false);
   const [showAvailable, setShowAvailable] = useState(false);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
