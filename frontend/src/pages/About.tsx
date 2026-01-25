@@ -17,7 +17,7 @@ export default function AboutPage() {
           >
             <h1 className="text-4xl font-extrabold tracking-tight">About Us</h1>
             <p className="mt-3 text-(--color-muted)">
-              A   platform designed to elevate art, spotlight talent, and connect a    community.
+              A premium platform designed to elevate art, spotlight talent, and connect a vibrant community.
             </p>
           </motion.div>
           <motion.div

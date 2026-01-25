@@ -78,11 +78,11 @@ function EventCard({ event }: { event: EventItem }) {
     >
       <Card className="group overflow-hidden">
         {/* Image */}
-        <div className="relative aspect-[16/10] overflow-hidden bg-gradient-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
+        <div className="relative aspect-16/10 overflow-hidden bg-linear-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
           {event.coverImage ? (
             <>
               {!imageLoaded && (
-                <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-black/5 to-black/10" />
+                <div className="absolute inset-0 animate-pulse bg-linear-to-br from-black/5 to-black/10" />
               )}
               <motion.img
                 src={event.coverImage}
@@ -237,7 +237,7 @@ function FilterPanel({
       <Card className="p-6">
         <div className="flex flex-wrap items-start gap-6">
           {/* Venue Filter */}
-          <div className="min-w-[160px]">
+          <div className="min-w-40">
             <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Venue</label>
             <select
               value={selectedVenue}
@@ -254,7 +254,7 @@ function FilterPanel({
           </div>
 
           {/* Price Range */}
-          <div className="min-w-[200px]">
+          <div className="min-w-50">
             <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Ticket Price (₹)</label>
             <div className="flex gap-2">
               <input
@@ -476,7 +476,14 @@ export default function EventsPage() {
 
       const resp = await apiClient.get<EventsResponse>(`/events?${params.toString()}`);
       setItems(resp.data?.items || []);
-      setPagination(resp.data?.pagination || pagination);
+      setPagination(resp.data?.pagination || {
+        page: 1,
+        limit: 9,
+        total: 0,
+        totalPages: 0,
+        hasNext: false,
+        hasPrev: false,
+      });
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -516,7 +523,7 @@ export default function EventsPage() {
     <PageTransition>
       <section className="min-h-screen bg-(--color-bg)">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F] py-16 text-white">
+        <div className="relative overflow-hidden bg-linear-to-br from-(--color-primary-red) to-[#8B2E2F] py-16 text-white">
           <div className="absolute inset-0 opacity-10">
             <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-(--color-primary-gold) blur-3xl" />
             <div className="absolute bottom-1/4 right-1/4 h-48 w-48 rounded-full bg-white blur-3xl" />

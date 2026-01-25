@@ -98,8 +98,8 @@ export default function CheckoutPage() {
       const resp = await apiClient.post('/orders/create', {
         items: items.map((it) => ({ 
           itemType: 'art', 
-          itemId: it.id, 
-          title: it.name, 
+          itemId: it.artId, 
+          title: `${it.name}${it.size ? ` - ${it.size}` : ''}`, 
           quantity: it.qty, 
           price: it.price 
         })),
@@ -137,8 +137,8 @@ export default function CheckoutPage() {
               razorpay_signature: payment.razorpay_signature,
               items: items.map((it) => ({ 
                 itemType: 'art', 
-                itemId: it.id, 
-                title: it.name, 
+                itemId: it.artId, 
+                title: `${it.name}${it.size ? ` - ${it.size}` : ''}`, 
                 quantity: it.qty, 
                 price: it.price 
               })),
@@ -446,6 +446,9 @@ export default function CheckoutPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold leading-tight line-clamp-2">{item.name}</p>
+                          {item.size && (
+                            <p className="mt-0.5 text-xs text-(--color-muted)">Size: {item.size}</p>
+                          )}
                           <p className="mt-1 text-sm text-(--color-muted)">
                             ₹{item.price.toLocaleString('en-IN')} × {item.qty}
                           </p>

@@ -6,7 +6,7 @@ import {
   ChevronRight, LogOut, IndianRupee, AlertCircle,
   CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon, 
   LayoutDashboard, Package, ArrowUpRight, Sparkles,
-  Activity, Users, Star
+  Activity, Users, Star, Video
 } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { Spinner } from '@/components/shared/Spinner';
@@ -15,6 +15,7 @@ import { SingleImageUploader } from '@/components/admin/SingleImageUploader';
 import { useAdminStore } from '@/store/useAdminStore';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
+import { VideoFormModal } from './AdminDashboard_Videos';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -59,6 +60,18 @@ interface OrderItem {
   user?: { name: string; email: string };
 }
 
+interface VideoItem {
+  _id: string;
+  title: string;
+  description: string;
+  youtubeUrl: string;
+  season: number;
+  episodeNumber?: number;
+  thumbnail?: string;
+  isFeatured: boolean;
+  createdAt: string;
+}
+
 interface Stats {
   totalArts: number;
   totalEvents: number;
@@ -77,7 +90,7 @@ interface PaginationData {
   hasPrev: boolean;
 }
 
-type Tab = 'overview' | 'art' | 'events' | 'orders';
+type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos';
 
 // ─────────────────────────────────────────────────────────────
 // Animation Variants
@@ -1223,6 +1236,13 @@ export default function AdminDashboardPage() {
   const [orderPagination, setOrderPagination] = useState<PaginationData | null>(null);
   const [orderStatusFilter, setOrderStatusFilter] = useState('');
 
+  // Videos state
+  const [videos, setVideos] = useState<VideoItem[]>([]);
+  const [videoPagination, setVideoPagination] = useState<PaginationData | null>(null);
+  const [videoSearch, setVideoSearch] = useState('');
+  const [videoModal, setVideoModal] = useState<{ open: boolean; item?: VideoItem | null }>({ open: false });
+  const [deleteVideoModal, setDeleteVideoModal] = useState<{ open: boolean; item?: VideoItem }>({ open: false });
+
   // Fetch stats
   const fetchStats = useCallback(async () => {
     try {
@@ -1294,6 +1314,22 @@ export default function AdminDashboardPage() {
     }
   }, [orderStatusFilter]);
 
+  // Fetch videos
+  const fetchVideos = useCallback(async (page: number = 1) => {
+    try {
+      const params = new URLSearchParams();
+      params.set('page', String(page));
+      params.set('limit', '12');
+      if (videoSearch) params.set('search', videoSearch);
+
+      const resp = await apiClient.get<{ items: VideoItem[]; pagination: PaginationData }>(`/talkshow?${params.toString()}`);
+      setVideos(resp.data?.items || []);
+      setVideoPagination(resp.data?.pagination || null);
+    } catch (err) {
+      console.error('Failed to fetch videos:', err);
+    }
+  }, [videoSearch]);
+
   // Delete art
   const handleDeleteArt = async () => {
     if (!deleteArtModal.item) return;
@@ -1320,6 +1356,18 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Delete video
+  const handleDeleteVideo = async () => {
+    if (!deleteVideoModal.item) return;
+    try {
+      await apiClient.delete(`/talkshow/${deleteVideoModal.item._id}`);
+      setDeleteVideoModal({ open: false });
+      fetchVideos();
+    } catch (err) {
+      console.error('Failed to delete video:', err);
+    }
+  };
+
   // Initial load
   useEffect(() => {
     const load = async () => {
@@ -1336,15 +1384,17 @@ export default function AdminDashboardPage() {
       if (activeTab === 'art') await fetchArts(1);
       else if (activeTab === 'events') await fetchEvents(1);
       else if (activeTab === 'orders') await fetchOrders(1);
+      else if (activeTab === 'videos') await fetchVideos(1);
     };
     loadTabData();
-  }, [activeTab, fetchArts, fetchEvents, fetchOrders]);
+  }, [activeTab, fetchArts, fetchEvents, fetchOrders, fetchVideos]);
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'art', label: 'Art Gallery', icon: Palette },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
+    { id: 'videos', label: 'Talk Show', icon: Video },
   ];
 
   return (
@@ -1931,6 +1981,94 @@ export default function AdminDashboardPage() {
                   />
                 </motion.div>
               )}
+
+              {/* Videos Tab */}
+              {activeTab === 'videos' && (
+                <motion.div
+                  key="videos"
+                  variants={fadeInUp}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="space-y-6"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h1 className="text-2xl font-bold text-gray-900">Talk Show Videos</h1>
+                      <p className="mt-1 text-gray-500">Manage YouTube videos organized by seasons</p>
+                    </div>
+                    <button 
+                      onClick={() => setVideoModal({ open: true })}
+                      className="flex items-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-indigo-500/40"
+                    >
+                      <Plus className="h-5 w-5" />
+                      Add Video
+                    </button>
+                  </div>
+
+                  {videos.length === 0 ? (
+                    <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
+                      <Video className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-4 font-semibold text-gray-900">No videos yet</h3>
+                      <p className="mt-1 text-sm text-gray-500">Get started by adding your first talk show video</p>
+                      <button 
+                        onClick={() => setVideoModal({ open: true })}
+                        className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+                      >
+                        Add Video
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {videos.map((video) => {
+                        const getYouTubeId = (url: string) => {
+                          const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                          const match = url.match(regex);
+                          return match ? match[1] : null;
+                        };
+                        const videoId = getYouTubeId(video.youtubeUrl);
+                        const thumb = video.thumbnail || (videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '');
+
+                        return (
+                          <div key={video._id} className="group rounded-lg border border-gray-200 bg-white overflow-hidden hover:shadow-md transition-shadow">
+                            <div className="relative aspect-video bg-gray-100">
+                              {thumb && <img src={thumb} alt={video.title} className="h-full w-full object-cover" />}
+                              <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">
+                                S{video.season}{video.episodeNumber ? ` E${video.episodeNumber}` : ''}
+                              </div>
+                            </div>
+                            <div className="p-4">
+                              <h3 className="font-bold text-gray-900 line-clamp-1">{video.title}</h3>
+                              <p className="mt-1 text-sm text-gray-500 line-clamp-2">{video.description}</p>
+                              <div className="mt-4 flex items-center gap-2">
+                                <button
+                                  onClick={() => setVideoModal({ open: true, item: video })}
+                                  className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => setDeleteVideoModal({ open: true, item: video })}
+                                  className="flex-1 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {videoPagination && videoPagination.totalPages > 1 && (
+                    <Pagination 
+                      pagination={videoPagination} 
+                      onPageChange={(page) => fetchVideos(page)} 
+                    />
+                  )}
+                </motion.div>
+              )}
             </AnimatePresence>
           )}
         </div>
@@ -1967,6 +2105,22 @@ export default function AdminDashboardPage() {
             title={deleteEventModal.item.title}
             onConfirm={handleDeleteEvent}
             onClose={() => setDeleteEventModal({ open: false })}
+          />
+        )}
+
+        {videoModal.open && (
+          <VideoFormModal
+            video={videoModal.item}
+            onClose={() => setVideoModal({ open: false })}
+            onSuccess={() => { fetchVideos(); }}
+          />
+        )}
+
+        {deleteVideoModal.open && deleteVideoModal.item && (
+          <DeleteConfirmModal
+            title={deleteVideoModal.item.title}
+            onConfirm={handleDeleteVideo}
+            onClose={() => setDeleteVideoModal({ open: false })}
           />
         )}
       </AnimatePresence>

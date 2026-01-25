@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
@@ -13,6 +13,7 @@ type AuthResponse = { token?: string; user?: Record<string, unknown> };
 export function Login() {
   const login = useUserStore((s) => s.login);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -37,9 +38,10 @@ export function Login() {
       login(token, resp.data?.user);
       setSuccess(true);
       
-      // Redirect to home after 1 second
+      // Redirect to the intended page or home
+      const redirectTo = searchParams.get('redirect') || '/';
       setTimeout(() => {
-        navigate('/');
+        navigate(redirectTo);
       }, 1000);
     } catch (err) {
       setError(getApiErrorMessage(err));

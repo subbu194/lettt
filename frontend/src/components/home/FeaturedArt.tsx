@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
-import { SkeletonCard } from '@/components/shared/Skeleton';
 
 type ArtLike = Record<string, unknown>;
 
@@ -69,7 +68,7 @@ export function FeaturedArt() {
         {loading ? (
           <div className="mt-6 flex gap-4 overflow-x-auto pb-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="min-w-[240px] h-[280px] rounded-lg bg-white border border-black/5 shadow-sm animate-pulse">
+              <div key={i} className="min-w-60 h-70 rounded-lg bg-white border border-black/5 shadow-sm animate-pulse">
                 <div className="aspect-square bg-gray-200 rounded-t-lg" />
                 <div className="p-3 space-y-2">
                   <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -97,7 +96,7 @@ export function FeaturedArt() {
                 <Link 
                   key={id} 
                   to={`/art/${id}`}
-                  className="group min-w-[240px] max-w-[240px] snap-start rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
+                  className="group min-w-60 max-w-60 snap-start rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
                 >
                   <div className="relative aspect-square overflow-hidden rounded-t-lg bg-gray-100">
                     {image ? (

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle2, Shield } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
@@ -13,6 +13,7 @@ type AuthResponse = { token?: string; user?: Record<string, unknown> };
 export function Signup() {
   const login = useUserStore((s) => s.login);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -63,9 +64,10 @@ export function Signup() {
       login(token, resp.data?.user);
       setSuccess(true);
       
-      // Redirect to home after 1.5 seconds
+      // Redirect to the intended page or home
+      const redirectTo = searchParams.get('redirect') || '/';
       setTimeout(() => {
-        navigate('/');
+        navigate(redirectTo);
       }, 1500);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -369,7 +371,7 @@ export function Signup() {
                 </AnimatePresence>
                 
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent"
                   initial={{ x: '-100%' }}
                   whileHover={{ x: '100%' }}
                   transition={{ duration: 0.6 }}

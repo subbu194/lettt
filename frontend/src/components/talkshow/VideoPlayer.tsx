@@ -1,16 +1,38 @@
 type VideoLike = Record<string, unknown>;
 
 export function VideoPlayer({ video }: { video: VideoLike }) {
-  const title = String(video.title ?? video.name ?? 'Talk Show');
-  const src = String(video.url ?? video.videoUrl ?? video.src ?? '');
+  const title = String(video.title ?? 'Talk Show');
+  const description = video.description ? String(video.description) : '';
+  const youtubeUrl = String(video.youtubeUrl ?? video.url ?? video.videoUrl ?? video.src ?? '');
+  
+  // Extract YouTube video ID from URL
+  const getYouTubeId = (url: string) => {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  };
+  
+  const videoId = getYouTubeId(youtubeUrl);
+  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
 
   return (
     <div className="space-y-3">
       <div className="text-lg font-extrabold tracking-tight">{title}</div>
-      {src ? (
-        <video className="w-full rounded-2xl border border-black/10 bg-black" controls preload="metadata">
-          <source src={src} />
-        </video>
+      {embedUrl ? (
+        <>
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-black/10 bg-black">
+            <iframe
+              src={embedUrl}
+              title={title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="h-full w-full"
+            />
+          </div>
+          {description && (
+            <p className="text-sm text-black/70">{description}</p>
+          )}
+        </>
       ) : (
         <div className="rounded-2xl border border-black/10 bg-black/5 p-8 text-sm text-black/70">
           Video source not available.

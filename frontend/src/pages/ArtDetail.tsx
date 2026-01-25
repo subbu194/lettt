@@ -58,7 +58,7 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
 
   if (!images.length) {
     return (
-      <div className="flex aspect-square items-center justify-center rounded-2xl bg-gradient-to-br from-black/5 to-black/10">
+      <div className="flex aspect-square items-center justify-center rounded-2xl bg-linear-to-br from-black/5 to-black/10">
         <span className="text-6xl opacity-20">🎨</span>
       </div>
     );
@@ -68,7 +68,7 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
     <>
       <div className="space-y-4">
         {/* Main Image */}
-        <div className="group relative aspect-square overflow-hidden rounded-2xl bg-gradient-to-br from-black/5 to-black/10">
+        <div className="group relative aspect-square overflow-hidden rounded-2xl bg-linear-to-br from-black/5 to-black/10">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Spinner size="lg" />
@@ -269,11 +269,17 @@ export default function ArtDetailPage() {
 
   const handleAddToCart = () => {
     if (!art || isSoldOut) return;
+    
+    // Create a unique ID based on artId and size
+    const cartItemId = selectedSize ? `${art._id}-${selectedSize}` : art._id;
+    
     addItem({
-      id: art._id,
-      name: selectedSize ? `${art.title} (${selectedSize})` : art.title,
+      id: cartItemId,
+      artId: art._id,
+      name: art.title,
       price: art.price,
       image: art.images?.[0],
+      size: selectedSize || undefined,
       qty: quantity,
     });
     setAddedToCart(true);

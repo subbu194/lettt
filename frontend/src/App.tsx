@@ -77,7 +77,7 @@ function AppShell() {
           </AnimatePresence>
         </Suspense>
       </main>
-      <Footer />
+      {!isAdminPage && <Footer />}
 
       {/* Floating Cart Button */}
       {!isAdminPage && <FloatingCart />}

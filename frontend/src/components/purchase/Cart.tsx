@@ -57,7 +57,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-(--color-bg) shadow-2xl sm:w-[440px]"
+            className="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-(--color-bg) shadow-2xl sm:w-110"
           >
             {/* Header */}
             <div className="flex items-center justify-between border-b border-black/10 p-5">
@@ -132,6 +132,9 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                             {/* Item Details */}
                             <div className="flex flex-1 flex-col">
                               <h4 className="font-bold leading-tight line-clamp-2">{item.name}</h4>
+                              {item.size && (
+                                <p className="mt-0.5 text-xs text-(--color-muted)">Size: {item.size}</p>
+                              )}
                               <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
                                 ₹{item.price.toLocaleString('en-IN')}
                               </p>
@@ -294,6 +297,9 @@ export function Cart() {
               </div>
               <div className="min-w-0">
                 <div className="truncate font-extrabold tracking-tight">{item.name}</div>
+                {item.size && (
+                  <div className="text-xs text-(--color-muted)">Size: {item.size}</div>
+                )}
                 <div className="mt-1 text-sm text-(--color-muted)">
                   ₹{item.price.toLocaleString('en-IN')} × {item.qty}
                 </div>
@@ -317,7 +323,7 @@ export function Cart() {
                 </button>
               </div>
 
-              <span className="min-w-[80px] text-right font-extrabold">
+              <span className="min-w-20 text-right font-extrabold">
                 ₹{(item.price * item.qty).toLocaleString('en-IN')}
               </span>
 

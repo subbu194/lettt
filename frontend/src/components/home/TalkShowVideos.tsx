@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
-import { Card } from '@/components/shared/Card';
 import { useUIStore } from '@/store/useUIStore';
 import { VideoPlayer } from '@/components/talkshow/VideoPlayer';
 
@@ -17,8 +16,8 @@ export function TalkShowVideos() {
   useEffect(() => {
     const fetchVideos = async () => {
       try {
-        const resp = await apiClient.get<VideoLike[]>('/videos');
-        setVideos(resp.data || []);
+        const resp = await apiClient.get<{ items: VideoLike[] }>('/talkshow?limit=12&sortBy=createdAt&sortOrder=desc');
+        setVideos(resp.data?.items || []);
       } catch (err) {
         setError(getApiErrorMessage(err));
       } finally {
@@ -72,7 +71,7 @@ export function TalkShowVideos() {
           {loading ? (
             <div className="flex gap-4 overflow-x-auto pb-4">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="min-w-[240px] h-[220px] rounded-lg bg-white border border-black/5 shadow-sm animate-pulse">
+                <div key={i} className="min-w-60 h-55 rounded-lg bg-white border border-black/5 shadow-sm animate-pulse">
                   <div className="aspect-video bg-gray-200 rounded-t-lg" />
                   <div className="p-3 space-y-2">
                     <div className="h-4 bg-gray-200 rounded w-3/4" />
@@ -94,18 +93,28 @@ export function TalkShowVideos() {
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {videos.map((video, idx) => {
-                const rawId = video.id ?? video._id ?? video.title ?? video.name;
-                const id = rawId ? String(rawId) : `video-${idx}`;
-                const title = String(video.title ?? video.name ?? 'Talk Show');
-                const views = Number(video.views ?? 0);
-                const duration = String(video.duration ?? '—');
-                const thumb = typeof video.thumbnail === 'string' ? video.thumbnail : undefined;
+                const rawId = video._id ?? video.id ?? idx;
+                const id = String(rawId);
+                const title = String(video.title ?? 'Talk Show');
+                const season = Number(video.season ?? 1);
+                const episode = video.episodeNumber ? Number(video.episodeNumber) : null;
+                const youtubeUrl = String(video.youtubeUrl ?? '');
+                
+                // Extract YouTube video ID for thumbnail
+                const getYouTubeId = (url: string) => {
+                  const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+                  const match = url.match(regex);
+                  return match ? match[1] : null;
+                };
+                
+                const videoId = getYouTubeId(youtubeUrl);
+                const thumb = video.thumbnail ? String(video.thumbnail) : videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : undefined;
 
                 return (
                   <button
                     key={id}
                     type="button"
-                    className="group min-w-[240px] max-w-[240px] snap-start text-left rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
+                    className="group min-w-60 max-w-60 snap-start text-left rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
                     onClick={() => openModal(<VideoPlayer video={video} />)}
                     aria-label={`Play ${title}`}
                   >
@@ -122,11 +131,16 @@ export function TalkShowVideos() {
                           </svg>
                         </div>
                       </div>
+                      {season && (
+                        <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">
+                          S{season}{episode ? ` E${episode}` : ''}
+                        </div>
+                      )}
                     </div>
                     <div className="p-3">
                       <h3 className="text-sm font-bold tracking-tight line-clamp-2 leading-snug" title={title}>{title}</h3>
                       <p className="mt-1 text-xs text-black/60">
-                        {views ? `${views.toLocaleString()} views` : 'New'} · {duration}
+                        Season {season}{episode ? ` · Episode ${episode}` : ''}
                       </p>
                     </div>
                   </button>
