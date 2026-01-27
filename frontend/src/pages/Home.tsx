@@ -5,6 +5,7 @@ import { FeaturedEvents } from '@/components/home/FeaturedEvents';
 import { FeaturedArt } from '@/components/home/FeaturedArt';
 import { Hero } from '@/components/home/Hero';
 import { TalkShowVideos } from '@/components/home/TalkShowVideos';
+import { AutoplayVideo } from '@/components/home/AutoplayVideo';
 import { PageTransition } from '@/components/shared/PageTransition';
 
 export default function HomePage() {
@@ -32,6 +33,7 @@ export default function HomePage() {
     <PageTransition>
       <div>
         <Hero />
+        <AutoplayVideo />
         <About />
         <FeaturedEvents />
         <FeaturedArt />
