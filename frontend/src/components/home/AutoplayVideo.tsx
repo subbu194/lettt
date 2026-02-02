@@ -99,7 +99,7 @@ export function AutoplayVideo() {
       <div className="container mx-auto px-4">
         <div 
           ref={videoRef}
-          className="relative w-full aspect-video overflow-hidden shadow-2xl"
+          className="relative w-full h-165 overflow-hidden shadow-2xl"
         >
           <div
             id="youtube-player"
