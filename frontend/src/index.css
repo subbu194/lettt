@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary-red: #CF4647;
-  --color-primary-gold: #F5D061;
+  --color-primary-red: #DC0E0E;
+  --color-primary-gold: #FFD700;
   --color-bg: #F8F6F6;
   --color-text: #2A363B;
   --color-muted: rgba(42, 54, 59, 0.72);
 }
 
 /* Custom glow classes */
-.glow-red { box-shadow: 0 0 20px rgba(207, 70, 71, 0.5); }
-.glow-gold { box-shadow: 0 0 20px rgba(245, 208, 97, 0.5); }
+.glow-red { box-shadow: 0 0 20px rgba(220, 14, 14, 0.5); }
+.glow-gold { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
 
 /* Luckiest Guy font - Uncomment for production */
 /* .luckiest-guy-regular {
