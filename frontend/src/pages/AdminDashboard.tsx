@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Palette, Calendar, ShoppingBag, Ticket, TrendingUp, 
-  Plus, Edit2, Trash2, Search, X, ChevronLeft, 
+import {
+  Palette, Calendar, ShoppingBag, Ticket, TrendingUp,
+  Plus, Edit2, Trash2, Search, X, ChevronLeft,
   ChevronRight, LogOut, IndianRupee, AlertCircle,
-  CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon, 
+  CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon,
   LayoutDashboard, Package, ArrowUpRight, Sparkles,
   Activity, Users, Star, Video
 } from 'lucide-react';
@@ -110,17 +110,17 @@ const staggerContainer = {
 // Modern Stat Card Component
 // ─────────────────────────────────────────────────────────────
 
-function StatCard({ 
-  icon: Icon, 
-  label, 
-  value, 
-  trend, 
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  trend,
   gradient,
   delay = 0
-}: { 
-  icon: React.ElementType; 
-  label: string; 
-  value: string | number; 
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
   trend?: string;
   gradient: string;
   delay?: number;
@@ -135,14 +135,14 @@ function StatCard({
     >
       {/* Background gradient blur */}
       <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full ${gradient} opacity-20 blur-3xl transition-all group-hover:opacity-30`} />
-      
+
       <div className="relative">
         <div className="flex items-start justify-between">
           <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${gradient} text-white shadow-lg`}>
             <Icon className="h-6 w-6" />
           </div>
           {trend && (
-            <motion.span 
+            <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-600"
@@ -152,10 +152,10 @@ function StatCard({
             </motion.span>
           )}
         </div>
-        
+
         <div className="mt-5">
           <p className="text-sm font-medium text-gray-500">{label}</p>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: delay + 0.2 }}
@@ -197,14 +197,14 @@ function StatusBadge({ status, size = 'sm' }: { status: string; size?: 'sm' | 'm
 // Modern Modal Wrapper
 // ─────────────────────────────────────────────────────────────
 
-function Modal({ 
-  children, 
-  onClose, 
+function Modal({
+  children,
+  onClose,
   title,
   subtitle,
   size = 'md'
-}: { 
-  children: React.ReactNode; 
+}: {
+  children: React.ReactNode;
   onClose: () => void;
   title: string;
   subtitle?: string;
@@ -238,14 +238,14 @@ function Modal({
             <h2 className="text-xl font-bold text-gray-900">{title}</h2>
             {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
           </div>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        
+
         {/* Content - Scrollable */}
         <div className="flex-1 overflow-y-auto p-6">
           {children}
@@ -280,7 +280,7 @@ function Input({
 }) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
-    
+
     // For number inputs, handle leading zeros and empty values
     if (type === 'number') {
       // Allow empty string
@@ -293,7 +293,7 @@ function Input({
         newValue = newValue.replace(/^0+/, '') || '0';
       }
     }
-    
+
     onChange(newValue);
   };
 
@@ -391,13 +391,13 @@ function Toggle({
 // Art Form Modal
 // ─────────────────────────────────────────────────────────────
 
-function ArtFormModal({ 
-  art, 
-  onClose, 
-  onSuccess 
-}: { 
-  art?: ArtItem | null; 
-  onClose: () => void; 
+function ArtFormModal({
+  art,
+  onClose,
+  onSuccess
+}: {
+  art?: ArtItem | null;
+  onClose: () => void;
   onSuccess: () => void;
 }) {
   const [form, setForm] = useState<{
@@ -418,7 +418,7 @@ function ArtFormModal({
     description: '',
     price: art?.price ?? '',
     quantity: art?.quantity ?? '',
-    category: art?.category || 'painting',
+    category: art?.category || '',
     imageFiles: [] as File[],
     existingImages: art?.images || [],
     frameSizes: art?.frameSizes || [{ name: 'Small', width: 30, height: 40, unit: 'cm' }],
@@ -432,39 +432,39 @@ function ArtFormModal({
 
   const uploadImages = async (files: File[]): Promise<string[]> => {
     const uploadedUrls: string[] = [];
-    
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       setUploadProgress(Math.round(((i + 0.5) / files.length) * 100));
-      
+
       // Get presigned URL
       const urlResponse = await apiClient.post('/upload/url', {
         fileType: file.type,
         fileName: file.name,
         folder: 'art',
       });
-      
+
       if (!urlResponse.data?.success || !urlResponse.data?.uploadUrl) {
         throw new Error('Failed to get upload URL');
       }
-      
+
       const { uploadUrl, publicUrl } = urlResponse.data;
-      
+
       // Upload file
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
         headers: { 'Content-Type': file.type },
       });
-      
+
       if (!uploadResponse.ok) {
         throw new Error(`Failed to upload ${file.name}`);
       }
-      
+
       uploadedUrls.push(publicUrl);
       setUploadProgress(Math.round(((i + 1) / files.length) * 100));
     }
-    
+
     return uploadedUrls;
   };
 
@@ -504,7 +504,7 @@ function ArtFormModal({
       // Validate price and quantity
       const price = form.price === '' ? 0 : Number(form.price);
       const quantity = form.quantity === '' ? 1 : Number(form.quantity);
-      
+
       if (price < 0) {
         setError('Price must be a positive number');
         setLoading(false);
@@ -517,7 +517,7 @@ function ArtFormModal({
         const newUrls = await uploadImages(form.imageFiles);
         imageUrls = [...imageUrls, ...newUrls];
       }
-      
+
       setUploading(false);
 
       const payload = {
@@ -549,8 +549,8 @@ function ArtFormModal({
   };
 
   return (
-    <Modal 
-      onClose={onClose} 
+    <Modal
+      onClose={onClose}
       title={art ? 'Edit Artwork' : 'Add New Artwork'}
       subtitle={art ? 'Update the artwork details below' : 'Fill in the details to add a new artwork'}
       size="lg"
@@ -594,17 +594,11 @@ function ArtFormModal({
             placeholder="1"
             icon={Package}
           />
-          <Select
-            label="Category"
+          <Input
+            label="Art Type"
             value={form.category}
             onChange={(v) => setForm({ ...form, category: v })}
-            options={[
-              { value: 'painting', label: 'Painting' },
-              { value: 'sculpture', label: 'Sculpture' },
-              { value: 'digital', label: 'Digital Art' },
-              { value: 'photography', label: 'Photography' },
-              { value: 'mixed', label: 'Mixed Media' },
-            ]}
+            placeholder="e.g., Painting, Sculpture, Digital Art"
           />
         </div>
 
@@ -614,7 +608,7 @@ function ArtFormModal({
           label="Artwork Images (Max 10)"
           maxImages={10}
         />
-        
+
         {form.existingImages.length > 0 && (
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Existing Images</label>
@@ -731,7 +725,7 @@ function ArtFormModal({
             {error}
           </motion.div>
         )}
-        
+
         {uploading && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -741,7 +735,7 @@ function ArtFormModal({
             <div className="flex-1">
               <p className="font-medium">Uploading images... {uploadProgress}%</p>
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-200">
-                <div 
+                <div
                   className="h-full bg-indigo-600 transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
@@ -767,13 +761,13 @@ function ArtFormModal({
 // Event Form Modal
 // ─────────────────────────────────────────────────────────────
 
-function EventFormModal({ 
-  event, 
-  onClose, 
-  onSuccess 
-}: { 
-  event?: EventItem | null; 
-  onClose: () => void; 
+function EventFormModal({
+  event,
+  onClose,
+  onSuccess
+}: {
+  event?: EventItem | null;
+  onClose: () => void;
   onSuccess: () => void;
 }) {
   const [form, setForm] = useState<{
@@ -802,30 +796,30 @@ function EventFormModal({
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
-  
+
   const uploadImage = async (file: File, folder: string): Promise<string> => {
     const urlResponse = await apiClient.post('/upload/url', {
       fileType: file.type,
       fileName: file.name,
       folder,
     });
-    
+
     if (!urlResponse.data?.success || !urlResponse.data?.uploadUrl) {
       throw new Error('Failed to get upload URL');
     }
-    
+
     const { uploadUrl, publicUrl } = urlResponse.data;
-    
+
     const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
       body: file,
       headers: { 'Content-Type': file.type },
     });
-    
+
     if (!uploadResponse.ok) {
       throw new Error(`Failed to upload ${file.name}`);
     }
-    
+
     return publicUrl;
   };
 
@@ -838,13 +832,13 @@ function EventFormModal({
       // Validate numeric fields
       const ticketPrice = form.ticketPrice === '' ? 0 : Number(form.ticketPrice);
       const totalSeats = form.totalSeats === '' ? 1 : Number(form.totalSeats);
-      
+
       if (ticketPrice < 0) {
         setError('Ticket price must be a positive number');
         setLoading(false);
         return;
       }
-      
+
       if (totalSeats < 1) {
         setError('Total seats must be at least 1');
         setLoading(false);
@@ -853,13 +847,13 @@ function EventFormModal({
 
       let coverImage = existingCoverImage;
       const galleryImages = [...existingGalleryImages];
-      
+
       // Upload cover image if new one selected
       if (coverImageFile) {
         setUploadProgress(25);
         coverImage = await uploadImage(coverImageFile, 'events');
       }
-      
+
       // Upload gallery images if any
       if (galleryImageFiles.length > 0) {
         for (let i = 0; i < galleryImageFiles.length; i++) {
@@ -900,8 +894,8 @@ function EventFormModal({
   };
 
   return (
-    <Modal 
-      onClose={onClose} 
+    <Modal
+      onClose={onClose}
       title={event ? 'Edit Event' : 'Create New Event'}
       subtitle={event ? 'Update the event details below' : 'Fill in the details to create a new event'}
       size="lg"
@@ -1050,13 +1044,13 @@ function EventFormModal({
 // Delete Confirmation Modal
 // ─────────────────────────────────────────────────────────────
 
-function DeleteConfirmModal({ 
+function DeleteConfirmModal({
   title,
-  onConfirm, 
-  onClose 
-}: { 
+  onConfirm,
+  onClose
+}: {
   title: string;
-  onConfirm: () => void; 
+  onConfirm: () => void;
   onClose: () => void;
 }) {
   return (
@@ -1104,11 +1098,10 @@ function DataTable({
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/80">
               {columns.map((col) => (
-                <th 
-                  key={col.key} 
-                  className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 ${
-                    col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
-                  }`}
+                <th
+                  key={col.key}
+                  className={`px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'
+                    }`}
                 >
                   {col.label}
                 </th>
@@ -1178,11 +1171,10 @@ function Pagination({
             <button
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
-              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                pagination.page === pageNum
-                  ? 'bg-indigo-600 text-white'
-                  : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-              }`}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${pagination.page === pageNum
+                ? 'bg-indigo-600 text-white'
+                : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
             >
               {pageNum}
             </button>
@@ -1420,11 +1412,10 @@ export default function AdminDashboardPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-indigo-50 text-indigo-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${activeTab === tab.id
+                  ? 'bg-indigo-50 text-indigo-700'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
               >
                 <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'}`} />
                 {tab.label}
@@ -1524,7 +1515,7 @@ export default function AdminDashboardPage() {
                         <Sparkles className="h-5 w-5 text-indigo-500" />
                       </div>
                       <div className="mt-5 space-y-3">
-                        <button 
+                        <button
                           onClick={() => { setActiveTab('art'); setArtModal({ open: true }); }}
                           className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-amber-500/25 transition-all hover:shadow-amber-500/40"
                         >
@@ -1532,7 +1523,7 @@ export default function AdminDashboardPage() {
                           Add New Artwork
                           <ArrowUpRight className="ml-auto h-4 w-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => { setActiveTab('events'); setEventModal({ open: true }); }}
                           className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-rose-500 to-pink-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40"
                         >
@@ -1604,8 +1595,8 @@ export default function AdminDashboardPage() {
                       <h1 className="text-2xl font-bold text-gray-900">Art Gallery</h1>
                       <p className="mt-1 text-gray-500">Manage your artwork collection</p>
                     </div>
-                    <Button 
-                      variant="gold" 
+                    <Button
+                      variant="gold"
                       onClick={() => setArtModal({ open: true })}
                       className="shadow-lg shadow-amber-500/25"
                     >
@@ -1627,7 +1618,7 @@ export default function AdminDashboardPage() {
                         className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       />
                     </div>
-                    <button 
+                    <button
                       onClick={() => fetchArts(1)}
                       className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
                     >
@@ -1721,9 +1712,9 @@ export default function AdminDashboardPage() {
                   />
 
                   {/* Pagination */}
-                  <Pagination 
-                    pagination={artPagination} 
-                    onPageChange={(page) => fetchArts(page)} 
+                  <Pagination
+                    pagination={artPagination}
+                    onPageChange={(page) => fetchArts(page)}
                   />
                 </motion.div>
               )}
@@ -1744,8 +1735,8 @@ export default function AdminDashboardPage() {
                       <h1 className="text-2xl font-bold text-gray-900">Events</h1>
                       <p className="mt-1 text-gray-500">Manage your events and ticket sales</p>
                     </div>
-                    <Button 
-                      variant="red" 
+                    <Button
+                      variant="red"
                       onClick={() => setEventModal({ open: true })}
                       className="shadow-lg shadow-rose-500/25"
                     >
@@ -1767,7 +1758,7 @@ export default function AdminDashboardPage() {
                         className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-12 pr-4 text-sm focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
                       />
                     </div>
-                    <button 
+                    <button
                       onClick={() => fetchEvents(1)}
                       className="flex h-12 w-12 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
                     >
@@ -1818,8 +1809,8 @@ export default function AdminDashboardPage() {
                           <td className="px-6 py-4 text-sm text-gray-600">{event.venue}</td>
                           <td className="px-6 py-4">
                             <span className="text-sm font-medium text-gray-900">
-                              {new Date(event.date).toLocaleDateString('en-IN', { 
-                                day: 'numeric', month: 'short', year: 'numeric' 
+                              {new Date(event.date).toLocaleDateString('en-IN', {
+                                day: 'numeric', month: 'short', year: 'numeric'
                               })}
                             </span>
                           </td>
@@ -1833,10 +1824,9 @@ export default function AdminDashboardPage() {
                                 <span className="text-gray-400">{seatPercentage}%</span>
                               </div>
                               <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-gray-100">
-                                <div 
-                                  className={`h-full rounded-full transition-all ${
-                                    seatPercentage > 50 ? 'bg-emerald-500' : seatPercentage > 20 ? 'bg-amber-500' : 'bg-red-500'
-                                  }`}
+                                <div
+                                  className={`h-full rounded-full transition-all ${seatPercentage > 50 ? 'bg-emerald-500' : seatPercentage > 20 ? 'bg-amber-500' : 'bg-red-500'
+                                    }`}
                                   style={{ width: `${seatPercentage}%` }}
                                 />
                               </div>
@@ -1864,9 +1854,9 @@ export default function AdminDashboardPage() {
                   />
 
                   {/* Pagination */}
-                  <Pagination 
-                    pagination={eventPagination} 
-                    onPageChange={(page) => fetchEvents(page)} 
+                  <Pagination
+                    pagination={eventPagination}
+                    onPageChange={(page) => fetchEvents(page)}
                   />
                 </motion.div>
               )}
@@ -1896,17 +1886,16 @@ export default function AdminDashboardPage() {
                         <button
                           key={status}
                           onClick={() => setOrderStatusFilter(status)}
-                          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                            orderStatusFilter === status
-                              ? 'bg-indigo-600 text-white'
-                              : 'text-gray-600 hover:bg-gray-100'
-                          }`}
+                          className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${orderStatusFilter === status
+                            ? 'bg-indigo-600 text-white'
+                            : 'text-gray-600 hover:bg-gray-100'
+                            }`}
                         >
                           {status ? status.charAt(0).toUpperCase() + status.slice(1) : 'All'}
                         </button>
                       ))}
                     </div>
-                    <button 
+                    <button
                       onClick={() => fetchOrders(1)}
                       className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-200 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
                     >
@@ -1942,8 +1931,8 @@ export default function AdminDashboardPage() {
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1">
                               {order.items.slice(0, 2).map((itm, idx) => (
-                                <span 
-                                  key={idx} 
+                                <span
+                                  key={idx}
                                   className="inline-flex items-center rounded-lg bg-gray-100 px-2 py-1 text-xs font-medium text-gray-600"
                                 >
                                   {itm.title} × {itm.quantity}
@@ -1975,9 +1964,9 @@ export default function AdminDashboardPage() {
                   />
 
                   {/* Pagination */}
-                  <Pagination 
-                    pagination={orderPagination} 
-                    onPageChange={(page) => fetchOrders(page)} 
+                  <Pagination
+                    pagination={orderPagination}
+                    onPageChange={(page) => fetchOrders(page)}
                   />
                 </motion.div>
               )}
@@ -1997,7 +1986,7 @@ export default function AdminDashboardPage() {
                       <h1 className="text-2xl font-bold text-gray-900">Talk Show Videos</h1>
                       <p className="mt-1 text-gray-500">Manage YouTube videos organized by seasons</p>
                     </div>
-                    <button 
+                    <button
                       onClick={() => setVideoModal({ open: true })}
                       className="flex items-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-indigo-500/40"
                     >
@@ -2011,7 +2000,7 @@ export default function AdminDashboardPage() {
                       <Video className="mx-auto h-12 w-12 text-gray-400" />
                       <h3 className="mt-4 font-semibold text-gray-900">No videos yet</h3>
                       <p className="mt-1 text-sm text-gray-500">Get started by adding your first talk show video</p>
-                      <button 
+                      <button
                         onClick={() => setVideoModal({ open: true })}
                         className="mt-4 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
                       >
@@ -2062,9 +2051,9 @@ export default function AdminDashboardPage() {
                   )}
 
                   {videoPagination && videoPagination.totalPages > 1 && (
-                    <Pagination 
-                      pagination={videoPagination} 
-                      onPageChange={(page) => fetchVideos(page)} 
+                    <Pagination
+                      pagination={videoPagination}
+                      onPageChange={(page) => fetchVideos(page)}
                     />
                   )}
                 </motion.div>

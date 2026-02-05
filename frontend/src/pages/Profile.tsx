@@ -10,7 +10,7 @@ import { Button } from '@/components/shared/Button';
 import { ProfileImageUploader } from '@/components/shared/ProfileImageUploader';
 import { useUserStore } from '@/store/useUserStore';
 
-type Tab = 'personal' | 'email' | 'password' | 'danger';
+type Tab = 'personal' | 'email' | 'password';
 
 interface UserProfile {
   _id: string;
@@ -32,30 +32,30 @@ export default function Profile() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+
   // User data
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  
+
   // Personal info form
   const [personalForm, setPersonalForm] = useState({
     name: '',
     phone: '',
     address: '',
   });
-  
+
   // Email form
   const [emailForm, setEmailForm] = useState({
     email: '',
     currentPassword: '',
   });
-  
+
   // Password form
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
-  
+
   // Delete account form
   const [deletePassword, setDeletePassword] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -129,12 +129,12 @@ export default function Profile() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       showMessage('error', 'New passwords do not match');
       return;
     }
-    
+
     setSubmitting(true);
     try {
       await apiClient.put('/user/profile/password', passwordForm);
@@ -153,12 +153,12 @@ export default function Profile() {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!confirmDelete) {
       showMessage('error', 'Please confirm account deletion');
       return;
     }
-    
+
     setSubmitting(true);
     try {
       await apiClient.delete('/user/profile', {
@@ -186,7 +186,6 @@ export default function Profile() {
     { id: 'personal', label: 'Personal Info', icon: User },
     { id: 'email', label: 'Email', icon: Mail },
     { id: 'password', label: 'Password', icon: Lock },
-    { id: 'danger', label: 'Danger Zone', icon: Trash2 },
   ];
 
   return (
@@ -204,11 +203,10 @@ export default function Profile() {
           {/* Message Banner */}
           {message && (
             <div
-              className={`mb-6 flex items-center gap-3 rounded-xl border px-4 py-3 ${
-                message.type === 'success'
+              className={`mb-6 flex items-center gap-3 rounded-xl border px-4 py-3 ${message.type === 'success'
                   ? 'border-green-200 bg-green-50 text-green-800'
                   : 'border-red-200 bg-red-50 text-red-800'
-              }`}
+                }`}
             >
               {message.type === 'success' ? (
                 <CheckCircle2 className="h-5 w-5 shrink-0" />
@@ -227,11 +225,10 @@ export default function Profile() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
-                    activeTab === tab.id
+                  className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${activeTab === tab.id
                       ? 'border-(--color-primary-red) text-(--color-primary-red)'
                       : 'border-transparent text-(--color-text)/60 hover:text-(--color-text)'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {tab.label}
@@ -270,7 +267,7 @@ export default function Profile() {
 
                 <div className="border-t border-black/10 pt-6">
                   <h3 className="mb-4 text-lg font-semibold">Personal Details</h3>
-                  
+
                   <div className="space-y-4">
                     <div>
                       <label htmlFor="name" className="mb-2 block text-sm font-semibold">
@@ -333,6 +330,23 @@ export default function Profile() {
                     </>
                   )}
                 </Button>
+
+                {/* Delete Account Section */}
+                <div className="mt-8 border-t border-black/10 pt-6">
+                  <h3 className="mb-2 text-lg font-semibold text-red-600">Delete Account</h3>
+                  <p className="mb-4 text-sm text-(--color-text)/60">
+                    Permanently delete your account and all associated data including orders and tickets.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    className="inline-flex items-center gap-2"
+                    onClick={() => setActiveTab('deleteConfirm' as Tab)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete Account
+                  </Button>
+                </div>
               </form>
             )}
 
@@ -489,11 +503,11 @@ export default function Profile() {
               </form>
             )}
 
-            {/* Danger Zone Tab */}
-            {activeTab === 'danger' && (
+            {/* Delete Account Confirmation */}
+            {(activeTab as string) === 'deleteConfirm' && (
               <form onSubmit={handleDeleteAccount} className="space-y-6">
                 <div>
-                  <h2 className="mb-4 text-2xl font-bold text-red-600">Danger Zone</h2>
+                  <h2 className="mb-4 text-2xl font-bold text-red-600">Delete Account</h2>
                   <p className="mb-6 text-sm text-(--color-text)/60">
                     Permanently delete your account and all associated data
                   </p>
@@ -542,24 +556,34 @@ export default function Profile() {
                   </label>
                 </div>
 
-                <Button
-                  type="submit"
-                  disabled={submitting || !confirmDelete}
-                  variant="danger"
-                  className="inline-flex items-center gap-2"
-                >
-                  {submitting ? (
-                    <>
-                      <Spinner size="sm" />
-                      Deleting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="h-4 w-4" />
-                      Delete Account
-                    </>
-                  )}
-                </Button>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => setActiveTab('personal')}
+                    className="inline-flex items-center gap-2"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={submitting || !confirmDelete}
+                    variant="danger"
+                    className="inline-flex items-center gap-2"
+                  >
+                    {submitting ? (
+                      <>
+                        <Spinner size="sm" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="h-4 w-4" />
+                        Delete Account
+                      </>
+                    )}
+                  </Button>
+                </div>
               </form>
             )}
           </div>

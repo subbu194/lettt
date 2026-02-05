@@ -6,6 +6,7 @@ import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { useCartStore } from '@/store/useCartStore';
 import { useUserStore } from '@/store/useUserStore';
+import { useUIStore } from '@/store/useUIStore';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -254,7 +255,17 @@ export function Cart() {
   const navigate = useNavigate();
   const { items, removeItem, clearCart, setQty } = useCartStore();
   const { isAuthenticated } = useUserStore();
+  const closeModal = useUIStore((s) => s.closeModal);
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+  const handleCheckout = () => {
+    closeModal();
+    if (!isAuthenticated) {
+      navigate('/auth?redirect=/checkout');
+    } else {
+      navigate('/checkout');
+    }
+  };
 
   if (!items.length) {
     return (
@@ -351,15 +362,9 @@ export function Cart() {
             <Trash2 className="h-4 w-4" />
             Clear Cart
           </Button>
-          <Button 
-            variant="gold" 
-            onClick={() => {
-              if (!isAuthenticated) {
-                navigate('/auth?redirect=/checkout');
-              } else {
-                navigate('/checkout');
-              }
-            }}
+          <Button
+            variant="gold"
+            onClick={handleCheckout}
           >
             Proceed to Checkout
             <ArrowRight className="h-4 w-4" />
