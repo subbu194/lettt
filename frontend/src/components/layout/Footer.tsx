@@ -17,7 +17,7 @@ export function Footer() {
           {/* Brand Section */}
           <div className="md:col-span-4 space-y-5">
             <div className="luckiest-guy-regular text-2xl tracking-[0.12em] bg-linear-to-r from-white to-white/60 bg-clip-text text-transparent">
-              LET THE TALENT TALK
+              LET THE TALENT TALKkk
             </div>
             <p className="text-sm leading-relaxed text-white/50 max-w-xs">
               A premium art & talent platform for exclusive events, cinematic talk shows, and unforgettable community experiences.
