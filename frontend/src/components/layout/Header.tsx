@@ -5,7 +5,7 @@ import { useUserStore } from '@/store/useUserStore';
 
 const navItems = [
   { label: 'Home', to: '/' },
-  { label: 'Catalog', to: '/catalog' },
+  { label: 'Show Catalog', to: '/catalog' },
   { label: 'Art', to: '/art' },
   { label: 'Events', to: '/events' },
   { label: 'Talk Show', to: '/talkshow' },
