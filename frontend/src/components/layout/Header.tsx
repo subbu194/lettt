@@ -69,7 +69,7 @@ export function Header() {
               aria-label="let the talent talk home"
               type="button"
             >
-              LET THE TALENT TALK
+              LET THE TALENT TALK 
             </button>
           </div>
         </div>
