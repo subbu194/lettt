@@ -5,6 +5,7 @@ import { useUserStore } from '@/store/useUserStore';
 
 const navItems = [
   { label: 'Home', to: '/' },
+  { label: 'Catalog', to: '/catalog' },
   { label: 'Art', to: '/art' },
   { label: 'Events', to: '/events' },
   { label: 'Talk Show', to: '/talkshow' },
@@ -47,19 +48,17 @@ export function Header() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${scrolled
             ? 'shadow-lg'
             : ''
-        }`}
+          }`}
       >
         {/* ── Logo Bar ── */}
         <div className={`transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-xl border-b border-black/4' : 'bg-white border-b border-black/4'}`}>
           <div className={`flex items-center justify-center transition-all duration-500 ${scrolled ? 'h-14' : 'h-20'} px-5 sm:px-8`}>
             <button
-              className={`text-center luckiest-guy-regular tracking-[0.12em] font-bold bg-linear-to-r from-red-700 via-red-500 to-red-700 bg-size-[200%_100%] bg-clip-text text-transparent animate-[gradient-flow_4s_ease-in-out_infinite] transition-all duration-500 ${
-                scrolled ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl md:text-5xl'
-              }`}
+              className={`text-center luckiest-guy-regular tracking-[0.12em] font-bold bg-linear-to-r from-red-700 via-red-500 to-red-700 bg-size-[200%_100%] bg-clip-text text-transparent animate-[gradient-flow_4s_ease-in-out_infinite] transition-all duration-500 ${scrolled ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-4xl md:text-5xl'
+                }`}
               onClick={() => {
                 if (location.pathname === '/') {
                   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -67,10 +66,10 @@ export function Header() {
                 }
                 navigate('/');
               }}
-              aria-label="Let the talent talk home"
+              aria-label="let the talent talk home"
               type="button"
             >
-              Let the talent talk
+              LET THE TALENT TALK
             </button>
           </div>
         </div>
@@ -88,10 +87,9 @@ export function Header() {
                   key={item.to}
                   to={item.to}
                   className={({ isActive }) =>
-                    `relative px-4 py-2 text-[13px] font-semibold tracking-wide uppercase transition-all duration-300 rounded-lg ${
-                      isActive
-                        ? 'text-white bg-white/15'
-                        : 'text-white/75 hover:text-white hover:bg-white/10'
+                    `relative px-4 py-2 text-[13px] font-semibold tracking-wide uppercase transition-all duration-300 rounded-lg ${isActive
+                      ? 'text-white bg-white/15'
+                      : 'text-white/75 hover:text-white hover:bg-white/10'
                     }`
                   }
                 >
@@ -221,10 +219,9 @@ export function Header() {
                       to={item.to}
                       onClick={() => setOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 ${
-                          isActive
-                            ? 'bg-white/15 text-white'
-                            : 'text-white/80 hover:bg-white/10 hover:text-white'
+                        `flex items-center justify-between rounded-xl px-4 py-3.5 text-sm font-semibold tracking-wide transition-all duration-200 ${isActive
+                          ? 'bg-white/15 text-white'
+                          : 'text-white/80 hover:bg-white/10 hover:text-white'
                         }`
                       }
                     >

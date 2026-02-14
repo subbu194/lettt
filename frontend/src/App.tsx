@@ -26,6 +26,7 @@ const Checkout = lazy(() => import('@/pages/Checkout'));
 const Orders = lazy(() => import('@/pages/Orders'));
 const MyTickets = lazy(() => import('@/pages/MyTickets'));
 const Profile = lazy(() => import('@/pages/Profile'));
+const Catalog = lazy(() => import('@/pages/Catalog'));
 
 import { AdminRoute } from '@/routes/AdminRoute';
 
@@ -58,6 +59,7 @@ function AppShell() {
               <Route path="/art/:id" element={<ArtDetail />} />
               <Route path="/talkshow" element={<TalkShow />} />
               <Route path="/gallery" element={<Gallery />} />
+              <Route path="/catalog" element={<Catalog />} />
               <Route path="/purchase" element={<Checkout />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
