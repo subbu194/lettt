@@ -35,9 +35,9 @@ export default function HomePage() {
         <Hero />
         <AutoplayVideo />
         <About />
-        <FeaturedEvents />
         <FeaturedArt />
-        <TalkShowVideos />
+         <TalkShowVideos />
+        <FeaturedEvents />
         <CTA />
       </div>
     </PageTransition>

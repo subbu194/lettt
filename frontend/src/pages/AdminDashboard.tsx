@@ -313,7 +313,7 @@ function Input({
           onChange={handleChange}
           min={min}
           placeholder={placeholder}
-          className={`w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10 ${Icon ? 'pl-11' : ''}`}
+          className={`w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10 ${Icon ? 'pl-11' : ''}`}
         />
       </div>
     </div>
@@ -341,7 +341,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 transition-all focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+        className="w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
       >
         {options.map(opt => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -379,7 +379,7 @@ function Toggle({
           onChange={(e) => onChange(e.target.checked)}
           className="sr-only"
         />
-        <div className={`h-6 w-11 rounded-full transition-colors ${checked ? 'bg-indigo-600' : 'bg-gray-300'}`}>
+        <div className={`h-6 w-11 rounded-full transition-colors ${checked ? 'bg-red-600' : 'bg-gray-300'}`}>
           <div className={`h-5 w-5 translate-y-0.5 rounded-full bg-white shadow-sm transition-transform ${checked ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
         </div>
       </div>
@@ -641,7 +641,7 @@ function ArtFormModal({
             <button
               type="button"
               onClick={addFrameSize}
-              className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+              className="text-sm font-medium text-red-600 hover:text-red-700"
             >
               + Add Size
             </button>
@@ -730,13 +730,13 @@ function ArtFormModal({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center gap-3 rounded-xl bg-indigo-50 p-4 text-sm text-indigo-700"
+            className="flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700"
           >
             <div className="flex-1">
               <p className="font-medium">Uploading images... {uploadProgress}%</p>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-indigo-200">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-red-200">
                 <div
-                  className="h-full bg-indigo-600 transition-all duration-300"
+                  className="h-full bg-red-600 transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
@@ -1015,13 +1015,13 @@ function EventFormModal({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Uploading images...</span>
-              <span className="font-medium text-indigo-600">{uploadProgress}%</span>
+              <span className="font-medium text-red-600">{uploadProgress}%</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${uploadProgress}%` }}
-                className="h-full bg-linear-to-r from-indigo-500 to-purple-500"
+                className="h-full bg-linear-to-r from-red-500 to-red-600"
               />
             </div>
           </div>
@@ -1172,7 +1172,7 @@ function Pagination({
               key={pageNum}
               onClick={() => onPageChange(pageNum)}
               className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors ${pagination.page === pageNum
-                ? 'bg-indigo-600 text-white'
+                ? 'bg-red-600 text-white'
                 : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
                 }`}
             >
@@ -1390,16 +1390,16 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gray-50/80">
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-gray-200 bg-white">
         {/* Logo */}
         <div className="flex h-16 items-center gap-3 border-b border-gray-100 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br from-red-600 to-red-700 shadow-lg shadow-red-500/30">
             <Sparkles className="h-5 w-5 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-gray-900">Lettt Admin</h1>
+            <h1 className="font-bold text-gray-900">LTTT Admin</h1>
             <p className="text-xs text-gray-500">Management Panel</p>
           </div>
         </div>
@@ -1413,16 +1413,16 @@ export default function AdminDashboardPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${activeTab === tab.id
-                  ? 'bg-indigo-50 text-indigo-700'
+                  ? 'bg-red-50 text-red-700'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
               >
-                <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-indigo-600' : 'text-gray-400'}`} />
+                <tab.icon className={`h-5 w-5 ${activeTab === tab.id ? 'text-red-600' : 'text-gray-400'}`} />
                 {tab.label}
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
-                    className="ml-auto h-2 w-2 rounded-full bg-indigo-600"
+                    className="ml-auto h-2 w-2 rounded-full bg-red-600"
                   />
                 )}
               </button>
@@ -1476,7 +1476,7 @@ export default function AdminDashboardPage() {
                       icon={IndianRupee}
                       label="Total Revenue"
                       value={`₹${stats.totalRevenue.toLocaleString('en-IN')}`}
-                      gradient="bg-gradient-to-br from-emerald-500 to-teal-600"
+                      gradient="bg-linear-to-br from-emerald-500 to-teal-600"
                       delay={0}
                     />
                     <StatCard
@@ -1484,21 +1484,21 @@ export default function AdminDashboardPage() {
                       label="Total Orders"
                       value={stats.totalOrders}
                       trend={stats.recentOrders > 0 ? `+${stats.recentOrders} today` : undefined}
-                      gradient="bg-gradient-to-br from-blue-500 to-indigo-600"
+                      gradient="bg-linear-to-br from-red-500 to-red-600"
                       delay={0.1}
                     />
                     <StatCard
                       icon={Palette}
                       label="Art Pieces"
                       value={stats.totalArts}
-                      gradient="bg-gradient-to-br from-amber-500 to-orange-600"
+                      gradient="bg-linear-to-br from-amber-500 to-orange-600"
                       delay={0.2}
                     />
                     <StatCard
                       icon={Calendar}
                       label="Events"
                       value={stats.totalEvents}
-                      gradient="bg-gradient-to-br from-rose-500 to-pink-600"
+                      gradient="bg-linear-to-br from-rose-500 to-pink-600"
                       delay={0.3}
                     />
                   </div>
@@ -1887,7 +1887,7 @@ export default function AdminDashboardPage() {
                           key={status}
                           onClick={() => setOrderStatusFilter(status)}
                           className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${orderStatusFilter === status
-                            ? 'bg-indigo-600 text-white'
+                            ? 'bg-red-600 text-white'
                             : 'text-gray-600 hover:bg-gray-100'
                             }`}
                         >
@@ -1988,7 +1988,7 @@ export default function AdminDashboardPage() {
                     </div>
                     <button
                       onClick={() => setVideoModal({ open: true })}
-                      className="flex items-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-purple-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 transition-all hover:shadow-indigo-500/40"
+                      className="flex items-center gap-2 rounded-xl bg-linear-to-r from-red-600 to-red-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-red-500/30 transition-all hover:shadow-red-500/40"
                     >
                       <Plus className="h-5 w-5" />
                       Add Video

@@ -68,11 +68,11 @@ function ArtCard({ art }: { art: ArtItem }) {
       <Link to={`/art/${art._id}`}>
         <Card className="overflow-hidden transition-all hover:shadow-lg">
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-black/5 to-black/10">
+        <div className="relative aspect-[4/5] overflow-hidden bg-linear-to-br from-black/5 to-black/10">
           {image ? (
             <>
               {!imageLoaded && (
-                <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-black/5 to-black/10" />
+                <div className="absolute inset-0 animate-pulse bg-linear-to-br from-black/5 to-black/10" />
               )}
               <motion.img
                 src={image}
@@ -90,7 +90,7 @@ function ArtCard({ art }: { art: ArtItem }) {
           {/* Badges */}
           <div className="absolute left-3 top-3 flex flex-col gap-2">
             {art.featured && (
-              <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red) shadow-md">
+              <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-(--color-red) shadow-md">
                 Featured
               </span>
             )}
@@ -114,7 +114,7 @@ function ArtCard({ art }: { art: ArtItem }) {
             <p className="mt-1 text-sm text-(--color-muted)">by {art.artist}</p>
           )}
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-xl font-extrabold text-(--color-primary-red)">
+            <span className="text-xl font-extrabold text-(--color-red)">
               ₹{art.price.toLocaleString('en-IN')}
             </span>
             {art.dimensions && (
@@ -175,7 +175,7 @@ function FilterPanel({
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="h-11 w-full rounded-xl border border-black/10 bg-white px-4 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+              className="h-11 w-full rounded-xl border border-black/4 bg-white px-4 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -195,7 +195,7 @@ function FilterPanel({
                 placeholder="Min"
                 value={priceRange.min}
                 onChange={(e) => onPriceChange({ ...priceRange, min: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-11 w-24 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
               />
               <span className="flex items-center text-(--color-muted)">–</span>
               <input
@@ -203,7 +203,7 @@ function FilterPanel({
                 placeholder="Max"
                 value={priceRange.max}
                 onChange={(e) => onPriceChange({ ...priceRange, max: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-11 w-24 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
               />
             </div>
           </div>
@@ -216,7 +216,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showFeatured}
                 onChange={(e) => onFeaturedChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
+                className="h-4 w-4 rounded border-black/20 text-(--color-red) focus:ring-(--color-red)"
               />
               <span className="text-sm">Featured Only</span>
             </label>
@@ -225,7 +225,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showAvailable}
                 onChange={(e) => onAvailableChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
+                className="h-4 w-4 rounded border-black/20 text-(--color-red) focus:ring-(--color-red)"
               />
               <span className="text-sm">Available Only</span>
             </label>
@@ -282,7 +282,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={!hasPrev}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -290,7 +290,7 @@ function Pagination({
           <>
             <button
               onClick={() => onPageChange(1)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/20"
             >
               1
             </button>
@@ -303,8 +303,8 @@ function Pagination({
             onClick={() => onPageChange(p)}
             className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-colors ${
               p === page
-                ? 'border-(--color-primary-red) bg-(--color-primary-red) font-bold text-white'
-                : 'border-black/10 bg-white hover:border-black/20'
+                ? 'border-red-200 bg-(--color-red) font-bold text-white'
+                : 'border-black/4 bg-white hover:border-black/20'
             }`}
           >
             {p}
@@ -315,7 +315,7 @@ function Pagination({
             {end < totalPages - 1 && <span className="px-1 text-(--color-muted)">...</span>}
             <button
               onClick={() => onPageChange(totalPages)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/20"
             >
               {totalPages}
             </button>
@@ -324,7 +324,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={!hasNext}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -435,13 +435,12 @@ export default function ArtPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F] py-16 text-white">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-(--color-primary-gold) blur-3xl" />
-            <div className="absolute bottom-1/4 right-1/4 h-48 w-48 rounded-full bg-white blur-3xl" />
-          </div>
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-16 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -left-32 top-0 h-80 w-80 rounded-full bg-red-600/15 blur-[120px]" />
+          <div className="absolute -right-32 bottom-0 h-64 w-64 rounded-full bg-red-600/10 blur-[100px]" />
           <div className="lux-container relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -449,10 +448,11 @@ export default function ArtPage() {
               transition={{ duration: 0.5 }}
               className="max-w-2xl"
             >
-              <h1 className="text-5xl font-extrabold tracking-tight md:text-6xl">
-                Art <span className="text-(--color-primary-gold)">Gallery</span>
+              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Gallery</span>
+              <h1 className="mt-4 text-5xl font-extrabold tracking-tight md:text-6xl">
+                Art <span className="text-gradient-red">Gallery</span>
               </h1>
-              <p className="mt-4 text-lg text-white/80">
+              <p className="mt-4 text-lg text-white/60">
                 Discover extraordinary artworks from talented artists. Each piece tells a unique story.
               </p>
             </motion.div>
@@ -470,7 +470,7 @@ export default function ArtPage() {
                 placeholder="Search artworks, artists..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 w-full rounded-xl border border-black/10 bg-white pl-12 pr-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-12 w-full rounded-xl border border-black/4 bg-white pl-12 pr-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
               />
             </div>
 
@@ -485,7 +485,7 @@ export default function ArtPage() {
                 <Filter className="h-4 w-4" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--color-primary-gold) text-xs font-bold text-(--color-primary-red)">
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-(--color-red)">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -499,7 +499,7 @@ export default function ArtPage() {
                   setSortBy(newSortBy);
                   setSortOrder(newSortOrder as 'asc' | 'desc');
                 }}
-                className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none"
+                className="h-10 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none"
               >
                 <option value="createdAt-desc">Newest First</option>
                 <option value="createdAt-asc">Oldest First</option>
@@ -510,16 +510,16 @@ export default function ArtPage() {
               </select>
 
               {/* View Mode Toggle */}
-              <div className="hidden items-center gap-1 rounded-xl border border-black/10 bg-white p-1 sm:flex">
+              <div className="hidden items-center gap-1 rounded-xl border border-black/4 bg-white p-1 sm:flex">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`rounded-lg p-2 transition-colors ${viewMode === 'grid' ? 'bg-(--color-primary-red) text-white' : 'hover:bg-black/5'}`}
+                  className={`rounded-xl p-2 transition-colors ${viewMode === 'grid' ? 'bg-(--color-red) text-white' : 'hover:bg-gray-50'}`}
                 >
                   <Grid3X3 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`rounded-lg p-2 transition-colors ${viewMode === 'list' ? 'bg-(--color-primary-red) text-white' : 'hover:bg-black/5'}`}
+                  className={`rounded-xl p-2 transition-colors ${viewMode === 'list' ? 'bg-(--color-red) text-white' : 'hover:bg-gray-50'}`}
                 >
                   <LayoutList className="h-4 w-4" />
                 </button>
@@ -576,7 +576,7 @@ export default function ArtPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-20 text-center"
             >
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
+              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-50">
                 <span className="text-5xl">🎨</span>
               </div>
               <h3 className="text-xl font-extrabold">No artworks found</h3>

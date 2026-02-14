@@ -6,7 +6,7 @@ import { fadeInUp } from '@/utils/animations';
 export default function PurchasePage() {
   return (
     <PageTransition>
-      <section className="bg-(--color-bg)">
+      <section className="bg-(--color-background)">
         <div className="lux-container py-16">
           <motion.div
             className="max-w-3xl"

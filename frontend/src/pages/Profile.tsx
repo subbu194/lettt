@@ -190,15 +190,20 @@ export default function Profile() {
 
   return (
     <PageTransition>
-      <div className="lux-container py-12">
-        <div className="mx-auto max-w-4xl">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="mb-2 text-4xl font-bold tracking-tight">Profile Settings</h1>
-            <p className="text-lg text-(--color-text)/60">
-              Manage your account settings and preferences
-            </p>
+      <div className="min-h-screen bg-(--color-background)">
+        {/* Hero Header */}
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-16 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -right-32 top-0 h-80 w-80 rounded-full bg-red-600/15 blur-[120px]" />
+          <div className="lux-container relative">
+            <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Account</span>
+            <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">Profile <span className="text-gradient-red">Settings</span></h1>
+            <p className="mt-2 text-white/60">Manage your account settings and preferences</p>
           </div>
+        </div>
+
+        <div className="lux-container py-8">
+        <div className="mx-auto max-w-4xl">
 
           {/* Message Banner */}
           {message && (
@@ -218,7 +223,7 @@ export default function Profile() {
           )}
 
           {/* Tabs */}
-          <div className="mb-8 flex gap-2 overflow-x-auto border-b border-black/10 pb-0">
+          <div className="mb-8 flex gap-2 overflow-x-auto border-b border-black/4 pb-0">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               return (
@@ -226,8 +231,8 @@ export default function Profile() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${activeTab === tab.id
-                      ? 'border-(--color-primary-red) text-(--color-primary-red)'
-                      : 'border-transparent text-(--color-text)/60 hover:text-(--color-text)'
+                      ? 'border-red-200 text-(--color-red)'
+                      : 'border-transparent text-(--color-muted) hover:text-(--color-text)'
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -238,13 +243,13 @@ export default function Profile() {
           </div>
 
           {/* Tab Content */}
-          <div className="rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-black/4 bg-white p-6 shadow-sm">
             {/* Personal Info Tab */}
             {activeTab === 'personal' && (
               <form onSubmit={handleUpdatePersonal} className="space-y-6">
                 <div>
                   <h2 className="mb-4 text-2xl font-bold">Personal Information</h2>
-                  <p className="mb-6 text-sm text-(--color-text)/60">
+                  <p className="mb-6 text-sm text-(--color-muted)">
                     Update your personal details and contact information
                   </p>
                 </div>
@@ -265,7 +270,7 @@ export default function Profile() {
                   />
                 </div>
 
-                <div className="border-t border-black/10 pt-6">
+                <div className="border-t border-black/4 pt-6">
                   <h3 className="mb-4 text-lg font-semibold">Personal Details</h3>
 
                   <div className="space-y-4">
@@ -278,7 +283,7 @@ export default function Profile() {
                         id="name"
                         value={personalForm.name}
                         onChange={(e) => setPersonalForm({ ...personalForm, name: e.target.value })}
-                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                        className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         placeholder="Enter your full name"
                       />
                     </div>
@@ -292,7 +297,7 @@ export default function Profile() {
                         id="phone"
                         value={personalForm.phone}
                         onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
-                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                        className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         placeholder="+1 (555) 123-4567"
                       />
                     </div>
@@ -306,7 +311,7 @@ export default function Profile() {
                         value={personalForm.address}
                         onChange={(e) => setPersonalForm({ ...personalForm, address: e.target.value })}
                         rows={3}
-                        className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                        className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         placeholder="Enter your full address"
                       />
                     </div>
@@ -332,9 +337,9 @@ export default function Profile() {
                 </Button>
 
                 {/* Delete Account Section */}
-                <div className="mt-8 border-t border-black/10 pt-6">
+                <div className="mt-8 border-t border-black/4 pt-6">
                   <h3 className="mb-2 text-lg font-semibold text-red-600">Delete Account</h3>
-                  <p className="mb-4 text-sm text-(--color-text)/60">
+                  <p className="mb-4 text-sm text-(--color-muted)">
                     Permanently delete your account and all associated data including orders and tickets.
                   </p>
                   <Button
@@ -355,7 +360,7 @@ export default function Profile() {
               <form onSubmit={handleUpdateEmail} className="space-y-6">
                 <div>
                   <h2 className="mb-4 text-2xl font-bold">Change Email</h2>
-                  <p className="mb-6 text-sm text-(--color-text)/60">
+                  <p className="mb-6 text-sm text-(--color-muted)">
                     Update your email address. You'll need to verify your current password.
                   </p>
                 </div>
@@ -369,7 +374,7 @@ export default function Profile() {
                     id="current-email"
                     value={profile?.email || ''}
                     disabled
-                    className="w-full rounded-xl border border-black/10 bg-black/5 px-4 py-3 text-sm text-(--color-text)/60"
+                    className="w-full rounded-xl border border-black/4 bg-gray-50 px-4 py-3 text-sm text-(--color-muted)"
                   />
                 </div>
 
@@ -383,7 +388,7 @@ export default function Profile() {
                     value={emailForm.email}
                     onChange={(e) => setEmailForm({ ...emailForm, email: e.target.value })}
                     required
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                     placeholder="Enter new email address"
                   />
                 </div>
@@ -398,7 +403,7 @@ export default function Profile() {
                     value={emailForm.currentPassword}
                     onChange={(e) => setEmailForm({ ...emailForm, currentPassword: e.target.value })}
                     required
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                     placeholder="Enter your current password"
                   />
                 </div>
@@ -428,7 +433,7 @@ export default function Profile() {
               <form onSubmit={handleUpdatePassword} className="space-y-6">
                 <div>
                   <h2 className="mb-4 text-2xl font-bold">Change Password</h2>
-                  <p className="mb-6 text-sm text-(--color-text)/60">
+                  <p className="mb-6 text-sm text-(--color-muted)">
                     Update your password to keep your account secure
                   </p>
                 </div>
@@ -443,7 +448,7 @@ export default function Profile() {
                     value={passwordForm.currentPassword}
                     onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
                     required
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                     placeholder="Enter current password"
                   />
                 </div>
@@ -459,10 +464,10 @@ export default function Profile() {
                     onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                     required
                     minLength={8}
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                     placeholder="Enter new password (min 8 characters)"
                   />
-                  <p className="mt-1 text-xs text-(--color-text)/60">
+                  <p className="mt-1 text-xs text-(--color-muted)">
                     Must include uppercase, lowercase, and number
                   </p>
                 </div>
@@ -478,7 +483,7 @@ export default function Profile() {
                     onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                     required
                     minLength={8}
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-(--color-primary-red) focus:outline-none focus:ring-2 focus:ring-(--color-primary-red)/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                     placeholder="Confirm new password"
                   />
                 </div>
@@ -508,7 +513,7 @@ export default function Profile() {
               <form onSubmit={handleDeleteAccount} className="space-y-6">
                 <div>
                   <h2 className="mb-4 text-2xl font-bold text-red-600">Delete Account</h2>
-                  <p className="mb-6 text-sm text-(--color-text)/60">
+                  <p className="mb-6 text-sm text-(--color-muted)">
                     Permanently delete your account and all associated data
                   </p>
                 </div>
@@ -538,7 +543,7 @@ export default function Profile() {
                     value={deletePassword}
                     onChange={(e) => setDeletePassword(e.target.value)}
                     required
-                    className="w-full rounded-xl border border-black/10 bg-white px-4 py-3 text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                    className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -549,7 +554,7 @@ export default function Profile() {
                     id="confirm-delete"
                     checked={confirmDelete}
                     onChange={(e) => setConfirmDelete(e.target.checked)}
-                    className="h-4 w-4 rounded border-black/10 text-red-600 focus:ring-2 focus:ring-red-500/20"
+                    className="h-4 w-4 rounded border-black/4 text-red-600 focus:ring-2 focus:ring-red-500/20"
                   />
                   <label htmlFor="confirm-delete" className="text-sm font-medium">
                     I understand that this action is permanent and cannot be undone
@@ -587,6 +592,7 @@ export default function Profile() {
               </form>
             )}
           </div>
+        </div>
         </div>
       </div>
     </PageTransition>

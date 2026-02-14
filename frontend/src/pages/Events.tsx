@@ -78,7 +78,7 @@ function EventCard({ event }: { event: EventItem }) {
     >
       <Card className="group overflow-hidden">
         {/* Image */}
-        <div className="relative aspect-16/10 overflow-hidden bg-linear-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
+        <div className="relative aspect-16/10 overflow-hidden bg-linear-to-br from-(--color-red)/20 to-(--color-soft-black)/10">
           {event.coverImage ? (
             <>
               {!imageLoaded && (
@@ -93,13 +93,13 @@ function EventCard({ event }: { event: EventItem }) {
             </>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Calendar className="h-16 w-16 text-(--color-primary-red)/30" />
+              <Calendar className="h-16 w-16 text-red-200" />
             </div>
           )}
 
           {/* Date Badge */}
           <div className="absolute left-4 top-4 rounded-xl bg-white/95 p-3 text-center shadow-lg backdrop-blur-sm">
-            <span className="block text-2xl font-extrabold text-(--color-primary-red)">
+            <span className="block text-2xl font-extrabold text-(--color-red)">
               {eventDate.getDate()}
             </span>
             <span className="block text-xs font-semibold uppercase text-(--color-muted)">
@@ -110,7 +110,7 @@ function EventCard({ event }: { event: EventItem }) {
           {/* Status Badges */}
           <div className="absolute right-4 top-4 flex flex-col gap-2">
             {event.featured && (
-              <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red) shadow-md">
+              <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-(--color-red) shadow-md">
                 Featured
               </span>
             )}
@@ -125,7 +125,7 @@ function EventCard({ event }: { event: EventItem }) {
               </span>
             )}
             {isUpcoming && lowSeats && !soldOut && (
-              <span className="rounded-full bg-(--color-primary-red) px-3 py-1 text-xs font-bold text-white shadow-md">
+              <span className="rounded-full bg-(--color-red) px-3 py-1 text-xs font-bold text-white shadow-md">
                 Only {seatsLeft} left!
               </span>
             )}
@@ -135,7 +135,7 @@ function EventCard({ event }: { event: EventItem }) {
         {/* Content */}
         <div className="p-5">
           <Link to={`/events/${event._id}`}>
-            <h3 className="text-xl font-extrabold tracking-tight transition-colors hover:text-(--color-primary-red) line-clamp-2">
+            <h3 className="text-xl font-extrabold tracking-tight transition-colors hover:text-(--color-red) line-clamp-2">
               {event.title}
             </h3>
           </Link>
@@ -169,14 +169,14 @@ function EventCard({ event }: { event: EventItem }) {
           {/* Price and Action */}
           <div className="mt-5 flex items-center justify-between">
             <div>
-              <span className="text-2xl font-extrabold text-(--color-primary-red)">
+              <span className="text-2xl font-extrabold text-(--color-red)">
                 ₹{event.ticketPrice.toLocaleString('en-IN')}
               </span>
               <span className="ml-1 text-sm text-(--color-muted)">/ ticket</span>
             </div>
             <Link to={`/events/${event._id}`}>
               <Button
-                variant="gold"
+                variant="red"
                 size="sm"
                 disabled={!isUpcoming || soldOut}
               >
@@ -242,7 +242,7 @@ function FilterPanel({
             <select
               value={selectedVenue}
               onChange={(e) => onVenueChange(e.target.value)}
-              className="h-11 w-full rounded-xl border border-black/10 bg-white px-4 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+              className="h-11 w-full rounded-xl border border-black/4 bg-white px-4 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600/20"
             >
               <option value="">All Venues</option>
               {venues.map((venue) => (
@@ -262,7 +262,7 @@ function FilterPanel({
                 placeholder="Min"
                 value={priceRange.min}
                 onChange={(e) => onPriceChange({ ...priceRange, min: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-11 w-24 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600/20"
               />
               <span className="flex items-center text-(--color-muted)">–</span>
               <input
@@ -270,7 +270,7 @@ function FilterPanel({
                 placeholder="Max"
                 value={priceRange.max}
                 onChange={(e) => onPriceChange({ ...priceRange, max: e.target.value })}
-                className="h-11 w-24 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-11 w-24 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600/20"
               />
             </div>
           </div>
@@ -283,7 +283,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showFeatured}
                 onChange={(e) => onFeaturedChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
+                className="h-4 w-4 rounded border-black/6 text-(--color-red) focus:ring-(--color-red)"
               />
               <span className="text-sm">Featured Events</span>
             </label>
@@ -292,7 +292,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showUpcoming}
                 onChange={(e) => onUpcomingChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
+                className="h-4 w-4 rounded border-black/6 text-(--color-red) focus:ring-(--color-red)"
               />
               <span className="text-sm">Upcoming Only</span>
             </label>
@@ -301,7 +301,7 @@ function FilterPanel({
                 type="checkbox"
                 checked={showAvailable}
                 onChange={(e) => onAvailableChange(e.target.checked)}
-                className="h-4 w-4 rounded border-black/20 text-(--color-primary-red) focus:ring-(--color-primary-gold)"
+                className="h-4 w-4 rounded border-black/6 text-(--color-red) focus:ring-(--color-red)"
               />
               <span className="text-sm">Has Available Seats</span>
             </label>
@@ -358,7 +358,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(page - 1)}
           disabled={!hasPrev}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/6 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -366,7 +366,7 @@ function Pagination({
           <>
             <button
               onClick={() => onPageChange(1)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/6"
             >
               1
             </button>
@@ -379,8 +379,8 @@ function Pagination({
             onClick={() => onPageChange(p)}
             className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-colors ${
               p === page
-                ? 'border-(--color-primary-red) bg-(--color-primary-red) font-bold text-white'
-                : 'border-black/10 bg-white hover:border-black/20'
+                ? 'border-red-200 bg-(--color-red) font-bold text-white'
+                : 'border-black/4 bg-white hover:border-black/6'
             }`}
           >
             {p}
@@ -391,7 +391,7 @@ function Pagination({
             {end < totalPages - 1 && <span className="px-1 text-(--color-muted)">...</span>}
             <button
               onClick={() => onPageChange(totalPages)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/6"
             >
               {totalPages}
             </button>
@@ -400,7 +400,7 @@ function Pagination({
         <button
           onClick={() => onPageChange(page + 1)}
           disabled={!hasNext}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-sm transition-colors hover:border-black/20 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-sm transition-colors hover:border-black/6 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -521,13 +521,12 @@ export default function EventsPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         {/* Hero Section */}
-        <div className="relative overflow-hidden bg-linear-to-br from-(--color-primary-red) to-[#8B2E2F] py-16 text-white">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute left-1/4 top-1/4 h-64 w-64 rounded-full bg-(--color-primary-gold) blur-3xl" />
-            <div className="absolute bottom-1/4 right-1/4 h-48 w-48 rounded-full bg-white blur-3xl" />
-          </div>
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-20 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-red-600/20 blur-[120px]" />
+          <div className="absolute -right-32 bottom-0 h-80 w-80 rounded-full bg-red-600/10 blur-[100px]" />
           <div className="lux-container relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -535,10 +534,13 @@ export default function EventsPage() {
               transition={{ duration: 0.5 }}
               className="max-w-2xl"
             >
-              <h1 className="text-5xl font-extrabold tracking-tight md:text-6xl">
-                Upcoming <span className="text-(--color-primary-gold)">Events</span>
+              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
+                Discover & Book
+              </span>
+              <h1 className="mt-4 text-5xl font-extrabold tracking-tight md:text-6xl">
+                Upcoming <span className="text-gradient-red">Events</span>
               </h1>
-              <p className="mt-4 text-lg text-white/80">
+              <p className="mt-4 text-lg text-white/60">
                 Discover amazing talent showcases, art exhibitions, and cultural events. Book your tickets now!
               </p>
             </motion.div>
@@ -556,7 +558,7 @@ export default function EventsPage() {
                 placeholder="Search events, venues..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-12 w-full rounded-xl border border-black/10 bg-white pl-12 pr-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                className="h-12 w-full rounded-xl border border-black/4 bg-white pl-12 pr-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600/20"
               />
             </div>
 
@@ -571,7 +573,7 @@ export default function EventsPage() {
                 <Filter className="h-4 w-4" />
                 Filters
                 {activeFiltersCount > 0 && (
-                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-(--color-primary-gold) text-xs font-bold text-(--color-primary-red)">
+                  <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-xs font-bold text-(--color-red)">
                     {activeFiltersCount}
                   </span>
                 )}
@@ -585,7 +587,7 @@ export default function EventsPage() {
                   setSortBy(newSortBy);
                   setSortOrder(newSortOrder as 'asc' | 'desc');
                 }}
-                className="h-10 rounded-xl border border-black/10 bg-white px-3 text-sm focus:border-(--color-primary-gold) focus:outline-none"
+                className="h-10 rounded-xl border border-black/4 bg-white px-3 text-sm focus:border-red-200 focus:outline-none"
               >
                 <option value="date-asc">Date: Soonest First</option>
                 <option value="date-desc">Date: Latest First</option>
@@ -648,7 +650,7 @@ export default function EventsPage() {
               className="flex flex-col items-center justify-center py-20 text-center"
             >
               <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
-                <Calendar className="h-12 w-12 text-(--color-primary-red)/50" />
+                <Calendar className="h-12 w-12 text-(--color-red)/50" />
               </div>
               <h3 className="text-xl font-extrabold">No events found</h3>
               <p className="mt-2 max-w-sm text-(--color-muted)">

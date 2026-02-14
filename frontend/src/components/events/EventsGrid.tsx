@@ -40,7 +40,7 @@ export function EventsGrid() {
   if (error) {
     return (
       <motion.div
-        className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70"
+        className="rounded-2xl border border-black/4 bg-white p-6 text-sm text-(--color-muted)"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -53,7 +53,7 @@ export function EventsGrid() {
   if (!events.length) {
     return (
       <motion.div
-        className="rounded-2xl border border-black/10 bg-white p-6 text-sm text-black/70"
+        className="rounded-2xl border border-black/4 bg-white p-6 text-sm text-(--color-muted)"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
@@ -65,7 +65,7 @@ export function EventsGrid() {
 
   return (
     <motion.div
-      className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
       variants={staggerContainer}
       initial="initial"
       animate="animate"

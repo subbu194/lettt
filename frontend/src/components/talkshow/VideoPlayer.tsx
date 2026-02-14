@@ -20,7 +20,7 @@ export function VideoPlayer({ video }: { video: VideoLike }) {
       <div className="text-lg font-extrabold tracking-tight">{title}</div>
       {embedUrl ? (
         <>
-          <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-black/10 bg-black">
+          <div className="relative aspect-video w-full overflow-hidden rounded-2xl border border-black/4 bg-black">
             <iframe
               src={embedUrl}
               title={title}
@@ -30,11 +30,11 @@ export function VideoPlayer({ video }: { video: VideoLike }) {
             />
           </div>
           {description && (
-            <p className="text-sm text-black/70">{description}</p>
+            <p className="text-sm text-(--color-muted)">{description}</p>
           )}
         </>
       ) : (
-        <div className="rounded-2xl border border-black/10 bg-black/5 p-8 text-sm text-black/70">
+        <div className="rounded-2xl border border-black/4 bg-black/5 p-8 text-sm text-(--color-muted)">
           Video source not available.
         </div>
       )}

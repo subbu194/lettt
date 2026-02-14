@@ -182,7 +182,7 @@ export default function CheckoutPage() {
   if (success) {
     return (
       <PageTransition>
-        <section className="min-h-[70vh] bg-(--color-bg)">
+        <section className="min-h-[70vh] bg-(--color-background)">
           <div className="lux-container flex items-center justify-center py-16">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         <div className="lux-container py-8">
           {/* Header */}
           <motion.div
@@ -250,8 +250,8 @@ export default function CheckoutPage() {
               {/* Contact Information */}
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary-red)/10">
-                    <User className="h-5 w-5 text-(--color-primary-red)" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                    <User className="h-5 w-5 text-(--color-red)" />
                   </div>
                   <div>
                     <h2 className="font-bold">Contact Information</h2>
@@ -274,7 +274,7 @@ export default function CheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.name 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -297,7 +297,7 @@ export default function CheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.email 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -326,7 +326,7 @@ export default function CheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.phone 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -340,8 +340,8 @@ export default function CheckoutPage() {
               {/* Delivery Address */}
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary-gold)/20">
-                    <MapPin className="h-5 w-5 text-(--color-primary-red)" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                    <MapPin className="h-5 w-5 text-(--color-red)" />
                   </div>
                   <div>
                     <h2 className="font-bold">Delivery Address</h2>
@@ -362,7 +362,7 @@ export default function CheckoutPage() {
                         className={`w-full rounded-xl border bg-white p-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.address 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                       {formErrors.address && (
@@ -380,7 +380,7 @@ export default function CheckoutPage() {
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
                           placeholder="Mumbai"
-                          className="h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                          className="h-12 w-full rounded-xl border border-black/4 bg-white px-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         />
                       </div>
                       <div>
@@ -398,7 +398,7 @@ export default function CheckoutPage() {
                           }}
                           placeholder="400001"
                           maxLength={6}
-                          className="h-12 w-full rounded-xl border border-black/10 bg-white px-4 text-sm transition-all focus:border-(--color-primary-gold) focus:outline-none focus:ring-2 focus:ring-(--color-primary-gold)/20"
+                          className="h-12 w-full rounded-xl border border-black/4 bg-white px-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         />
                       </div>
                     </div>
@@ -435,7 +435,7 @@ export default function CheckoutPage() {
                   <div className="mt-4 max-h-75 space-y-4 overflow-y-auto">
                     {items.map((item) => (
                       <div key={item.id} className="flex gap-3">
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black/5">
+                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-gray-50">
                           {item.image ? (
                             <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                           ) : (
@@ -461,7 +461,7 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Divider */}
-                  <div className="my-4 border-t border-black/10" />
+                  <div className="my-4 border-t border-black/4" />
 
                   {/* Totals */}
                   <div className="space-y-2">
@@ -480,9 +480,9 @@ export default function CheckoutPage() {
                   </div>
 
                   {/* Total */}
-                  <div className="mt-4 flex items-center justify-between rounded-xl bg-black/5 p-4">
+                  <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 p-4">
                     <span className="font-bold">Total</span>
-                    <span className="text-2xl font-extrabold text-(--color-primary-red)">
+                    <span className="text-2xl font-extrabold text-(--color-red)">
                       ₹{total.toLocaleString('en-IN')}
                     </span>
                   </div>

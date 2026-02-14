@@ -109,7 +109,7 @@ export function VideoFormModal({
               required
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="Enter video title"
             />
           </div>
@@ -123,7 +123,7 @@ export function VideoFormModal({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={3}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="Enter video description"
             />
           </div>
@@ -137,7 +137,7 @@ export function VideoFormModal({
               required
               value={form.youtubeUrl}
               onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
@@ -153,7 +153,7 @@ export function VideoFormModal({
                 min={1}
                 value={form.season}
                 onChange={(e) => setForm({ ...form, season: Number(e.target.value) })}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               />
             </div>
 
@@ -166,7 +166,7 @@ export function VideoFormModal({
                 min={1}
                 value={form.episodeNumber}
                 onChange={(e) => setForm({ ...form, episodeNumber: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
                 placeholder="Optional"
               />
             </div>
@@ -180,7 +180,7 @@ export function VideoFormModal({
               type="url"
               value={form.thumbnail}
               onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-indigo-500/10"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="Leave empty to use YouTube thumbnail"
             />
           </div>
@@ -219,7 +219,7 @@ export function VideoFormModal({
             type="submit"
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 rounded-xl bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="flex-1 rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
             {loading ? 'Saving...' : video ? 'Update Video' : 'Add Video'}
           </button>

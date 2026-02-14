@@ -56,17 +56,17 @@ export function Login() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Card className="p-8 bg-white/70 backdrop-blur-xl border border-black/10 shadow-2xl shadow-black/5">
+      <Card className="p-8 bg-white/70 backdrop-blur-xl border border-black/4 shadow-2xl shadow-black/5">
         {/* Header with stagger animation */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="text-3xl font-extrabold tracking-tight text-(--color-text)">
+          <h2 className="text-3xl font-extrabold tracking-tight text-(--color-soft-black)">
             Welcome Back
           </h2>
-          <p className="mt-2 text-sm text-(--color-muted)">
+          <p className="mt-2 text-sm text-(--color-soft-black)/60">
             Sign in to continue to your account
           </p>
         </motion.div>
@@ -83,13 +83,13 @@ export function Login() {
               <Mail 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'email' 
-                    ? 'text-(--color-primary-gold)' 
+                    ? 'text-(--color-red)' 
                     : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-4 pt-5 pb-1 text-(--color-soft-black) outline-none transition-all duration-200 hover:border-black/25 focus:border-red-200 focus:shadow-lg focus:shadow-(--color-red)/10"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 onFocus={() => setFocusedField('email')}
@@ -99,7 +99,7 @@ export function Login() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-red)">
                 Email Address
               </label>
             </div>
@@ -116,13 +116,13 @@ export function Login() {
               <Lock 
                 className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-200 ${
                   focusedField === 'password' 
-                    ? 'text-(--color-primary-gold)' 
+                    ? 'text-(--color-red)' 
                     : 'text-(--color-muted)'
                 }`}
                 size={18}
               />
               <input
-                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-(--color-text) outline-none transition-all duration-200 hover:border-black/25 focus:border-(--color-primary-gold) focus:shadow-lg focus:shadow-(--color-primary-gold)/10"
+                className="peer h-14 w-full rounded-xl border border-black/15 bg-white/70 pl-12 pr-12 pt-5 pb-1 text-(--color-soft-black) outline-none transition-all duration-200 hover:border-black/25 focus:border-red-200 focus:shadow-lg focus:shadow-(--color-red)/10"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setFocusedField('password')}
@@ -132,7 +132,7 @@ export function Login() {
                 placeholder=" "
                 required
               />
-              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-primary-gold)">
+              <label className="pointer-events-none absolute left-12 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-xs peer-focus:text-(--color-red)">
                 Password
               </label>
               <motion.button
@@ -178,10 +178,10 @@ export function Login() {
                 transition={{ duration: 0.3 }}
                 className="overflow-hidden"
               >
-                <div className="rounded-xl border border-(--color-primary-red)/30 bg-(--color-primary-red)/5 px-4 py-3.5 text-sm text-(--color-text) flex items-start gap-3">
-                  <AlertCircle className="text-(--color-primary-red) shrink-0 mt-0.5" size={18} />
+                <div className="rounded-xl border border-red-200/30 bg-(--color-red)/5 px-4 py-3.5 text-sm text-(--color-soft-black) flex items-start gap-3">
+                  <AlertCircle className="text-(--color-red) shrink-0 mt-0.5" size={18} />
                   <div>
-                    <span className="font-semibold text-(--color-primary-red)">Error:</span>{' '}
+                    <span className="font-semibold text-(--color-red)">Error:</span>{' '}
                     {error}
                   </div>
                 </div>
@@ -250,7 +250,7 @@ export function Login() {
         >
           <a 
             href="#" 
-            className="text-sm text-(--color-primary-gold) hover:underline transition-all duration-200 hover:text-(--color-primary-gold)/80"
+            className="text-sm text-(--color-red) hover:underline transition-all duration-200 hover:text-(--color-red)/80"
           >
             Forgot your password?
           </a>

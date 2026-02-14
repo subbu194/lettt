@@ -8,7 +8,7 @@ type Props = {
 };
 
 export function Skeleton({ className = '', variant = 'rectangular', width, height }: Props) {
-  const baseClass = 'bg-gradient-to-r from-black/5 via-black/10 to-black/5 bg-[length:200%_100%]';
+  const baseClass = 'bg-linear-to-r from-black/5 via-black/10 to-black/5 bg-size-[200%_100%]';
   
   const variantClass = {
     text: 'rounded h-4',
@@ -53,12 +53,12 @@ export function SkeletonText({ lines = 3, className = '' }: { lines?: number; cl
 
 export function SkeletonCard({ className = '' }: { className?: string }) {
   return (
-    <div className={`rounded-2xl border border-black/10 bg-white p-5 shadow-sm ${className}`}>
-      <Skeleton className="aspect-16-10 w-full" />
-      <div className="mt-4 space-y-3">
-        <Skeleton variant="text" className="w-2/3" />
-        <Skeleton variant="text" className="w-1/2" />
-        <Skeleton className="mt-4 h-11 w-full rounded-xl" />
+    <div className={`rounded-2xl border border-black/4 bg-white p-5 shadow-sm ${className}`}>
+      <Skeleton className="aspect-16-10 w-full rounded-xl" />
+      <div className="mt-5 space-y-3">
+        <Skeleton variant="text" className="w-2/3 h-5" />
+        <Skeleton variant="text" className="w-1/2 h-4" />
+        <Skeleton className="mt-4 h-12 w-full rounded-xl" />
       </div>
     </div>
   );

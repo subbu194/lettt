@@ -17,15 +17,18 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-white text-black flex items-center justify-center p-6">
-          <div className="w-full max-w-lg rounded-2xl border border-black/10 bg-white p-6 shadow-sm">
-            <h1 className="text-2xl font-semibold tracking-tight">Something went wrong</h1>
-            <p className="mt-2 text-black/70">{this.state.message}</p>
+        <div className="min-h-screen bg-(--color-background) text-(--color-text) flex items-center justify-center p-6">
+          <div className="w-full max-w-lg rounded-2xl border border-black/4 bg-white p-8 shadow-lg">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 mb-5">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h1 className="text-2xl font-extrabold tracking-tight">Something went wrong</h1>
+            <p className="mt-2 text-(--color-muted) leading-relaxed">{this.state.message}</p>
             <button
-              className="mt-5 inline-flex items-center justify-center rounded-xl bg-(--color-primary-red) px-5 py-3 font-semibold text-(--color-primary-gold) glow-gold hover:glow-red transition"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-(--color-red) px-6 py-3 font-semibold text-white hover:bg-red-700 active:bg-red-800 transition-colors cursor-pointer"
               onClick={() => window.location.reload()}
             >
-              Reload
+              Reload Page
             </button>
           </div>
         </div>

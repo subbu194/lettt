@@ -139,7 +139,7 @@ export function ProfileImageUploader({ currentImage, userName, onImageUpdate }: 
               )}
             </div>
           ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-(--color-primary-red) to-(--color-primary-gold) text-3xl font-bold text-white shadow-lg">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-(--color-red) to-(--color-red) text-3xl font-bold text-white shadow-lg">
               {getInitials()}
             </div>
           )}
@@ -152,7 +152,7 @@ export function ProfileImageUploader({ currentImage, userName, onImageUpdate }: 
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="inline-flex items-center gap-2 rounded-xl bg-(--color-primary-red) px-4 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-xl bg-(--color-red) px-4 py-2 text-sm font-semibold text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {uploading ? (
                 <>

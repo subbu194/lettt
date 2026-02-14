@@ -25,7 +25,7 @@ export default function AuthPage({ initialTab }: Props) {
 
   return (
     <PageTransition>
-      <section className="relative min-h-screen bg-(--color-bg)">
+      <section className="relative min-h-screen bg-(--color-background)">
         <div className="relative">
           <AuthBackground />
           
@@ -71,7 +71,7 @@ export default function AuthPage({ initialTab }: Props) {
 
               {/* Tab Switcher with Enhanced Animation */}
               <motion.div
-                className="rounded-2xl border border-black/10 bg-white/70 backdrop-blur-xl p-2 shadow-lg mb-6"
+                className="rounded-2xl border border-black/4 bg-white/70 backdrop-blur-xl p-2 shadow-lg mb-6"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: 0.1 }}
@@ -101,7 +101,7 @@ export default function AuthPage({ initialTab }: Props) {
                     type="button"
                     className={`relative z-10 h-11 rounded-xl text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${
                       tab === 'login'
-                        ? 'text-(--color-primary-gold)'
+                        ? 'text-(--color-red)'
                         : 'text-(--color-text) hover:text-(--color-text)/80'
                     }`}
                     onClick={() => handleTabChange('login')}
@@ -117,7 +117,7 @@ export default function AuthPage({ initialTab }: Props) {
                     type="button"
                     className={`relative z-10 h-11 rounded-xl text-sm font-semibold transition-colors duration-200 flex items-center justify-center gap-2 ${
                       tab === 'signup'
-                        ? 'text-(--color-primary-gold)'
+                        ? 'text-(--color-red)'
                         : 'text-(--color-text) hover:text-(--color-text)/80'
                     }`}
                     onClick={() => handleTabChange('signup')}
@@ -204,11 +204,11 @@ export default function AuthPage({ initialTab }: Props) {
               >
                 <p className="text-xs text-(--color-muted)">
                   By continuing, you agree to our{' '}
-                  <a href="#" className="text-(--color-primary-gold) hover:underline">
+                  <a href="#" className="text-(--color-red) hover:underline">
                     Terms
                   </a>{' '}
                   and{' '}
-                  <a href="#" className="text-(--color-primary-gold) hover:underline">
+                  <a href="#" className="text-(--color-red) hover:underline">
                     Privacy Policy
                   </a>
                 </p>

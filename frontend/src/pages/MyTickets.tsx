@@ -118,15 +118,15 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F]">
+              <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-red-700 via-red-600 to-red-700">
                 <Ticket className="h-12 w-12 text-white/50" />
               </div>
             )}
             
             {/* Date Badge */}
             {eventDate && (
-              <div className="absolute left-3 top-3 rounded-lg bg-white/95 px-2 py-1 text-center shadow-lg backdrop-blur-sm">
-                <div className="text-xs font-bold uppercase text-(--color-primary-red)">
+              <div className="absolute left-3 top-3 rounded-xl bg-white/95 px-2 py-1 text-center shadow-lg backdrop-blur-sm">
+                <div className="text-xs font-bold uppercase text-(--color-red)">
                   {eventDate.toLocaleDateString('en-IN', { month: 'short' })}
                 </div>
                 <div className="text-xl font-extrabold leading-tight">{eventDate.getDate()}</div>
@@ -142,7 +142,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                 <h3 className="text-lg font-extrabold leading-tight line-clamp-2">
                   {event?.title || 'Event'}
                 </h3>
-                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-(--color-primary-red)">
+                <p className="mt-1 text-xs font-bold uppercase tracking-wider text-(--color-red)">
                   Ticket #{ticket.ticketId}
                 </p>
               </div>
@@ -188,7 +188,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
               
               <div className="flex items-center gap-2">
                 {ticket.status === 'active' && isUpcoming && (
-                  <span className="rounded-full bg-(--color-primary-gold) px-2 py-0.5 text-xs font-bold text-black">
+                  <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-bold text-(--color-red)">
                     Upcoming
                   </span>
                 )}
@@ -244,7 +244,7 @@ function TicketDetailModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -255,11 +255,11 @@ function TicketDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between border-b border-black/10 bg-white p-5">
+        <div className="sticky top-0 flex items-center justify-between border-b border-black/4 bg-white p-5">
           <h2 className="text-lg font-extrabold">Ticket Details</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-gray-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -287,7 +287,7 @@ function TicketDetailModal({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F]">
+                  <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-red-700 via-red-600 to-red-700">
                     <Ticket className="h-16 w-16 text-white/50" />
                   </div>
                 )}
@@ -303,11 +303,11 @@ function TicketDetailModal({
               </div>
 
               {/* Event Details */}
-              <div className="space-y-3 rounded-xl bg-black/5 p-4">
+              <div className="space-y-3 rounded-xl bg-gray-50 p-4">
                 {eventDate && (
                   <>
                     <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-(--color-primary-red)" />
+                      <Calendar className="h-5 w-5 text-(--color-red)" />
                       <div>
                         <p className="font-semibold">
                           {eventDate.toLocaleDateString('en-IN', {
@@ -320,7 +320,7 @@ function TicketDetailModal({
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-(--color-primary-red)" />
+                      <Clock className="h-5 w-5 text-(--color-red)" />
                       <p className="font-semibold">
                         {eventDate.toLocaleTimeString('en-IN', {
                           hour: '2-digit',
@@ -332,16 +332,16 @@ function TicketDetailModal({
                 )}
                 {event?.venue && (
                   <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-(--color-primary-red)" />
+                    <MapPin className="h-5 w-5 text-(--color-red)" />
                     <p className="font-semibold">{event.venue}</p>
                   </div>
                 )}
               </div>
 
               {/* Ticket Info */}
-              <div className="flex items-center justify-between rounded-xl border border-(--color-primary-gold) bg-(--color-primary-gold)/10 p-4">
+              <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4">
                 <div className="flex items-center gap-3">
-                  <Users className="h-6 w-6 text-(--color-primary-red)" />
+                  <Users className="h-6 w-6 text-(--color-red)" />
                   <div>
                     <p className="text-sm text-(--color-muted)">Number of Guests</p>
                     <p className="text-2xl font-extrabold">{ticket.quantity}</p>
@@ -352,7 +352,7 @@ function TicketDetailModal({
               {/* QR Code Placeholder */}
               {ticket.status === 'active' && (
                 <div className="flex flex-col items-center rounded-xl bg-white border-2 border-dashed border-black/20 p-6">
-                  <div className="mb-3 flex h-32 w-32 items-center justify-center rounded-xl bg-black/5">
+                  <div className="mb-3 flex h-32 w-32 items-center justify-center rounded-xl bg-gray-50">
                     <QrCode className="h-16 w-16 text-(--color-muted)" />
                   </div>
                   <p className="text-sm font-semibold">Scan at Entry</p>
@@ -464,33 +464,35 @@ export default function MyTicketsPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-(--color-primary-gold) to-[#D4B050] py-12 text-black">
-          <div className="lux-container">
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-16 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -left-32 top-0 h-80 w-80 rounded-full bg-red-600/15 blur-[120px]" />
+          <div className="lux-container relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/20">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 backdrop-blur-sm">
                   <Ticket className="h-7 w-7" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">My Tickets</h1>
-                  <p className="mt-1 text-black/70">Your event passes & booking confirmations</p>
+                  <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">My <span className="text-gradient-red">Tickets</span></h1>
+                  <p className="mt-1 text-white/60">Your event passes & booking confirmations</p>
                 </div>
               </div>
               
               {/* Quick Stats */}
               {!loading && tickets.length > 0 && (
-                <div className="mt-6 flex gap-6">
-                  <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-700" />
+                <div className="mt-6 flex gap-4">
+                  <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+                    <CheckCircle2 className="h-5 w-5 text-green-400" />
                     <span className="font-bold">{activeCount} Active</span>
                   </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2">
-                    <Ticket className="h-5 w-5 text-gray-700" />
+                  <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 backdrop-blur-sm">
+                    <Ticket className="h-5 w-5 text-white/60" />
                     <span className="font-bold">{usedCount} Used</span>
                   </div>
                 </div>
@@ -513,8 +515,8 @@ export default function MyTicketsPage() {
                   onClick={() => setStatusFilter(status)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                     statusFilter === status
-                      ? 'bg-(--color-primary-gold) text-black'
-                      : 'bg-white text-(--color-text) hover:bg-black/5'
+                      ? 'bg-(--color-red) text-white'
+                      : 'bg-white text-(--color-text) hover:bg-gray-50'
                   }`}
                 >
                   {status === '' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -555,7 +557,7 @@ export default function MyTicketsPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-16 text-center"
             >
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
+              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-50">
                 <Ticket className="h-12 w-12 text-(--color-muted)" />
               </div>
               <h3 className="text-xl font-extrabold">No tickets yet</h3>

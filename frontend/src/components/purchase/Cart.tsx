@@ -49,7 +49,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-gray-500 backdrop-blur-sm"
           />
 
           {/* Drawer */}
@@ -58,13 +58,13 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-(--color-bg) shadow-2xl sm:w-110"
+            className="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-(--color-background) shadow-2xl sm:w-110"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-black/10 p-5">
+            <div className="flex items-center justify-between border-b border-black/4 p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary-red)/10">
-                  <ShoppingCart className="h-5 w-5 text-(--color-primary-red)" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                  <ShoppingCart className="h-5 w-5 text-(--color-red)" />
                 </div>
                 <div>
                   <h2 className="text-lg font-extrabold tracking-tight">Your Cart</h2>
@@ -75,7 +75,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
               </div>
               <button
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+                className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-gray-50"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -89,7 +89,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   animate={{ opacity: 1, y: 0 }}
                   className="flex flex-col items-center justify-center py-16 text-center"
                 >
-                  <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-black/5">
+                  <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-50">
                     <ShoppingCart className="h-10 w-10 text-(--color-muted)" />
                   </div>
                   <h3 className="text-lg font-extrabold">Your cart is empty</h3>
@@ -120,7 +120,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         <Card className="p-4">
                           <div className="flex gap-4">
                             {/* Item Image */}
-                            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-black/5">
+                            <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-50">
                               {item.image ? (
                                 <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                               ) : (
@@ -136,30 +136,30 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                               {item.size && (
                                 <p className="mt-0.5 text-xs text-(--color-muted)">Size: {item.size}</p>
                               )}
-                              <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
+                              <p className="mt-1 text-sm font-semibold text-(--color-red)">
                                 ₹{item.price.toLocaleString('en-IN')}
                               </p>
 
                               {/* Quantity & Remove */}
                               <div className="mt-auto flex items-center justify-between pt-2">
-                                <div className="flex items-center rounded-lg border border-black/10 bg-white">
+                                <div className="flex items-center rounded-xl border border-black/4 bg-white">
                                   <button
                                     onClick={() => setQty(item.id, Math.max(1, item.qty - 1))}
-                                    className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black/5"
+                                    className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-gray-50"
                                   >
                                     <Minus className="h-3 w-3" />
                                   </button>
                                   <span className="w-8 text-center text-sm font-bold">{item.qty}</span>
                                   <button
                                     onClick={() => setQty(item.id, item.qty + 1)}
-                                    className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-black/5"
+                                    className="flex h-8 w-8 items-center justify-center transition-colors hover:bg-gray-50"
                                   >
                                     <Plus className="h-3 w-3" />
                                   </button>
                                 </div>
                                 <button
                                   onClick={() => handleRemove(item.id)}
-                                  className="flex h-8 w-8 items-center justify-center rounded-lg text-(--color-muted) transition-colors hover:bg-(--color-primary-red)/10 hover:text-(--color-primary-red)"
+                                  className="flex h-8 w-8 items-center justify-center rounded-xl text-(--color-muted) transition-colors hover:bg-red-50 hover:text-(--color-red)"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </button>
@@ -182,7 +182,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                   {items.length > 0 && (
                     <button
                       onClick={clearCart}
-                      className="flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold text-(--color-muted) transition-colors hover:text-(--color-primary-red)"
+                      className="flex w-full items-center justify-center gap-2 py-2 text-sm font-semibold text-(--color-muted) transition-colors hover:text-(--color-red)"
                     >
                       <Trash2 className="h-4 w-4" />
                       Clear All Items
@@ -194,7 +194,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="border-t border-black/10 p-5">
+              <div className="border-t border-black/4 p-5">
                 {/* Subtotal */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
@@ -208,17 +208,17 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </div>
 
                 {/* Total */}
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-black/5 p-4">
+                <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 p-4">
                   <span className="font-bold">Total</span>
-                  <span className="text-2xl font-extrabold text-(--color-primary-red)">
+                  <span className="text-2xl font-extrabold text-(--color-red)">
                     ₹{total.toLocaleString('en-IN')}
                   </span>
                 </div>
 
                 {/* Auth Warning */}
                 {!isAuthenticated && (
-                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-(--color-primary-gold)/20 p-3 text-sm">
-                    <AlertCircle className="h-4 w-4 shrink-0 text-(--color-primary-red)" />
+                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm">
+                    <AlertCircle className="h-4 w-4 shrink-0 text-(--color-red)" />
                     <span>You'll need to sign in to complete checkout.</span>
                   </div>
                 )}
@@ -271,7 +271,7 @@ export function Cart() {
     return (
       <Card className="p-8 text-center">
         <div className="mb-4 flex justify-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-black/5">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-50">
             <ShoppingCart className="h-8 w-8 text-(--color-muted)" />
           </div>
         </div>
@@ -297,7 +297,7 @@ export function Cart() {
         <Card key={item.id} className="p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="h-16 w-24 overflow-hidden rounded-xl bg-black/5">
+              <div className="h-16 w-24 overflow-hidden rounded-xl bg-gray-50">
                 {item.image ? (
                   <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
                 ) : (
@@ -318,17 +318,17 @@ export function Cart() {
             </div>
 
             <div className="flex items-center justify-between gap-3 sm:justify-end">
-              <div className="flex items-center rounded-xl border border-black/10 bg-white">
+              <div className="flex items-center rounded-xl border border-black/4 bg-white">
                 <button
                   onClick={() => setQty(item.id, Math.max(1, item.qty - 1))}
-                  className="flex h-10 w-10 items-center justify-center hover:bg-black/5"
+                  className="flex h-10 w-10 items-center justify-center hover:bg-gray-50"
                 >
                   <Minus className="h-4 w-4" />
                 </button>
                 <span className="w-10 text-center font-bold">{item.qty}</span>
                 <button
                   onClick={() => setQty(item.id, item.qty + 1)}
-                  className="flex h-10 w-10 items-center justify-center hover:bg-black/5"
+                  className="flex h-10 w-10 items-center justify-center hover:bg-gray-50"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
@@ -339,7 +339,7 @@ export function Cart() {
               </span>
 
               <button
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/10 bg-white text-(--color-muted) hover:border-(--color-primary-red) hover:text-(--color-primary-red)"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-black/4 bg-white text-(--color-muted) hover:border-red-200 hover:text-(--color-red)"
                 onClick={() => removeItem(item.id)}
                 type="button"
               >
@@ -353,7 +353,7 @@ export function Cart() {
       <Card className="p-6">
         <div className="flex items-center justify-between">
           <div className="text-sm font-semibold tracking-wide text-(--color-muted)">Total</div>
-          <div className="text-2xl font-extrabold tracking-tight text-(--color-primary-red)">
+          <div className="text-2xl font-extrabold tracking-tight text-(--color-red)">
             ₹{total.toLocaleString('en-IN')}
           </div>
         </div>

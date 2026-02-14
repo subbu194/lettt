@@ -121,7 +121,7 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-extrabold text-(--color-primary-red)">
+              <p className="text-2xl font-extrabold text-(--color-red)">
                 ₹{order.totalAmount.toLocaleString('en-IN')}
               </p>
               <p className="text-xs text-(--color-muted)">
@@ -136,19 +136,19 @@ function OrderCard({ order, onClick }: { order: Order; onClick: () => void }) {
               {order.items.slice(0, 3).map((item, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-black/5 px-2 py-1 text-xs"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-gray-50 px-2 py-1 text-xs"
                 >
                   {item.itemType === 'event' ? (
-                    <Ticket className="h-3 w-3 text-(--color-primary-red)" />
+                    <Ticket className="h-3 w-3 text-(--color-red)" />
                   ) : (
-                    <Package className="h-3 w-3 text-(--color-primary-gold)" />
+                    <Package className="h-3 w-3 text-(--color-red)" />
                   )}
-                  <span className="max-w-[150px] truncate">{item.title}</span>
+                  <span className="max-w-37.5 truncate">{item.title}</span>
                   <span className="text-(--color-muted)">×{item.quantity}</span>
                 </span>
               ))}
               {order.items.length > 3 && (
-                <span className="inline-flex items-center rounded-lg bg-black/5 px-2 py-1 text-xs text-(--color-muted)">
+                <span className="inline-flex items-center rounded-xl bg-gray-50 px-2 py-1 text-xs text-(--color-muted)">
                   +{order.items.length - 3} more
                 </span>
               )}
@@ -219,7 +219,7 @@ function OrderDetailModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 p-4 backdrop-blur-sm"
       onClick={onClose}
     >
       <motion.div
@@ -230,11 +230,11 @@ function OrderDetailModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between border-b border-black/10 bg-white p-5">
+        <div className="sticky top-0 flex items-center justify-between border-b border-black/4 bg-white p-5">
           <h2 className="text-lg font-extrabold">Order Details</h2>
           <button
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-black/5"
+            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-gray-50"
           >
             <X className="h-5 w-5" />
           </button>
@@ -288,14 +288,14 @@ function OrderDetailModal({
                   {order.items.map((item, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between rounded-xl bg-black/5 p-3"
+                      className="flex items-center justify-between rounded-xl bg-gray-50 p-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white">
                           {item.itemType === 'event' ? (
-                            <Ticket className="h-5 w-5 text-(--color-primary-red)" />
+                            <Ticket className="h-5 w-5 text-(--color-red)" />
                           ) : (
-                            <Package className="h-5 w-5 text-(--color-primary-gold)" />
+                            <Package className="h-5 w-5 text-(--color-red)" />
                           )}
                         </div>
                         <div>
@@ -318,9 +318,9 @@ function OrderDetailModal({
                 <div>
                   <h3 className="mb-3 font-bold">Event Tickets</h3>
                   <Link to="/my-tickets">
-                    <div className="flex items-center justify-between rounded-xl border border-(--color-primary-gold) bg-(--color-primary-gold)/10 p-4">
+                    <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4">
                       <div className="flex items-center gap-3">
-                        <Ticket className="h-6 w-6 text-(--color-primary-red)" />
+                        <Ticket className="h-6 w-6 text-(--color-red)" />
                         <div>
                           <p className="font-bold">{tickets.length} {tickets.length === 1 ? 'Ticket' : 'Tickets'}</p>
                           <p className="text-sm text-(--color-muted)">Click to view your tickets</p>
@@ -336,7 +336,7 @@ function OrderDetailModal({
               {order.address && (
                 <div>
                   <h3 className="mb-3 font-bold">Delivery Address</h3>
-                  <div className="rounded-xl bg-black/5 p-4">
+                  <div className="rounded-xl bg-gray-50 p-4">
                     <p className="text-sm">{order.address}</p>
                     {order.phone && (
                       <p className="mt-2 text-sm text-(--color-muted)">Phone: {order.phone}</p>
@@ -346,7 +346,7 @@ function OrderDetailModal({
               )}
 
               {/* Total */}
-              <div className="flex items-center justify-between rounded-xl bg-(--color-primary-red) p-4 text-white">
+              <div className="flex items-center justify-between rounded-xl bg-(--color-red) p-4 text-white">
                 <span className="font-bold">Total Paid</span>
                 <span className="text-2xl font-extrabold">
                   ₹{order.totalAmount.toLocaleString('en-IN')}
@@ -419,16 +419,19 @@ export default function OrdersPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         {/* Hero */}
-        <div className="bg-gradient-to-br from-(--color-primary-red) to-[#8B2E2F] py-12 text-white">
-          <div className="lux-container">
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-16 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -right-32 top-0 h-80 w-80 rounded-full bg-red-600/15 blur-[120px]" />
+          <div className="lux-container relative">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h1 className="text-4xl font-extrabold tracking-tight md:text-5xl">My Orders</h1>
-              <p className="mt-2 text-white/80">Track and manage all your purchases</p>
+              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Orders</span>
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">My <span className="text-gradient-red">Orders</span></h1>
+              <p className="mt-2 text-white/60">Track and manage all your purchases</p>
             </motion.div>
           </div>
         </div>
@@ -447,8 +450,8 @@ export default function OrdersPage() {
                   onClick={() => setStatusFilter(status)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                     statusFilter === status
-                      ? 'bg-(--color-primary-red) text-white'
-                      : 'bg-white text-(--color-text) hover:bg-black/5'
+                      ? 'bg-(--color-red) text-white'
+                      : 'bg-white text-(--color-text) hover:bg-gray-50'
                   }`}
                 >
                   {status === '' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -489,7 +492,7 @@ export default function OrdersPage() {
               animate={{ opacity: 1 }}
               className="flex flex-col items-center justify-center py-16 text-center"
             >
-              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-black/5">
+              <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gray-50">
                 <Package className="h-12 w-12 text-(--color-muted)" />
               </div>
               <h3 className="text-xl font-extrabold">No orders yet</h3>

@@ -38,9 +38,9 @@ function AppShell() {
   const isAdminPage = location.pathname.startsWith('/admin');
 
   return (
-    <div className="min-h-screen bg-(--color-bg) text-(--color-text)">
+    <div className="min-h-screen bg-(--color-background) text-(--color-text)">
       {!isAdminPage && <Header />}
-      <main className={isAdminPage ? "" : "pt-16"}>
+      <main className={isAdminPage ? "" : ""}>
         <Suspense
           fallback={
             <div className="flex min-h-[60vh] items-center justify-center">

@@ -24,12 +24,12 @@ export function FloatingCart() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => openModal(<Cart />)}
-        className="fixed bottom-6 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-(--color-primary-red) text-white shadow-2xl transition-shadow hover:shadow-[0_0_30px_rgba(207,70,71,0.6)]"
+        className="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-2xl bg-(--color-red) text-white shadow-xl shadow-red-600/30 hover:shadow-red-600/50 transition-all animate-glow-pulse"
         aria-label="Open cart"
         type="button"
       >
-        <ShoppingCart className="h-7 w-7" />
-        <span className="absolute -right-1 -top-1 flex h-7 w-7 items-center justify-center rounded-full bg-(--color-primary-gold) text-xs font-bold text-(--color-primary-red) ring-2 ring-white">
+        <ShoppingCart className="h-6 w-6" />
+        <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-[11px] font-extrabold text-(--color-red) shadow-md">
           {cartCount}
         </span>
       </motion.button>

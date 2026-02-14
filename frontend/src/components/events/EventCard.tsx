@@ -33,13 +33,13 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
 
   return (
     <Link to={`/events/${id}`} className="block group">
-      <Card className="overflow-hidden transition-all hover:shadow-lg">
-        <div className="aspect-video w-full bg-black/5 relative overflow-hidden">
+      <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <div className="aspect-video w-full bg-gray-50 relative overflow-hidden">
           {image ? (
             <>
               {!imageLoaded && (
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-black/5 via-black/10 to-black/5"
+                  className="absolute inset-0 bg-linear-to-r from-black/5 via-black/10 to-black/5"
                   animate={{
                     backgroundPosition: ['0% 0%', '100% 0%'],
                   }}
@@ -64,7 +64,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
             </>
           ) : (
             <div className="flex h-full items-center justify-center">
-              <Calendar className="h-12 w-12 text-black/20" />
+              <Calendar className="h-12 w-12 text-(--color-muted)" />
             </div>
           )}
         </div>
@@ -72,7 +72,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <motion.div
-                className="text-lg font-extrabold tracking-tight line-clamp-2 group-hover:text-(--color-primary-red) transition-colors"
+                className="text-lg font-extrabold tracking-tight line-clamp-2 text-(--color-soft-black) group-hover:text-(--color-red) transition-colors"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
@@ -80,7 +80,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
                 {name}
               </motion.div>
               <motion.div
-                className="mt-2 text-sm text-black/70"
+                className="mt-2 text-sm text-(--color-soft-black)/70"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.2 }}
@@ -95,7 +95,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
               </motion.div>
             </div>
             <motion.div
-              className="shrink-0 rounded-full bg-(--color-primary-red)/10 px-3 py-1 text-sm font-bold text-(--color-primary-red)"
+              className="shrink-0 rounded-full bg-red-50 px-3 py-1 text-sm font-bold text-(--color-red)"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
@@ -105,7 +105,7 @@ export function EventCard({ event, fallbackId }: { event: EventLike; fallbackId:
           </div>
 
           <motion.div
-            className="mt-4 text-sm font-semibold text-(--color-primary-red) group-hover:underline"
+            className="mt-4 text-sm font-semibold text-(--color-red) group-hover:underline"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.3 }}

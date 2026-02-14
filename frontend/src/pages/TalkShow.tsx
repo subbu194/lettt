@@ -48,31 +48,36 @@ export default function TalkShowPage() {
 
   return (
     <PageTransition>
-      <div className="bg-(--color-bg)">
+      <div className="bg-(--color-background)">
         {/* Hero Section */}
-        <div className="lux-container py-16">
-          <motion.div
-            className="max-w-3xl"
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-            transition={{ duration: 0.4 }}
-          >
-            <h1 className="text-4xl font-extrabold tracking-tight">Talk Show</h1>
-            <p className="mt-3 text-(--color-muted)">Intimate conversations and performances — curated for a premium experience.</p>
-          </motion.div>
+        <div className="relative overflow-hidden bg-(--color-soft-black) py-20 text-white">
+          <div className="absolute inset-0 dot-pattern opacity-[0.03]" />
+          <div className="absolute -right-32 top-0 h-96 w-96 rounded-full bg-red-600/15 blur-[120px]" />
+          <div className="lux-container relative">
+            <motion.div
+              className="max-w-3xl"
+              initial="initial"
+              animate="animate"
+              variants={fadeInUp}
+              transition={{ duration: 0.4 }}
+            >
+              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Talk Show</span>
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">Latest <span className="text-gradient-red">Episodes</span></h1>
+              <p className="mt-3 text-white/60">Intimate conversations and performances — curated for a premium experience.</p>
+            </motion.div>
+          </div>
         </div>
 
         {/* Season Filter */}
-        <div className="border-t border-black/10 bg-white">
+        <div className="border-b border-black/4 bg-white sticky top-[4.5rem] z-20">
           <div className="lux-container py-4">
             <div className="flex gap-2 overflow-x-auto">
               <button
                 onClick={() => setSelectedSeason('all')}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
                   selectedSeason === 'all'
-                    ? 'bg-(--color-primary-red) text-white'
-                    : 'border border-black/10 bg-white hover:bg-gray-50'
+                    ? 'bg-(--color-red) text-white'
+                    : 'border border-black/4 bg-white hover:bg-gray-50'
                 }`}
               >
                 All Seasons
@@ -83,8 +88,8 @@ export default function TalkShowPage() {
                   onClick={() => setSelectedSeason(season)}
                   className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
                     selectedSeason === season
-                      ? 'bg-(--color-primary-red) text-white'
-                      : 'border border-black/10 bg-white hover:bg-gray-50'
+                      ? 'bg-(--color-red) text-white'
+                      : 'border border-black/4 bg-white hover:bg-gray-50'
                   }`}
                 >
                   Season {season}
@@ -99,21 +104,21 @@ export default function TalkShowPage() {
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="rounded-lg border border-black/5 bg-white shadow-sm animate-pulse">
-                  <div className="aspect-video bg-gray-200 rounded-t-lg" />
-                  <div className="p-4 space-y-2">
-                    <div className="h-4 bg-gray-200 rounded w-3/4" />
-                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                <div key={i} className="rounded-2xl border border-black/4 bg-white shadow-sm animate-pulse">
+                  <div className="aspect-video bg-gray-100 rounded-t-2xl" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-4 bg-gray-100 rounded-lg w-3/4" />
+                    <div className="h-3 bg-gray-100 rounded-lg w-1/2" />
                   </div>
                 </div>
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-2xl border border-black/10 bg-white p-6 text-center text-sm text-black/70">
+            <div className="rounded-2xl border border-black/4 bg-white p-6 text-center text-sm text-(--color-muted)">
               Error: {error}
             </div>
           ) : !filteredVideos.length ? (
-            <div className="rounded-2xl border border-black/10 bg-white p-12 text-center">
+            <div className="rounded-2xl border border-black/4 bg-white p-16 text-center">
               <p className="text-black/70">
                 {selectedSeason === 'all' 
                   ? 'No videos available yet. Please check back soon.' 
@@ -135,29 +140,29 @@ export default function TalkShowPage() {
                   <button
                     key={id}
                     type="button"
-                    className="group text-left rounded-lg border border-black/5 bg-white shadow-sm transition-all hover:shadow-md hover:border-black/10"
+                    className="group text-left rounded-2xl border border-black/4 bg-white shadow-sm transition-all hover:shadow-lg hover:-translate-y-1 duration-300"
                     onClick={() => openModal(<VideoPlayer video={video} />)}
                   >
-                    <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-black/5">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-gray-50">
                       {thumb ? (
                         <img src={thumb} alt={title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                       ) : (
                         <div className="flex h-full items-center justify-center text-4xl">🎬</div>
                       )}
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
-                        <div className="rounded-full bg-white/90 p-3">
-                          <svg className="h-6 w-6 text-black" fill="currentColor" viewBox="0 0 24 24">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="rounded-full bg-white/90 p-3 shadow-lg">
+                          <svg className="h-6 w-6 text-(--color-red)" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                           </svg>
                         </div>
                       </div>
-                      <div className="absolute bottom-2 left-2 rounded bg-black/70 px-2 py-1 text-xs font-semibold text-white">
+                      <div className="absolute bottom-3 left-3 rounded-lg bg-black/70 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm">
                         S{season}{episode ? ` E${episode}` : ''}
                       </div>
                     </div>
-                    <div className="p-4">
+                    <div className="p-5">
                       <h3 className="text-base font-bold tracking-tight line-clamp-2 leading-snug" title={title}>{title}</h3>
-                      <p className="mt-2 text-xs text-black/60">
+                      <p className="mt-2 text-xs text-(--color-muted)">
                         Season {season}{episode ? ` · Episode ${episode}` : ''}
                       </p>
                     </div>

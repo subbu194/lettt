@@ -10,14 +10,14 @@ export function LoadingBar({ progress, className = '' }: Props) {
     <div className={`h-1 w-full overflow-hidden rounded-full bg-black/5 ${className}`}>
       {progress !== undefined ? (
         <motion.div
-          className="h-full bg-gradient-to-r from-(--color-primary-red) to-(--color-primary-gold)"
+          className="h-full bg-(--color-red)"
           initial={{ width: 0 }}
           animate={{ width: `${progress}%` }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
         />
       ) : (
         <motion.div
-          className="h-full w-1/3 bg-gradient-to-r from-(--color-primary-red) to-(--color-primary-gold)"
+          className="h-full w-1/3 bg-(--color-red)"
           animate={{
             x: ['0%', '300%'],
           }}

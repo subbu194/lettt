@@ -130,7 +130,7 @@ function ImageGallery({ images, title }: { images: string[]; title: string }) {
                 }}
                 className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl transition-all ${
                   idx === selectedIndex
-                    ? 'ring-2 ring-(--color-primary-red) ring-offset-2'
+                    ? 'ring-2 ring-(--color-red) ring-offset-2'
                     : 'opacity-60 hover:opacity-100'
                 }`}
               >
@@ -204,14 +204,14 @@ function RelatedArtCard({ art }: { art: ArtItem }) {
           {art.images?.[0] ? (
             <img src={art.images[0]} alt={art.title} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-black/5">
+            <div className="flex h-full items-center justify-center bg-gray-50">
               <span className="text-3xl opacity-20">🎨</span>
             </div>
           )}
         </div>
         <div className="p-4">
           <h4 className="font-bold line-clamp-1">{art.title}</h4>
-          <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
+          <p className="mt-1 text-sm font-semibold text-(--color-red)">
             ₹{art.price.toLocaleString('en-IN')}
           </p>
         </div>
@@ -340,7 +340,7 @@ export default function ArtDetailPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         <div className="lux-container py-8">
           {/* Breadcrumb */}
           <motion.nav
@@ -379,12 +379,12 @@ export default function ArtDetailPage() {
               {/* Category & Badges */}
               <div className="flex flex-wrap items-center gap-2">
                 {art.category && (
-                  <span className="rounded-full bg-black/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--color-muted)">
+                  <span className="rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-(--color-muted)">
                     {art.category}
                   </span>
                 )}
                 {art.featured && (
-                  <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red)">
+                  <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-(--color-red)">
                     Featured
                   </span>
                 )}
@@ -407,7 +407,7 @@ export default function ArtDetailPage() {
 
               {/* Price */}
               <div className="mt-6">
-                <span className="text-4xl font-extrabold text-(--color-primary-red)">
+                <span className="text-4xl font-extrabold text-(--color-red)">
                   ₹{art.price.toLocaleString('en-IN')}
                 </span>
                 <span className="ml-2 text-sm text-(--color-muted)">Inclusive of all taxes</span>
@@ -424,19 +424,19 @@ export default function ArtDetailPage() {
               {/* Details Grid */}
               <div className="mt-6 grid grid-cols-2 gap-4">
                 {art.dimensions && (
-                  <div className="rounded-xl bg-black/5 p-4">
+                  <div className="rounded-xl bg-gray-50 p-4">
                     <span className="text-xs font-semibold uppercase text-(--color-muted)">Dimensions</span>
                     <p className="mt-1 font-bold">{art.dimensions}</p>
                   </div>
                 )}
                 {art.medium && (
-                  <div className="rounded-xl bg-black/5 p-4">
+                  <div className="rounded-xl bg-gray-50 p-4">
                     <span className="text-xs font-semibold uppercase text-(--color-muted)">Medium</span>
                     <p className="mt-1 font-bold">{art.medium}</p>
                   </div>
                 )}
                 {art.year && (
-                  <div className="rounded-xl bg-black/5 p-4">
+                  <div className="rounded-xl bg-gray-50 p-4">
                     <span className="text-xs font-semibold uppercase text-(--color-muted)">Year</span>
                     <p className="mt-1 font-bold">{art.year}</p>
                   </div>
@@ -454,8 +454,8 @@ export default function ArtDetailPage() {
                         onClick={() => setSelectedSize(size)}
                         className={`rounded-xl border-2 px-4 py-2 text-sm font-semibold transition-all ${
                           selectedSize === size
-                            ? 'border-(--color-primary-red) bg-(--color-primary-red)/10 text-(--color-primary-red)'
-                            : 'border-black/10 hover:border-black/20'
+                            ? 'border-red-200 bg-red-50 text-(--color-red)'
+                            : 'border-black/4 hover:border-black/20'
                         }`}
                       >
                         {size}
@@ -468,17 +468,17 @@ export default function ArtDetailPage() {
               {/* Quantity & Add to Cart */}
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 {!isSoldOut && (
-                  <div className="flex items-center rounded-xl border border-black/10 bg-white">
+                  <div className="flex items-center rounded-xl border border-black/4 bg-white">
                     <button
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5"
+                      className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50"
                     >
                       −
                     </button>
                     <span className="w-12 text-center font-bold">{quantity}</span>
                     <button
                       onClick={() => setQuantity(quantity + 1)}
-                      className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5"
+                      className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50"
                     >
                       +
                     </button>
@@ -503,25 +503,25 @@ export default function ArtDetailPage() {
                     </>
                   )}
                 </Button>
-                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/10 bg-white transition-colors hover:border-(--color-primary-red) hover:text-(--color-primary-red)">
+                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/4 bg-white transition-colors hover:border-red-200 hover:text-(--color-red)">
                   <Heart className="h-5 w-5" />
                 </button>
-                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/10 bg-white transition-colors hover:border-black/20">
+                <button className="flex h-12 w-12 items-center justify-center rounded-xl border border-black/4 bg-white transition-colors hover:border-black/20">
                   <Share2 className="h-5 w-5" />
                 </button>
               </div>
 
               {/* Trust Badges */}
               <div className="mt-8 grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-3 rounded-xl bg-black/5 p-4">
-                  <Truck className="h-6 w-6 text-(--color-primary-red)" />
+                <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-4">
+                  <Truck className="h-6 w-6 text-(--color-red)" />
                   <div>
                     <p className="text-sm font-bold">Free Shipping</p>
                     <p className="text-xs text-(--color-muted)">On orders over ₹5,000</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 rounded-xl bg-black/5 p-4">
-                  <Shield className="h-6 w-6 text-(--color-primary-red)" />
+                <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-4">
+                  <Shield className="h-6 w-6 text-(--color-red)" />
                   <div>
                     <p className="text-sm font-bold">Authenticity</p>
                     <p className="text-xs text-(--color-muted)">Certificate included</p>
@@ -541,7 +541,7 @@ export default function ArtDetailPage() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-extrabold tracking-tight">You May Also Like</h2>
-                <Link to="/art" className="text-sm font-semibold text-(--color-primary-red) hover:underline">
+                <Link to="/art" className="text-sm font-semibold text-(--color-red) hover:underline">
                   View All →
                 </Link>
               </div>

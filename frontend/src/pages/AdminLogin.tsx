@@ -45,12 +45,12 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <section className="relative bg-(--color-bg)">
+    <section className="relative bg-(--color-background)">
       <div className="relative">
         <AuthBackground />
         <div className="lux-container py-12 sm:py-16">
           <div className="mx-auto max-w-xl">
-            <Card className="p-6 bg-white/70 backdrop-blur border border-black/10">
+            <Card className="p-6 bg-white/70 backdrop-blur border border-black/4">
               <div className="text-center">
                 <h1 className="text-2xl font-extrabold tracking-tight text-(--color-text)">Admin Access</h1>
                 <p className="mt-2 text-sm text-(--color-muted)">Restricted area.</p>
@@ -58,8 +58,8 @@ export default function AdminLoginPage() {
 
               {blockedByUserSession ? (
                 <div className="mt-6 space-y-4">
-                  <div className="rounded-xl border border-(--color-primary-red)/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
-                    <span className="font-semibold text-(--color-primary-red)">Blocked:</span> Logout from your
+                  <div className="rounded-xl border border-red-200/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
+                    <span className="font-semibold text-(--color-red)">Blocked:</span> Logout from your
                     user session to access the hidden admin login.
                   </div>
                   <Button variant="ghost" className="w-full" onClick={logout}>
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
                 <form className="mt-6 space-y-4" onSubmit={onSubmit}>
                   <div className="relative">
                     <input
-                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-(--color-primary-gold)"
+                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-red-200"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       type="email"
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
 
                   <div className="relative">
                     <input
-                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-(--color-primary-gold)"
+                      className="peer h-12 w-full rounded-xl border border-black/15 bg-white/70 px-4 pt-4 text-(--color-text) outline-none focus:border-red-200"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       type="password"
@@ -99,8 +99,8 @@ export default function AdminLoginPage() {
                   </div>
 
                   {error ? (
-                    <div className="rounded-xl border border-(--color-primary-red)/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
-                      <span className="font-semibold text-(--color-primary-red)">Error:</span> {error}
+                    <div className="rounded-xl border border-red-200/30 bg-white/70 px-4 py-3 text-sm text-(--color-text)">
+                      <span className="font-semibold text-(--color-red)">Error:</span> {error}
                     </div>
                   ) : null}
 

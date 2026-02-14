@@ -65,8 +65,8 @@ function ImageGallery({ coverImage, galleryImages, title }: {
 
   if (!allImages.length) {
     return (
-      <div className="flex aspect-video items-center justify-center rounded-2xl bg-gradient-to-br from-(--color-primary-red)/20 to-(--color-primary-gold)/20">
-        <Calendar className="h-20 w-20 text-(--color-primary-red)/30" />
+      <div className="flex aspect-video items-center justify-center rounded-2xl bg-linear-to-br from-red-50 to-red-50">
+        <Calendar className="h-20 w-20 text-red-200" />
       </div>
     );
   }
@@ -75,7 +75,7 @@ function ImageGallery({ coverImage, galleryImages, title }: {
     <>
       <div className="space-y-4">
         {/* Main Image */}
-        <div className="group relative aspect-video overflow-hidden rounded-2xl bg-gradient-to-br from-black/5 to-black/10">
+        <div className="group relative aspect-video overflow-hidden rounded-2xl bg-linear-to-br from-black/5 to-black/10">
           {!imageLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Spinner size="lg" />
@@ -128,7 +128,7 @@ function ImageGallery({ coverImage, galleryImages, title }: {
                 }}
                 className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl transition-all ${
                   idx === selectedIndex
-                    ? 'ring-2 ring-(--color-primary-red) ring-offset-2'
+                    ? 'ring-2 ring-(--color-red) ring-offset-2'
                     : 'opacity-60 hover:opacity-100'
                 }`}
               >
@@ -182,12 +182,12 @@ function RelatedEventCard({ event }: { event: EventItem }) {
           {event.coverImage ? (
             <img src={event.coverImage} alt={event.title} className="h-full w-full object-cover" />
           ) : (
-            <div className="flex h-full items-center justify-center bg-gradient-to-br from-(--color-primary-red)/10 to-(--color-primary-gold)/10">
-              <Calendar className="h-10 w-10 text-(--color-primary-red)/30" />
+            <div className="flex h-full items-center justify-center bg-linear-to-br from-red-50/50 to-red-50/50">
+              <Calendar className="h-10 w-10 text-red-200" />
             </div>
           )}
-          <div className="absolute left-3 top-3 rounded-lg bg-white/95 p-2 text-center shadow-md backdrop-blur-sm">
-            <span className="block text-lg font-extrabold text-(--color-primary-red)">
+          <div className="absolute left-3 top-3 rounded-xl bg-white/95 p-2 text-center shadow-md backdrop-blur-sm">
+            <span className="block text-lg font-extrabold text-(--color-red)">
               {eventDate.getDate()}
             </span>
             <span className="block text-xs font-semibold uppercase text-(--color-muted)">
@@ -197,7 +197,7 @@ function RelatedEventCard({ event }: { event: EventItem }) {
         </div>
         <div className="p-4">
           <h4 className="font-bold line-clamp-1">{event.title}</h4>
-          <p className="mt-1 text-sm font-semibold text-(--color-primary-red)">
+          <p className="mt-1 text-sm font-semibold text-(--color-red)">
             ₹{event.ticketPrice.toLocaleString('en-IN')}
           </p>
         </div>
@@ -320,7 +320,7 @@ export default function EventDetailPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         <div className="lux-container py-8">
           {/* Breadcrumb */}
           <motion.nav
@@ -358,7 +358,7 @@ export default function EventDetailPage() {
                 {/* Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   {event.featured && (
-                    <span className="rounded-full bg-(--color-primary-gold) px-3 py-1 text-xs font-bold text-(--color-primary-red)">
+                    <span className="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-(--color-red)">
                       Featured Event
                     </span>
                   )}
@@ -396,13 +396,13 @@ export default function EventDetailPage() {
                 {(event.duration || event.ageRestriction) && (
                   <div className="mt-6 grid grid-cols-2 gap-4">
                     {event.duration && (
-                      <div className="rounded-xl bg-black/5 p-4">
+                      <div className="rounded-xl bg-gray-50 p-4">
                         <span className="text-xs font-semibold uppercase text-(--color-muted)">Duration</span>
                         <p className="mt-1 font-bold">{event.duration}</p>
                       </div>
                     )}
                     {event.ageRestriction && (
-                      <div className="rounded-xl bg-black/5 p-4">
+                      <div className="rounded-xl bg-gray-50 p-4">
                         <span className="text-xs font-semibold uppercase text-(--color-muted)">Age Restriction</span>
                         <p className="mt-1 font-bold">{event.ageRestriction}</p>
                       </div>
@@ -421,9 +421,9 @@ export default function EventDetailPage() {
               <div className="sticky top-24">
                 <Card className="p-6">
                   {/* Date Card */}
-                  <div className="mb-6 flex items-center gap-4 rounded-xl bg-gradient-to-br from-(--color-primary-red)/10 to-(--color-primary-gold)/10 p-4">
+                  <div className="mb-6 flex items-center gap-4 rounded-xl bg-linear-to-br from-red-50/50 to-red-50/50 p-4">
                     <div className="flex h-16 w-16 flex-col items-center justify-center rounded-xl bg-white shadow-md">
-                      <span className="text-2xl font-extrabold text-(--color-primary-red)">
+                      <span className="text-2xl font-extrabold text-(--color-red)">
                         {eventDate.getDate()}
                       </span>
                       <span className="text-xs font-semibold uppercase text-(--color-muted)">
@@ -442,10 +442,10 @@ export default function EventDetailPage() {
                   <div className="space-y-4">
                     {event.venue && (
                       <div className="flex items-start gap-3">
-                        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-(--color-primary-red)" />
+                        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-(--color-red)" />
                         <div>
                           <p className="font-semibold">{event.venue}</p>
-                          <button className="mt-1 flex items-center gap-1 text-sm text-(--color-primary-red) hover:underline">
+                          <button className="mt-1 flex items-center gap-1 text-sm text-(--color-red) hover:underline">
                             <Navigation className="h-3 w-3" />
                             Get Directions
                           </button>
@@ -455,15 +455,15 @@ export default function EventDetailPage() {
 
                     {event.time && (
                       <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
+                        <Clock className="h-5 w-5 shrink-0 text-(--color-red)" />
                         <p className="font-semibold">{event.time}</p>
                       </div>
                     )}
 
                     {isUpcoming && (
                       <div className="flex items-center gap-3">
-                        <Users className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
-                        <p className={`font-semibold ${lowSeats ? 'text-(--color-primary-red)' : ''}`}>
+                        <Users className="h-5 w-5 shrink-0 text-(--color-red)" />
+                        <p className={`font-semibold ${lowSeats ? 'text-(--color-red)' : ''}`}>
                           {soldOut ? 'No seats available' : `${seatsLeft} seats left`}
                         </p>
                       </div>
@@ -471,13 +471,13 @@ export default function EventDetailPage() {
                   </div>
 
                   {/* Divider */}
-                  <div className="my-6 border-t border-black/10" />
+                  <div className="my-6 border-t border-black/4" />
 
                   {/* Price */}
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm text-(--color-muted)">Ticket Price</span>
                     <div>
-                      <span className="text-3xl font-extrabold text-(--color-primary-red)">
+                      <span className="text-3xl font-extrabold text-(--color-red)">
                         ₹{event.ticketPrice.toLocaleString('en-IN')}
                       </span>
                       <span className="ml-1 text-sm text-(--color-muted)">/ person</span>
@@ -486,7 +486,7 @@ export default function EventDetailPage() {
 
                   {/* Low Seats Warning */}
                   {isUpcoming && lowSeats && !soldOut && (
-                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-(--color-primary-red)/10 p-3 text-sm text-(--color-primary-red)">
+                    <div className="mt-4 flex items-center gap-2 rounded-xl bg-red-50 p-3 text-sm text-(--color-red)">
                       <AlertCircle className="h-4 w-4 shrink-0" />
                       <span className="font-semibold">Only {seatsLeft} seats remaining!</span>
                     </div>
@@ -499,10 +499,10 @@ export default function EventDetailPage() {
                         <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
                           Number of Tickets
                         </label>
-                        <div className="flex items-center rounded-xl border border-black/10 bg-white">
+                        <div className="flex items-center rounded-xl border border-black/4 bg-white">
                           <button
                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                            className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5"
+                            className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50"
                           >
                             −
                           </button>
@@ -510,7 +510,7 @@ export default function EventDetailPage() {
                           <button
                             onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
                             disabled={quantity >= maxQuantity}
-                            className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5 disabled:opacity-50"
+                            className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50 disabled:opacity-50"
                           >
                             +
                           </button>
@@ -518,9 +518,9 @@ export default function EventDetailPage() {
                       </div>
 
                       {/* Total */}
-                      <div className="mt-4 flex items-baseline justify-between rounded-xl bg-black/5 p-4">
+                      <div className="mt-4 flex items-baseline justify-between rounded-xl bg-gray-50 p-4">
                         <span className="font-semibold">Total</span>
-                        <span className="text-2xl font-extrabold text-(--color-primary-red)">
+                        <span className="text-2xl font-extrabold text-(--color-red)">
                           ₹{(event.ticketPrice * quantity).toLocaleString('en-IN')}
                         </span>
                       </div>
@@ -554,11 +554,11 @@ export default function EventDetailPage() {
 
                   {/* Share & Wishlist */}
                   <div className="mt-6 flex gap-3">
-                    <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm font-semibold transition-colors hover:border-black/20">
+                    <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/4 bg-white p-3 text-sm font-semibold transition-colors hover:border-black/20">
                       <Heart className="h-4 w-4" />
                       Save
                     </button>
-                    <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/10 bg-white p-3 text-sm font-semibold transition-colors hover:border-black/20">
+                    <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/4 bg-white p-3 text-sm font-semibold transition-colors hover:border-black/20">
                       <Share2 className="h-4 w-4" />
                       Share
                     </button>
@@ -578,7 +578,7 @@ export default function EventDetailPage() {
             >
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-extrabold tracking-tight">More Events You Might Like</h2>
-                <Link to="/events" className="text-sm font-semibold text-(--color-primary-red) hover:underline">
+                <Link to="/events" className="text-sm font-semibold text-(--color-red) hover:underline">
                   View All →
                 </Link>
               </div>

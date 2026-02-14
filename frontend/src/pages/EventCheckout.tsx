@@ -235,7 +235,7 @@ export default function EventCheckoutPage() {
   if (success) {
     return (
       <PageTransition>
-        <section className="min-h-[70vh] bg-(--color-bg)">
+        <section className="min-h-[70vh] bg-(--color-background)">
           <div className="lux-container flex items-center justify-center py-16">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -273,7 +273,7 @@ export default function EventCheckoutPage() {
 
   return (
     <PageTransition>
-      <section className="min-h-screen bg-(--color-bg)">
+      <section className="min-h-screen bg-(--color-background)">
         <div className="lux-container py-8">
           {/* Header */}
           <motion.div
@@ -305,8 +305,8 @@ export default function EventCheckoutPage() {
               {/* Contact Information */}
               <Card className="p-6">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--color-primary-red)/10">
-                    <User className="h-5 w-5 text-(--color-primary-red)" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50">
+                    <User className="h-5 w-5 text-(--color-red)" />
                   </div>
                   <div>
                     <h2 className="font-bold">Contact Information</h2>
@@ -329,7 +329,7 @@ export default function EventCheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.name 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -352,7 +352,7 @@ export default function EventCheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.email 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -381,7 +381,7 @@ export default function EventCheckoutPage() {
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.phone 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
-                            : 'border-black/10 focus:border-(--color-primary-gold) focus:ring-(--color-primary-gold)/20'
+                            : 'border-black/4 focus:border-red-200 focus:ring-(--color-red)/20'
                         }`}
                       />
                     </div>
@@ -393,9 +393,9 @@ export default function EventCheckoutPage() {
               </Card>
 
               {/* Ticket Delivery Info */}
-              <Card className="border-(--color-primary-gold)/30 bg-(--color-primary-gold)/5 p-6">
+              <Card className="border-red-200/30 bg-red-50/50 p-6">
                 <div className="flex items-start gap-3">
-                  <Ticket className="h-5 w-5 shrink-0 text-(--color-primary-red)" />
+                  <Ticket className="h-5 w-5 shrink-0 text-(--color-red)" />
                   <div>
                     <h3 className="font-bold">Digital Tickets</h3>
                     <p className="mt-1 text-sm text-(--color-muted)">
@@ -433,7 +433,7 @@ export default function EventCheckoutPage() {
                   
                   {/* Event Preview */}
                   <div className="mt-4">
-                    <div className="relative aspect-video overflow-hidden rounded-xl bg-black/5">
+                    <div className="relative aspect-video overflow-hidden rounded-xl bg-gray-50">
                       {event.coverImage ? (
                         <img src={event.coverImage} alt={event.title} className="h-full w-full object-cover" />
                       ) : (
@@ -448,7 +448,7 @@ export default function EventCheckoutPage() {
                   {/* Event Details */}
                   <div className="mt-4 space-y-3">
                     <div className="flex items-center gap-3 text-sm">
-                      <Calendar className="h-4 w-4 shrink-0 text-(--color-primary-red)" />
+                      <Calendar className="h-4 w-4 shrink-0 text-(--color-red)" />
                       <span className="text-(--color-muted)">
                         {eventDate.toLocaleDateString('en-IN', { 
                           weekday: 'short',
@@ -460,30 +460,30 @@ export default function EventCheckoutPage() {
                     </div>
                     {event.time && (
                       <div className="flex items-center gap-3 text-sm">
-                        <Clock className="h-4 w-4 shrink-0 text-(--color-primary-red)" />
+                        <Clock className="h-4 w-4 shrink-0 text-(--color-red)" />
                         <span className="text-(--color-muted)">{event.time}</span>
                       </div>
                     )}
                     {event.venue && (
                       <div className="flex items-start gap-3 text-sm">
-                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-(--color-primary-red)" />
+                        <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-(--color-red)" />
                         <span className="text-(--color-muted)">{event.venue}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Divider */}
-                  <div className="my-4 border-t border-black/10" />
+                  <div className="my-4 border-t border-black/4" />
 
                   {/* Quantity Selector */}
                   <div>
                     <label className="mb-2 block text-sm font-semibold text-(--color-muted)">
                       Number of Tickets
                     </label>
-                    <div className="flex items-center rounded-xl border border-black/10 bg-white">
+                    <div className="flex items-center rounded-xl border border-black/4 bg-white">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5"
+                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50"
                       >
                         −
                       </button>
@@ -491,13 +491,13 @@ export default function EventCheckoutPage() {
                       <button
                         onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
                         disabled={quantity >= maxQuantity}
-                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-black/5 disabled:opacity-50"
+                        className="flex h-12 w-12 items-center justify-center text-lg font-bold transition-colors hover:bg-gray-50 disabled:opacity-50"
                       >
                         +
                       </button>
                     </div>
                     {event.seatsLeft && event.seatsLeft <= 10 && (
-                      <p className="mt-2 text-xs text-(--color-primary-red)">
+                      <p className="mt-2 text-xs text-(--color-red)">
                         Only {event.seatsLeft} seats left!
                       </p>
                     )}
@@ -520,9 +520,9 @@ export default function EventCheckoutPage() {
                   </div>
 
                   {/* Total */}
-                  <div className="mt-4 flex items-center justify-between rounded-xl bg-black/5 p-4">
+                  <div className="mt-4 flex items-center justify-between rounded-xl bg-gray-50 p-4">
                     <span className="font-bold">Total</span>
-                    <span className="text-2xl font-extrabold text-(--color-primary-red)">
+                    <span className="text-2xl font-extrabold text-(--color-red)">
                       ₹{total.toLocaleString('en-IN')}
                     </span>
                   </div>
