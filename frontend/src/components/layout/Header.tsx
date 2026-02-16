@@ -5,7 +5,7 @@ import { useUserStore } from '@/store/useUserStore';
 
 const navItems = [
   { label: 'Home', to: '/' },
-  { label: 'Catalog', to: '/catalog' },
+  { label: 'Show Catalog', to: '/catalog' },
   { label: 'Art', to: '/art' },
   { label: 'Events', to: '/events' },
   { label: 'Talk Show', to: '/talkshow' },
@@ -69,7 +69,7 @@ export function Header() {
               aria-label="let the talent talk home"
               type="button"
             >
-              LET THE TALENT TALK
+              LET THE TALENT TALK 
             </button>
           </div>
         </div>
