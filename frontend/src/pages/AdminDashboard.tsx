@@ -320,36 +320,7 @@ function Input({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Modern Select Component
-// ─────────────────────────────────────────────────────────────
 
-function Select({
-  label,
-  value,
-  onChange,
-  options
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  return (
-    <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full cursor-pointer rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
-      >
-        {options.map(opt => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
-        ))}
-      </select>
-    </div>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────
 // Modern Toggle Component
@@ -1231,7 +1202,7 @@ export default function AdminDashboardPage() {
   // Videos state
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [videoPagination, setVideoPagination] = useState<PaginationData | null>(null);
-  const [videoSearch, setVideoSearch] = useState('');
+  const [videoSearch] = useState('');
   const [videoModal, setVideoModal] = useState<{ open: boolean; item?: VideoItem | null }>({ open: false });
   const [deleteVideoModal, setDeleteVideoModal] = useState<{ open: boolean; item?: VideoItem }>({ open: false });
 

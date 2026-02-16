@@ -14,7 +14,6 @@ const Events = lazy(() => import('@/pages/Events'));
 const EventDetail = lazy(() => import('@/pages/EventDetail'));
 const EventCheckout = lazy(() => import('@/pages/EventCheckout'));
 const TalkShow = lazy(() => import('@/pages/TalkShow'));
-const Purchase = lazy(() => import('@/pages/Purchase'));
 const About = lazy(() => import('@/pages/About'));
 const Gallery = lazy(() => import('@/pages/Gallery'));
 const Auth = lazy(() => import('@/pages/Auth'));
