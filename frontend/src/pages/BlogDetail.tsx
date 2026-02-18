@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Tag, ArrowLeft } from 'lucide-react';
+import { Calendar, Tag, ArrowLeft, Star } from 'lucide-react';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { Spinner } from '@/components/shared/Spinner';
 import { fadeInUp } from '@/utils/animations';
@@ -40,110 +40,212 @@ interface BlogDetail {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Content Block Renderer
+// Grouping: convert flat block array into render units
+//
+// • FloatGroup  — a left/right image + following text blocks
+//                 → rendered with CSS Grid (2 col, no floats)
+// • SingleBlock — everything else, full width
+//
+// A float image grabs all following paragraph/heading/quote
+// blocks until it hits another image, a divider, or EOF.
+// If it has no text blocks after it → fall back to center img.
 // ─────────────────────────────────────────────────────────────
 
-function BlockRenderer({ block, idx }: { block: ContentBlock; idx: number }) {
-  switch (block.type) {
-    case 'paragraph':
-      return (
-        <p
-          key={idx}
-          className="text-[1.05rem] leading-[1.85] text-(--color-text) text-justify"
-          style={{ marginBottom: '1.25em' }}
-        >
-          {block.text}
-        </p>
-      );
+type FloatGroup = {
+  kind: 'float';
+  align: 'left' | 'right';
+  image: ContentBlock;
+  textBlocks: ContentBlock[];
+};
+type SingleBlock = {
+  kind: 'single';
+  block: ContentBlock;
+};
+type RenderUnit = FloatGroup | SingleBlock;
 
-    case 'heading': {
-      const level = block.level ?? 2;
-      const Tag = `h${level}` as 'h1' | 'h2' | 'h3';
-      const cls =
-        level === 1
-          ? 'text-3xl font-extrabold tracking-tight text-(--color-soft-black) mt-10 mb-4'
-          : level === 2
-          ? 'text-2xl font-bold tracking-tight text-(--color-soft-black) mt-8 mb-3'
-          : 'text-xl font-semibold text-(--color-soft-black) mt-6 mb-2';
-      return <Tag key={idx} className={cls}>{block.text}</Tag>;
+function buildRenderUnits(blocks: ContentBlock[]): RenderUnit[] {
+  const units: RenderUnit[] = [];
+  let i = 0;
+
+  while (i < blocks.length) {
+    const b = blocks[i];
+    const isFloatImage =
+      b.type === 'image' &&
+      (b.align === 'left' || b.align === 'right') &&
+      !!b.url;
+
+    if (isFloatImage) {
+      const textBlocks: ContentBlock[] = [];
+      i++;
+      while (i < blocks.length) {
+        const next = blocks[i];
+        if (next.type === 'image' || next.type === 'divider') break;
+        textBlocks.push(next);
+        i++;
+      }
+      if (textBlocks.length === 0) {
+        // no text to pair with — render as plain center image
+        units.push({ kind: 'single', block: { ...b, align: 'center' } });
+      } else {
+        units.push({ kind: 'float', align: b.align as 'left' | 'right', image: b, textBlocks });
+      }
+    } else {
+      units.push({ kind: 'single', block: b });
+      i++;
     }
+  }
 
-    case 'quote':
+  return units;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Shared text-block renderer (used in both float + standalone)
+// ─────────────────────────────────────────────────────────────
+
+function TextBlock({ block }: { block: ContentBlock }) {
+  if (block.type === 'paragraph') {
+    return (
+      <p style={{ fontSize: '1.05rem', lineHeight: 1.85, color: '#374151', margin: '0 0 1.1em 0' }}>
+        {block.text}
+      </p>
+    );
+  }
+
+  if (block.type === 'heading') {
+    const lvl = block.level ?? 2;
+    const st: React.CSSProperties = {
+      fontSize: lvl === 1 ? '1.75rem' : lvl === 2 ? '1.375rem' : '1.15rem',
+      fontWeight: lvl === 1 ? 800 : lvl === 2 ? 700 : 600,
+      color: '#111827',
+      letterSpacing: '-0.02em',
+      lineHeight: 1.25,
+      margin: `${lvl === 1 ? '1.5rem' : lvl === 2 ? '1.25rem' : '1rem'} 0 0.45rem 0`,
+    };
+    if (lvl === 1) return <h1 style={st}>{block.text}</h1>;
+    if (lvl === 2) return <h2 style={st}>{block.text}</h2>;
+    return <h3 style={st}>{block.text}</h3>;
+  }
+
+  if (block.type === 'quote') {
+    return (
+      <blockquote style={{
+        borderLeft: '3px solid #ef4444',
+        background: '#fff7f7',
+        borderRadius: '0 0.6rem 0.6rem 0',
+        padding: '0.8rem 1rem 0.8rem 0.9rem',
+        margin: '0.75rem 0 1rem 0',
+        fontStyle: 'italic',
+        fontSize: '1rem',
+        color: '#1f2937',
+        lineHeight: 1.7,
+      }}>
+        {block.text}
+      </blockquote>
+    );
+  }
+
+  return null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Float group: CSS Grid 2-column — image | text or text | image
+// No floats, no clearfix, no overflow hacks.
+// ─────────────────────────────────────────────────────────────
+
+function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
+  const imageFirst = unit.align === 'left';
+
+  return (
+    <div style={{
+      display: 'grid',
+      // image column is fixed 200px, text column takes the rest
+      gridTemplateColumns: imageFirst ? '200px 1fr' : '1fr 200px',
+      gap: '1.5rem',
+      alignItems: 'start',
+      margin: '1.75rem 0',
+    }}>
+      {/* Image always in column order matching left/right intent */}
+      <figure style={{
+        margin: 0,
+        gridColumn: imageFirst ? 1 : 2,
+        gridRow: 1,
+      }}>
+        <img
+          src={unit.image.url}
+          alt={unit.image.caption ?? ''}
+          style={{
+            width: '100%',
+            borderRadius: '0.75rem',
+            objectFit: 'cover',
+            display: 'block',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+            maxHeight: '300px',
+          }}
+        />
+        {unit.image.caption && (
+          <figcaption style={{
+            marginTop: '0.35rem',
+            fontSize: '0.72rem',
+            color: '#9ca3af',
+            textAlign: 'center',
+            fontStyle: 'italic',
+            lineHeight: 1.4,
+          }}>
+            {unit.image.caption}
+          </figcaption>
+        )}
+      </figure>
+
+      {/* Text column */}
+      <div style={{
+        gridColumn: imageFirst ? 2 : 1,
+        gridRow: 1,
+      }}>
+        {unit.textBlocks.map((tb, i) => <TextBlock key={i} block={tb} />)}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Single block renderer — full width
+// ─────────────────────────────────────────────────────────────
+
+function SingleBlockRenderer({ block }: { block: ContentBlock }) {
+  // Delegate text-like blocks
+  if (block.type === 'paragraph' || block.type === 'heading' || block.type === 'quote') {
+    return <TextBlock block={block} />;
+  }
+
+  if (block.type === 'divider') {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', margin: '2rem 0' }}>
+        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.08)' }} />
+        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+        <div style={{ flex: 1, height: '1px', background: 'rgba(0,0,0,0.08)' }} />
+      </div>
+    );
+  }
+
+  if (block.type === 'image' && block.url) {
+    const align = block.align ?? 'center';
+
+    if (align === 'full') {
       return (
-        <blockquote
-          key={idx}
-          className="relative border-l-4 border-red-500 bg-red-50 rounded-r-xl px-6 py-4 my-6 italic text-[1.05rem] text-(--color-soft-black) leading-relaxed"
-        >
-          <span className="absolute -top-3 left-4 text-red-400 text-5xl leading-none select-none">"</span>
-          {block.text}
-        </blockquote>
-      );
-
-    case 'divider':
-      return (
-        <div key={idx} className="my-8 flex items-center gap-4">
-          <div className="flex-1 h-px bg-black/8" />
-          <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-          <div className="flex-1 h-px bg-black/8" />
-        </div>
-      );
-
-    case 'image': {
-      const align = block.align ?? 'center';
-
-      // Float left / right for magazine text-wrap effect
-      if (align === 'left' || align === 'right') {
-        const floatCls =
-          align === 'left'
-            ? 'float-left mr-6 mb-4 clear-left'
-            : 'float-right ml-6 mb-4 clear-right';
-        return (
-          <figure key={idx} className={`${floatCls} max-w-xs w-[38%] min-w-45`}>
-            <img
-              src={block.url}
-              alt={block.caption ?? ''}
-              className="w-full rounded-xl object-cover shadow-md"
-              style={{ maxHeight: '280px', objectFit: 'cover' }}
-            />
-            {block.caption && (
-              <figcaption className="mt-1.5 text-xs text-(--color-muted) text-center italic">
-                {block.caption}
-              </figcaption>
-            )}
-          </figure>
-        );
-      }
-
-      // Full-width
-      if (align === 'full') {
-        return (
-          <figure key={idx} className="my-8 -mx-4 sm:-mx-8 lg:-mx-12 clear-both">
-            <img
-              src={block.url}
-              alt={block.caption ?? ''}
-              className="w-full object-cover rounded-2xl shadow-lg"
-              style={{ maxHeight: '480px', objectFit: 'cover' }}
-            />
-            {block.caption && (
-              <figcaption className="mt-2 text-xs text-(--color-muted) text-center italic px-4">
-                {block.caption}
-              </figcaption>
-            )}
-          </figure>
-        );
-      }
-
-      // Center
-      return (
-        <figure key={idx} className="my-8 flex flex-col items-center clear-both">
+        <figure style={{ margin: '2rem -1.5rem' }}>
           <img
-            src={block.url}
-            alt={block.caption ?? ''}
-            className="max-w-2xl w-full rounded-2xl object-cover shadow-md"
-            style={{ maxHeight: '400px', objectFit: 'cover' }}
+            src={block.url} alt={block.caption ?? ''}
+            style={{
+              width: '100%', objectFit: 'cover', borderRadius: '1rem',
+              maxHeight: '480px', display: 'block',
+              boxShadow: '0 8px 40px rgba(0,0,0,0.12)',
+            }}
           />
           {block.caption && (
-            <figcaption className="mt-2 text-xs text-(--color-muted) italic">
+            <figcaption style={{
+              marginTop: '0.6rem', fontSize: '0.75rem', color: '#9ca3af',
+              textAlign: 'center', fontStyle: 'italic',
+            }}>
               {block.caption}
             </figcaption>
           )}
@@ -151,9 +253,29 @@ function BlockRenderer({ block, idx }: { block: ContentBlock; idx: number }) {
       );
     }
 
-    default:
-      return null;
+    // center (default for standalone images)
+    return (
+      <figure style={{ margin: '2rem 0', textAlign: 'center' }}>
+        <img
+          src={block.url} alt={block.caption ?? ''}
+          style={{
+            maxWidth: '100%', width: '100%', borderRadius: '1rem',
+            objectFit: 'cover', maxHeight: '440px', display: 'block',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
+          }}
+        />
+        {block.caption && (
+          <figcaption style={{
+            marginTop: '0.6rem', fontSize: '0.75rem', color: '#9ca3af', fontStyle: 'italic',
+          }}>
+            {block.caption}
+          </figcaption>
+        )}
+      </figure>
+    );
   }
+
+  return null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -169,7 +291,7 @@ export default function BlogDetailPage() {
   useEffect(() => {
     if (!slug) return;
     const controller = new AbortController();
-    const load = async () => {
+    (async () => {
       setLoading(true);
       setError('');
       try {
@@ -180,14 +302,13 @@ export default function BlogDetailPage() {
       } finally {
         setLoading(false);
       }
-    };
-    load();
+    })();
     return () => controller.abort();
   }, [slug]);
 
   if (loading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
+      <div style={{ display: 'flex', minHeight: '60vh', alignItems: 'center', justifyContent: 'center' }}>
         <Spinner size="lg" />
       </div>
     );
@@ -196,9 +317,12 @@ export default function BlogDetailPage() {
   if (error || !blog) {
     return (
       <PageTransition>
-        <div className="lux-container py-24 text-center">
-          <p className="text-red-600 font-semibold">{error || 'Blog not found'}</p>
-          <Link to="/blog" className="mt-4 inline-flex items-center gap-2 text-sm text-(--color-muted) hover:text-red-600 transition">
+        <div className="lux-container" style={{ paddingTop: '6rem', paddingBottom: '6rem', textAlign: 'center' }}>
+          <p style={{ color: '#dc2626', fontWeight: 600 }}>{error || 'Blog not found'}</p>
+          <Link to="/blog" style={{
+            marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            fontSize: '0.875rem', color: '#6b7280', textDecoration: 'none',
+          }}>
             <ArrowLeft size={14} /> Back to Blog
           </Link>
         </div>
@@ -207,68 +331,95 @@ export default function BlogDetailPage() {
   }
 
   const formattedDate = new Date(blog.createdAt).toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
+    day: 'numeric', month: 'long', year: 'numeric',
   });
+
+  const units = buildRenderUnits(blog.content ?? []);
 
   return (
     <PageTransition>
-      <article className="bg-(--color-background) min-h-screen">
-        {/* ── Hero Cover ── */}
-        <div className="relative w-full overflow-hidden" style={{ maxHeight: '520px' }}>
-          <img
-            src={blog.coverImage}
-            alt={blog.title}
-            className="w-full object-cover"
-            style={{ maxHeight: '520px', objectFit: 'cover' }}
-          />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+      <article style={{ background: 'var(--color-background, #f9fafb)', minHeight: '100vh' }}>
 
-          {/* Title overlay on hero */}
-          <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-10 lux-container">
-            <motion.div variants={fadeInUp} initial="initial" animate="animate">
-              <Link
-                to="/blog"
-                className="inline-flex items-center gap-2 text-white/70 text-sm hover:text-white transition mb-4"
-              >
-                <ArrowLeft size={14} /> All Blogs
-              </Link>
-              <div className="flex items-center gap-3 mb-3">
-                {blog.logo && (
-                  <div className="w-10 h-10 rounded-full bg-white overflow-hidden ring-2 ring-white/40 shadow-lg shrink-0">
-                    <img src={blog.logo} alt="logo" className="w-full h-full object-contain p-1" />
-                  </div>
-                )}
-                <span className="text-red-400 text-sm font-semibold uppercase tracking-wider">
-                  {blog.subject}
-                </span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight max-w-3xl">
-                {blog.title}
-              </h1>
-            </motion.div>
+        {/* ── Hero ── */}
+        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', maxHeight: '520px' }}>
+          <img
+            src={blog.coverImage} alt={blog.title}
+            style={{ width: '100%', maxHeight: '520px', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+          />
+          {/* Gradient covers only the bottom portion — image stays visible above */}
+          <div style={{
+            position: 'absolute', left: 0, right: 0, bottom: 0, height: '65%',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)',
+            pointerEvents: 'none',
+          }} />
+
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
+            <div className="lux-container" style={{ paddingBottom: '2.25rem' }}>
+              <motion.div variants={fadeInUp} initial="initial" animate="animate">
+                <Link to="/blog" style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+                  color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem',
+                  textDecoration: 'none', marginBottom: '0.9rem',
+                }}>
+                  <ArrowLeft size={13} /> All Blogs
+                </Link>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+                  {blog.logo && (
+                    <div style={{
+                      width: '2rem', height: '2rem', borderRadius: '50%', background: '#fff',
+                      overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <img src={blog.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '3px' }} />
+                    </div>
+                  )}
+                  <span style={{ color: '#fb7185', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                    {blog.subject}
+                  </span>
+                  {blog.isFeatured && (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '0.2rem',
+                      background: 'rgba(239,68,68,0.85)', color: '#fff',
+                      fontSize: '0.62rem', fontWeight: 700, padding: '0.18rem 0.55rem',
+                      borderRadius: '9999px', textTransform: 'uppercase', letterSpacing: '0.07em',
+                    }}>
+                      <Star size={8} fill="currentColor" /> Featured
+                    </span>
+                  )}
+                </div>
+
+                <h1 style={{
+                  fontSize: 'clamp(1.5rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff',
+                  lineHeight: 1.2, maxWidth: '48rem', margin: 0,
+                  textShadow: '0 2px 12px rgba(0,0,0,0.35)',
+                }}>
+                  {blog.title}
+                </h1>
+              </motion.div>
+            </div>
           </div>
         </div>
 
         {/* ── Meta bar ── */}
-        <div className="border-b border-black/6 bg-white">
-          <div className="lux-container py-4 flex flex-wrap items-center gap-4 text-sm text-(--color-muted)">
-            <div className="flex items-center gap-1.5">
-              <Calendar size={14} />
-              <span>{formattedDate}</span>
+        <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
+          <div className="lux-container" style={{
+            paddingTop: '0.8rem', paddingBottom: '0.8rem',
+            display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem',
+            fontSize: '0.8rem', color: '#6b7280',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Calendar size={13} /><span>{formattedDate}</span>
             </div>
-            {blog.isFeatured && (
-              <span className="bg-red-100 text-red-600 text-xs font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-                Featured
-              </span>
-            )}
             {blog.tags.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap">
-                <Tag size={13} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                <Tag size={12} />
                 {blog.tags.map(tag => (
-                  <span key={tag} className="bg-black/5 text-(--color-soft-black) text-xs rounded-full px-2.5 py-0.5">
+                  <span key={tag} style={{
+                    background: 'rgba(0,0,0,0.05)', color: '#374151',
+                    fontSize: '0.7rem', borderRadius: '9999px',
+                    padding: '0.15rem 0.5rem', fontWeight: 500,
+                  }}>
                     {tag}
                   </span>
                 ))}
@@ -277,47 +428,48 @@ export default function BlogDetailPage() {
           </div>
         </div>
 
-        {/* ── Article Body ── */}
-        <div className="lux-container py-12">
-          <div className="max-w-3xl mx-auto">
-            {/* Excerpt / lead paragraph */}
-            <p className="text-lg leading-relaxed font-medium text-(--color-soft-black) mb-8 border-l-4 border-red-500 pl-5 italic">
+        {/* ── Article body ── */}
+        <div className="lux-container" style={{ paddingTop: '2.75rem', paddingBottom: '4rem' }}>
+          <div style={{ maxWidth: '46rem', margin: '0 auto' }}>
+
+            {/* Excerpt lead */}
+            <p style={{
+              fontSize: '1.1rem', lineHeight: 1.8, fontWeight: 500, color: '#111827',
+              borderLeft: '4px solid #ef4444', paddingLeft: '1.1rem',
+              fontStyle: 'italic', marginBottom: '2.25rem', marginTop: 0,
+            }}>
               {blog.excerpt}
             </p>
 
-            {/* Extra Images strip (if any, shown before main content) */}
-            {blog.extraImages.length > 0 && (
-              <div className={`grid gap-4 mb-8 ${blog.extraImages.length === 1 ? 'grid-cols-1' : blog.extraImages.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                {blog.extraImages.map((img, i) => (
-                  <div key={i} className="rounded-xl overflow-hidden aspect-4/3">
-                    <img src={img} alt={`extra-${i + 1}`} className="w-full h-full object-cover" />
-                  </div>
-                ))}
+            {/* Content */}
+            {units.length === 0 ? (
+              <p style={{ color: '#9ca3af', fontStyle: 'italic', textAlign: 'center', padding: '3rem 0' }}>
+                No content available for this article yet.
+              </p>
+            ) : (
+              <div>
+                {units.map((unit, i) =>
+                  unit.kind === 'float'
+                    ? <FloatGroupRenderer key={i} unit={unit} />
+                    : <SingleBlockRenderer key={i} block={unit.block} />
+                )}
               </div>
             )}
-
-            {/* ── Rich Content ── */}
-            <div className="prose-content">
-              {/* clearfix wrapper so floats don't overflow the column */}
-              <div className="after:content-[''] after:block after:clear-both">
-                {blog.content.map((block, i) => (
-                  <BlockRenderer key={i} block={block} idx={i} />
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
         {/* ── Back link ── */}
-        <div className="lux-container pb-16">
-          <Link
-            to="/blog"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-black/10 bg-white text-sm font-medium text-(--color-soft-black) hover:bg-black/4 transition"
-          >
-            <ArrowLeft size={15} />
-            Back to Blog
+        <div className="lux-container" style={{ paddingBottom: '4rem' }}>
+          <Link to="/blog" style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            padding: '0.6rem 1.2rem', borderRadius: '0.75rem',
+            border: '1px solid rgba(0,0,0,0.1)', background: '#fff',
+            fontSize: '0.875rem', fontWeight: 500, color: '#374151', textDecoration: 'none',
+          }}>
+            <ArrowLeft size={15} /> Back to Blog
           </Link>
         </div>
+
       </article>
     </PageTransition>
   );
