@@ -21,7 +21,7 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 await initializeR2();
-await initializeRazorpay();
+// await initializeRazorpay();
 await connectDatabase();
 
 
