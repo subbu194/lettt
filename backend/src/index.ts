@@ -15,6 +15,7 @@ import ticketRoutes from "./routes/ticketRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import exportRoutes from "./routes/exportRoutes";
 import talkShowRoutes from "./routes/talkShowRoutes";
+import blogRoutes from "./routes/blogRoutes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/v1/tickets", ticketRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/export", exportRoutes);
 app.use("/api/v1/talkshow", talkShowRoutes);
+app.use("/api/v1/blogs", blogRoutes);
 
 app.get("/", (_req, res) => {
   res.send("Let The Talent Talk Backend is Running!");

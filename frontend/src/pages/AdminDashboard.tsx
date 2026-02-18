@@ -6,7 +6,7 @@ import {
   ChevronRight, LogOut, IndianRupee, AlertCircle,
   CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon,
   LayoutDashboard, Package, ArrowUpRight, Sparkles,
-  Activity, Users, Star, Video
+  Activity, Users, Star, Video, BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/shared/Button';
 import { Spinner } from '@/components/shared/Spinner';
@@ -16,6 +16,7 @@ import { useAdminStore } from '@/store/useAdminStore';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { VideoFormModal } from './AdminDashboard_Videos';
+import { BlogsAdminTab } from './AdminDashboard_Blogs';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -90,7 +91,7 @@ interface PaginationData {
   hasPrev: boolean;
 }
 
-type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos';
+type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos' | 'blogs';
 
 // ─────────────────────────────────────────────────────────────
 // Animation Variants
@@ -1358,6 +1359,7 @@ export default function AdminDashboardPage() {
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'videos', label: 'Talk Show', icon: Video },
+    { id: 'blogs', label: 'Blog', icon: BookOpen },
   ];
 
   return (
@@ -1982,7 +1984,7 @@ export default function AdminDashboardPage() {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {videos.map((video) => {
                         const getYouTubeId = (url: string) => {
-                          const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                          const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
                           const match = url.match(regex);
                           return match ? match[1] : null;
                         };
@@ -2029,6 +2031,9 @@ export default function AdminDashboardPage() {
                   )}
                 </motion.div>
               )}
+
+              {/* Blogs Tab */}
+              {activeTab === 'blogs' && <BlogsAdminTab />}
             </AnimatePresence>
           )}
         </div>

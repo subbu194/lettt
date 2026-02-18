@@ -25,7 +25,8 @@ const Checkout = lazy(() => import('@/pages/Checkout'));
 const Orders = lazy(() => import('@/pages/Orders'));
 const MyTickets = lazy(() => import('@/pages/MyTickets'));
 const Profile = lazy(() => import('@/pages/Profile'));
-const Catalog = lazy(() => import('@/pages/Catalog'));
+const Blog = lazy(() => import('@/pages/Blog'));
+const BlogDetail = lazy(() => import('@/pages/BlogDetail'));
 
 import { AdminRoute } from '@/routes/AdminRoute';
 
@@ -58,7 +59,9 @@ function AppShell() {
               <Route path="/art/:id" element={<ArtDetail />} />
               <Route path="/talkshow" element={<TalkShow />} />
               <Route path="/gallery" element={<Gallery />} />
-              <Route path="/catalog" element={<Catalog />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogDetail />} />
+              <Route path="/catalog" element={<Navigate to="/blog" replace />} />
               <Route path="/purchase" element={<Checkout />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/orders" element={<Orders />} />
