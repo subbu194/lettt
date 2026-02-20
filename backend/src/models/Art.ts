@@ -61,5 +61,9 @@ ArtSchema.index({ category: 1, isAvailable: 1 });
 ArtSchema.index({ artist: 1, isAvailable: 1 });
 ArtSchema.index({ isFeatured: 1, isAvailable: 1 });
 ArtSchema.index({ price: 1, isAvailable: 1 });
+ArtSchema.index(
+  { title: "text", artist: "text", description: "text", category: "text" },
+  { weights: { title: 10, artist: 6, category: 4, description: 2 } }
+);
 
 export const Art = mongoose.model<ArtDocument>("Art", ArtSchema);

@@ -55,5 +55,9 @@ EventSchema.pre("validate", function (next) {
 EventSchema.index({ date: 1, venue: 1 });
 EventSchema.index({ date: 1, seatsLeft: 1 });
 EventSchema.index({ isFeatured: 1, date: 1 });
+EventSchema.index(
+  { title: "text", venue: "text", description: "text" },
+  { weights: { title: 10, venue: 6, description: 2 } }
+);
 
 export const Event = mongoose.model<EventDocument>("Event", EventSchema);

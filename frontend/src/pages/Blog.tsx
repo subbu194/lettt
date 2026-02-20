@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Search, Calendar, Tag, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { PageTransition } from '@/components/shared/PageTransition';
@@ -115,6 +115,8 @@ function BlogCard({ blog, index }: { blog: BlogItem; index: number }) {
 // ─────────────────────────────────────────────────────────────
 
 export default function BlogPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [pagination, setPagination] = useState<PaginationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,6 +124,12 @@ export default function BlogPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const state = location.state as { openBlogSlug?: string } | null;
+    if (!state?.openBlogSlug) return;
+    navigate(`/blog/${state.openBlogSlug}`);
+  }, [location.state, navigate]);
 
   const fetchBlogs = useCallback(async () => {
     setLoading(true);

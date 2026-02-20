@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { fadeInUp } from '@/utils/animations';
 import apiClient from '@/api/client';
@@ -15,6 +16,8 @@ export default function TalkShowPage() {
   const [selectedSeason, setSelectedSeason] = useState<number | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
   const openModal = useUIStore((s) => s.openModal);
 
   useEffect(() => {
@@ -34,6 +37,23 @@ export default function TalkShowPage() {
     };
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (loading || !videos.length) return;
+
+    const state = location.state as { openVideoId?: string } | null;
+    const targetId = state?.openVideoId;
+    if (!targetId) return;
+
+    const selectedVideo = videos.find((video) => String(video._id ?? '') === targetId);
+    if (!selectedVideo) {
+      navigate(location.pathname, { replace: true, state: null });
+      return;
+    }
+
+    openModal(<VideoPlayer video={selectedVideo} />);
+    navigate(location.pathname, { replace: true, state: null });
+  }, [loading, videos, location.pathname, location.state, navigate, openModal]);
 
   const filteredVideos = selectedSeason === 'all' 
     ? videos 
@@ -69,7 +89,7 @@ export default function TalkShowPage() {
         </div>
 
         {/* Season Filter */}
-        <div className="border-b border-black/4 bg-white sticky top-[4.5rem] z-20">
+        <div className="border-b border-black/4 bg-white sticky top-18 z-20">
           <div className="lux-container py-4">
             <div className="flex gap-2 overflow-x-auto">
               <button

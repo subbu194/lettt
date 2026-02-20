@@ -68,6 +68,10 @@ const talkShowVideoSchema = new Schema<ITalkShowVideo>(
 talkShowVideoSchema.index({ season: 1, episodeNumber: 1 });
 talkShowVideoSchema.index({ isFeatured: 1 });
 talkShowVideoSchema.index({ createdAt: -1 });
+talkShowVideoSchema.index(
+  { title: "text", description: "text" },
+  { weights: { title: 10, description: 2 } }
+);
 
 export const TalkShowVideo = mongoose.model<ITalkShowVideo>(
   "TalkShowVideo",

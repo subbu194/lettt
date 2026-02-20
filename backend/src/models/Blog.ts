@@ -98,5 +98,9 @@ const BlogSchema = new Schema<BlogDocument>(
 BlogSchema.index({ isPublished: 1, createdAt: -1 });
 BlogSchema.index({ isFeatured: 1, isPublished: 1 });
 BlogSchema.index({ tags: 1, isPublished: 1 });
+BlogSchema.index(
+  { title: "text", excerpt: "text", subject: "text", tags: "text" },
+  { weights: { title: 10, subject: 6, tags: 4, excerpt: 2 } }
+);
 
 export const Blog = mongoose.model<BlogDocument>("Blog", BlogSchema);

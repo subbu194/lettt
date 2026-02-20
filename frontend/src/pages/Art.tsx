@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, ChevronLeft, ChevronRight, Grid3X3, LayoutList, X } from 'lucide-react';
 import apiClient from '@/api/client';
@@ -68,7 +68,7 @@ function ArtCard({ art }: { art: ArtItem }) {
       <Link to={`/art/${art._id}`}>
         <Card className="overflow-hidden transition-all hover:shadow-lg">
         {/* Image Container */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-linear-to-br from-black/5 to-black/10">
+        <div className="relative aspect-4/5 overflow-hidden bg-linear-to-br from-black/5 to-black/10">
           {image ? (
             <>
               {!imageLoaded && (
@@ -170,7 +170,7 @@ function FilterPanel({
       <Card className="p-6">
         <div className="flex flex-wrap items-start gap-6">
           {/* Category Filter */}
-          <div className="min-w-[160px]">
+          <div className="min-w-40">
             <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Category</label>
             <select
               value={selectedCategory}
@@ -187,7 +187,7 @@ function FilterPanel({
           </div>
 
           {/* Price Range */}
-          <div className="min-w-[200px]">
+          <div className="min-w-50">
             <label className="mb-2 block text-sm font-semibold text-(--color-muted)">Price Range (₹)</label>
             <div className="flex gap-2">
               <input
@@ -338,6 +338,8 @@ function Pagination({
 // ─────────────────────────────────────────────────────────────
 
 export default function ArtPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [items, setItems] = useState<ArtItem[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [pagination, setPagination] = useState<PaginationData>({
@@ -366,6 +368,12 @@ export default function ArtPage() {
   
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 400);
+
+  useEffect(() => {
+    const state = location.state as { openArtId?: string } | null;
+    if (!state?.openArtId) return;
+    navigate(`/art/${state.openArtId}`);
+  }, [location.state, navigate]);
 
   // Fetch categories on mount
   useEffect(() => {

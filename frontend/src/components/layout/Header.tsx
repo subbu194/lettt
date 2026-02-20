@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, LogOut, Package, Ticket, UserCog, ChevronRight } from 'lucide-react';
+import { Menu, X, LogOut, Package, Ticket, UserCog, ChevronRight, Search } from 'lucide-react';
 import { useUserStore } from '@/store/useUserStore';
+import { useDebounce } from '@/hooks/useDebounce';
+import { fetchSearchSuggestions, type SearchScope, type SearchSuggestion } from '@/api/search';
 
 const navItems = [
   { label: 'Home', to: '/' },
@@ -17,9 +19,34 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [typingEffect, setTypingEffect] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchSuggestion[]>([]);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useUserStore();
+  const searchWrapRef = useRef<HTMLDivElement | null>(null);
+  const debouncedSearch = useDebounce(searchQuery.trim(), 220);
+
+  const searchScope = useMemo<SearchScope>(() => {
+    if (location.pathname === '/') return 'all';
+    if (location.pathname.startsWith('/art')) return 'art';
+    if (location.pathname.startsWith('/events') || location.pathname.startsWith('/event-checkout')) return 'events';
+    if (location.pathname.startsWith('/talkshow')) return 'talkshow';
+    if (location.pathname.startsWith('/blog') || location.pathname.startsWith('/catalog')) return 'blogs';
+    return 'all';
+  }, [location.pathname]);
+
+  const searchPlaceholder = useMemo(() => {
+    if (searchScope === 'all') return 'Search art, events, blogs, talk shows...';
+    if (searchScope === 'art') return 'Search art...';
+    if (searchScope === 'events') return 'Search event...';
+    if (searchScope === 'talkshow') return 'Search talk show...';
+    return 'Search blog...';
+  }, [searchScope]);
 
   // Track scroll for header shrink effect
   useEffect(() => {
@@ -29,7 +56,65 @@ export function Header() {
   }, []);
 
   // Close mobile menu on route change
-  useEffect(() => { setOpen(false); setUserMenuOpen(false); }, [location.pathname]);
+  useEffect(() => {
+    setOpen(false);
+    setUserMenuOpen(false);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchLoading(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setTypingEffect(false);
+      return;
+    }
+
+    setTypingEffect(true);
+    const id = window.setTimeout(() => setTypingEffect(false), 180);
+    return () => window.clearTimeout(id);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const onClickOutside = (event: MouseEvent) => {
+      if (!searchWrapRef.current) return;
+      if (!searchWrapRef.current.contains(event.target as Node)) {
+        setSearchOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (debouncedSearch.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return;
+    }
+
+    let isCancelled = false;
+
+    const runSearch = async () => {
+      try {
+        setSearchLoading(true);
+        const suggestions = await fetchSearchSuggestions({ q: debouncedSearch, scope: searchScope, limit: 8 });
+        if (!isCancelled) setSearchResults(suggestions);
+      } catch {
+        if (!isCancelled) setSearchResults([]);
+      } finally {
+        if (!isCancelled) setSearchLoading(false);
+      }
+    };
+
+    void runSearch();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [debouncedSearch, searchScope]);
 
   const handleLogout = () => {
     logout();
@@ -44,6 +129,43 @@ export function Header() {
   };
 
   const userProfileImage = user && typeof user.profileImage === 'string' ? user.profileImage : null;
+
+  const handleSearchSelect = (item: SearchSuggestion) => {
+    setSearchQuery('');
+    setSearchOpen(false);
+
+    const fromHome = location.pathname === '/';
+
+    if (fromHome && item.type === 'event') {
+      navigate('/events', { state: { openEventId: item.id } });
+      return;
+    }
+
+    if (fromHome && item.type === 'art') {
+      navigate('/art', { state: { openArtId: item.id } });
+      return;
+    }
+
+    if (fromHome && item.type === 'blog') {
+      const blogSlug = item.href.replace('/blog/', '');
+      navigate('/blog', { state: { openBlogSlug: blogSlug } });
+      return;
+    }
+
+    if (item.type === 'talkshow') {
+      navigate('/talkshow', { state: { openVideoId: item.id } });
+      return;
+    }
+
+    navigate(item.href);
+  };
+
+  const getTypeLabel = (type: SearchSuggestion['type']) => {
+    if (type === 'art') return 'Art';
+    if (type === 'event') return 'Event';
+    if (type === 'talkshow') return 'Talk Show';
+    return 'Blog';
+  };
 
   return (
     <>
@@ -81,7 +203,7 @@ export function Header() {
 
           <div className="flex h-12 items-center justify-between px-5 sm:px-8 relative">
             {/* Desktop Nav */}
-            <nav className="hidden items-center gap-1 md:flex flex-1 justify-center" aria-label="Primary navigation">
+            <nav className="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2" aria-label="Primary navigation">
               {navItems.map((item) => (
                 <NavLink
                   key={item.to}
@@ -106,7 +228,68 @@ export function Header() {
             </nav>
 
             {/* User Menu - Desktop */}
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-3 absolute right-5 sm:right-8 top-1/2 -translate-y-1/2">
+              <div className="relative w-64" ref={searchWrapRef}>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-black/60" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (!searchOpen) setSearchOpen(true);
+                    }}
+                    onFocus={() => {
+                      setSearchOpen(true);
+                      setSearchFocused(true);
+                    }}
+                    onBlur={() => setSearchFocused(false)}
+                    placeholder={searchPlaceholder}
+                    className={`h-9 w-full rounded-lg pl-9 pr-3 text-sm text-(--color-soft-black) placeholder:text-black/60 outline-none transition-all duration-200 ease-out ${searchFocused
+                      ? 'border border-black/25 bg-white shadow-md scale-[1.01]'
+                      : 'border border-black/12 bg-white/98 shadow-sm'
+                      } ${typingEffect ? 'scale-[1.02]' : ''}`}
+                  />
+                </div>
+
+                {searchOpen && (searchQuery.trim().length > 0) && (
+                  <div className="absolute right-0 top-full z-50 mt-2 w-120 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-black/8 bg-white shadow-2xl">
+                    {searchLoading ? (
+                      <div className="px-5 py-4 text-sm text-(--color-muted)">Searching...</div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="px-5 py-4 text-sm text-(--color-muted)">No results found</div>
+                    ) : (
+                      <div className="max-h-96 overflow-y-auto py-2">
+                        {searchResults.map((item) => (
+                          <button
+                            key={`${item.type}-${item.id}`}
+                            type="button"
+                            onClick={() => handleSearchSelect(item)}
+                            className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100 border border-black/5">
+                              {item.image ? (
+                                <img src={item.image} alt={item.title} className="h-full w-full object-cover" loading="lazy" />
+                              ) : (
+                                <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-(--color-muted)">{getTypeLabel(item.type)}</div>
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-[15px] font-semibold text-(--color-soft-black)">{item.title}</p>
+                              <p className="truncate text-sm text-(--color-muted)">{item.subtitle}</p>
+                              <p className="mt-0.5 text-xs text-(--color-muted)">Open {getTypeLabel(item.type)}</p>
+                            </div>
+                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-(--color-muted)">
+                              {getTypeLabel(item.type)}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               {isAuthenticated ? (
                 <div className="relative">
                   <button

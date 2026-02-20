@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Filter, ChevronLeft, ChevronRight, Calendar, MapPin, Clock, Users, Ticket, X } from 'lucide-react';
 import apiClient from '@/api/client';
@@ -414,6 +414,8 @@ function Pagination({
 // ─────────────────────────────────────────────────────────────
 
 export default function EventsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [items, setItems] = useState<EventItem[]>([]);
   const [venues, setVenues] = useState<string[]>([]);
   const [pagination, setPagination] = useState<PaginationData>({
@@ -442,6 +444,12 @@ export default function EventsPage() {
   
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 400);
+
+  useEffect(() => {
+    const state = location.state as { openEventId?: string } | null;
+    if (!state?.openEventId) return;
+    navigate(`/events/${state.openEventId}`);
+  }, [location.state, navigate]);
 
   // Fetch venues on mount
   useEffect(() => {
