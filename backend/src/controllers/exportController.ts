@@ -14,7 +14,7 @@ function arrayToCSV(data: any[]): string {
   if (data.length === 0) return "";
 
   const headers = Object.keys(data[0]);
-  const csvRows = [];
+  const csvRows: string[] = [];
 
   // Add header row
   csvRows.push(headers.join(","));

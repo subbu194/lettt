@@ -58,7 +58,7 @@ OrderSchema.pre("save", async function (next) {
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     this.orderNumber = `ORD-${timestamp}-${random}`;
   }
-  next();
+  (next as (err?: Error) => void)();
 });
 
 // Compound indexes (more efficient than separate indexes)

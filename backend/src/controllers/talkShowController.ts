@@ -147,7 +147,7 @@ export const createVideo: RequestHandler = async (req, res, next) => {
     
     const created = await TalkShowVideo.create({ 
       ...payload, 
-      thumbnail,
+      thumbnail: thumbnail ?? undefined,
       createdBy: req.user.userId 
     });
 

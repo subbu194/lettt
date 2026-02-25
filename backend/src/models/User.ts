@@ -56,9 +56,9 @@ const UserSchema = new Schema<UserDocument>(
 );
 
 UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password")) return (next as (err?: Error) => void)();
   this.password = await hashPassword(this.password);
-  next();
+  (next as (err?: Error) => void)();
 });
 
 UserSchema.methods.comparePassword = async function (candidate: string) {

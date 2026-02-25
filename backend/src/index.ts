@@ -22,48 +22,50 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
-await initializeR2();
-// await initializeRazorpay();
-await connectDatabase();
+async function start() {
+  await connectDatabase();
+  await initializeR2();
 
 
-app.use(
-  cors({
-    origin: "*",
-    credentials: true,
-  })
-);
+  app.use(
+    cors({
+      origin: "*",
+      credentials: true,
+    })
+  );
 
-app.use(express.json({ limit: "1mb" }));
-app.use(express.urlencoded({ extended: true }));
+  app.use(express.json({ limit: "1mb" }));
+  app.use(express.urlencoded({ extended: true }));
 
-// Health route
-app.use("/api/v1", healthRoutes);
+  // Health route
+  app.use("/api/v1", healthRoutes);
 
-// Auth routes (standardized under /api/v1/auth)
-app.use("/api/v1/auth", authRoutes);
+  // Auth routes (standardized under /api/v1/auth)
+  app.use("/api/v1/auth", authRoutes);
 
-// User routes (profile management)
-app.use("/api/v1/user", userRoutes);
+  // User routes (profile management)
+  app.use("/api/v1/user", userRoutes);
 
-// Resource routes
-app.use("/api/v1/art", artRoutes);
-app.use("/api/v1/events", eventRoutes);
-app.use("/api/v1/orders", orderRoutes);
-app.use("/api/v1/tickets", ticketRoutes);
-app.use("/api/v1/upload", uploadRoutes);
-app.use("/api/v1/export", exportRoutes);
-app.use("/api/v1/talkshow", talkShowRoutes);
-app.use("/api/v1/blogs", blogRoutes);
-app.use("/api/v1/search", searchRoutes);
+  // Resource routes
+  app.use("/api/v1/art", artRoutes);
+  app.use("/api/v1/events", eventRoutes);
+  app.use("/api/v1/orders", orderRoutes);
+  app.use("/api/v1/tickets", ticketRoutes);
+  app.use("/api/v1/upload", uploadRoutes);
+  app.use("/api/v1/export", exportRoutes);
+  app.use("/api/v1/talkshow", talkShowRoutes);
+  app.use("/api/v1/blogs", blogRoutes);
+  app.use("/api/v1/search", searchRoutes);
 
-app.get("/", (_req, res) => {
-  res.send("Let The Talent Talk Backend is Running!");
-});
+  app.get("/", (_req, res) => {
+    res.send("Let The Talent Talk Backend is Running!");
+  });
 
-app.use(notFoundHandler);
-app.use(errorHandler);
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`✅ API available at http://localhost:${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`✅ API available at http://localhost:${PORT}`);
+  });
+}
+start();
