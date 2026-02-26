@@ -52,13 +52,12 @@ const OrderSchema = new Schema<OrderDocument>(
 );
 
 // Generate unique order number before saving
-OrderSchema.pre("save", async function (next) {
+OrderSchema.pre("save", async function () {
   if (!this.orderNumber) {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
     this.orderNumber = `ORD-${timestamp}-${random}`;
   }
-  (next as (err?: Error) => void)();
 });
 
 // Compound indexes (more efficient than separate indexes)

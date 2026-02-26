@@ -1,4 +1,4 @@
-import { S3Client, ListBucketsCommand, HeadBucketCommand } from '@aws-sdk/client-s3';
+import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3';
 
 let s3Client: S3Client | null = null;
 

@@ -48,7 +48,7 @@ EventSchema.pre("validate", function (next) {
   if (this.isModified("totalSeats") && !this.isModified("seatsLeft")) {
     this.seatsLeft = this.totalSeats;
   }
-  (next as (err?: Error) => void)();
+  next();
 });
 
 // Compound indexes for efficient queries
