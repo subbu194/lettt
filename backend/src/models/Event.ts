@@ -44,11 +44,10 @@ const EventSchema = new Schema<EventDocument>(
   { timestamps: true }
 );
 
-EventSchema.pre("validate", function (next) {
+EventSchema.pre("validate", function () {
   if (this.isModified("totalSeats") && !this.isModified("seatsLeft")) {
     this.seatsLeft = this.totalSeats;
   }
-  next();
 });
 
 // Compound indexes for efficient queries
