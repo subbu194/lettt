@@ -440,18 +440,40 @@ export default function EventDetailPage() {
 
                   {/* Event Info */}
                   <div className="space-y-4">
-                    {event.venue && (
-                      <div className="flex items-start gap-3">
-                        <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-(--color-red)" />
-                        <div>
-                          <p className="font-semibold">{event.venue}</p>
-                          <button className="mt-1 flex items-center gap-1 text-sm text-(--color-red) hover:underline">
-                            <Navigation className="h-3 w-3" />
-                            Get Directions
-                          </button>
+                    {event.venue && (() => {
+                      const urlRegex = /(https?:\/\/[^\s]+)/;
+                      const hasUrl = !!event.venue.match(urlRegex);
+                      let displayVenue = event.venue;
+                      let mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue)}`;
+
+                      if (hasUrl) {
+                        const match = event.venue.match(urlRegex);
+                        if (match) {
+                          mapLink = match[1];
+                          // Remove the URL from the text so it doesn't look ugly
+                          displayVenue = event.venue.replace(match[1], '').trim().replace(/^[,:-]+|[,:-]+$/g, '').trim();
+                          if (!displayVenue) displayVenue = 'Event Venue';
+                        }
+                      }
+
+                      return (
+                        <div className="flex items-start gap-3">
+                          <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-(--color-red)" />
+                          <div>
+                            <p className="font-semibold tracking-tight break-words">{displayVenue}</p>
+                            <a 
+                              href={mapLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 inline-flex items-center gap-1 text-sm text-(--color-red) hover:underline"
+                            >
+                              <Navigation className="h-3 w-3" />
+                              Get Directions
+                            </a>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {event.time && (
                       <div className="flex items-center gap-3">

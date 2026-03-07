@@ -17,6 +17,7 @@ import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { VideoFormModal } from './AdminDashboard_Videos';
 import { BlogsAdminTab } from './AdminDashboard_Blogs';
+import { GalleryAdminTab } from './AdminDashboard_Gallery';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -68,7 +69,6 @@ interface VideoItem {
   youtubeUrl: string;
   season: number;
   episodeNumber?: number;
-  thumbnail?: string;
   isFeatured: boolean;
   createdAt: string;
 }
@@ -91,7 +91,7 @@ interface PaginationData {
   hasPrev: boolean;
 }
 
-type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos' | 'blogs';
+type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos' | 'blogs' | 'gallery';
 
 // ─────────────────────────────────────────────────────────────
 // Animation Variants
@@ -632,6 +632,7 @@ function ArtFormModal({
               <div className="w-24">
                 <input
                   type="number"
+                  step="any"
                   value={size.width || ''}
                   onChange={(e) => updateFrameSize(index, 'width', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="Width"
@@ -642,6 +643,7 @@ function ArtFormModal({
               <div className="w-24">
                 <input
                   type="number"
+                  step="any"
                   value={size.height || ''}
                   onChange={(e) => updateFrameSize(index, 'height', e.target.value === '' ? 0 : Number(e.target.value))}
                   placeholder="Height"
@@ -755,7 +757,9 @@ function EventFormModal({
     title: event?.title || '',
     description: '',
     venue: event?.venue || '',
-    date: event?.date ? new Date(event.date).toISOString().split('T')[0] : '',
+    date: event?.date 
+      ? new Date(new Date(event.date).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0] 
+      : '',
     startTime: '18:00',
     ticketPrice: event?.ticketPrice ?? '',
     totalSeats: event?.totalSeats ?? '',
@@ -1170,7 +1174,22 @@ function Pagination({
 
 export default function AdminDashboardPage() {
   const { logoutAdmin } = useAdminStore();
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState<Tab>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    const validTabs: Tab[] = ['overview', 'art', 'events', 'orders', 'videos', 'blogs', 'gallery'];
+    return (tab && validTabs.includes(tab as Tab)) ? (tab as Tab) : 'overview';
+  });
+
+  // Keep URL in sync without triggering full page reloads
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== activeTab) {
+      url.searchParams.set('tab', activeTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [activeTab]);
+
   const [stats, setStats] = useState<Stats>({
     totalArts: 0,
     totalEvents: 0,
@@ -1360,6 +1379,7 @@ export default function AdminDashboardPage() {
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'videos', label: 'Talk Show', icon: Video },
     { id: 'blogs', label: 'Blog', icon: BookOpen },
+    { id: 'gallery', label: 'Gallery', icon: ImageIcon },
   ];
 
   return (
@@ -1984,12 +2004,12 @@ export default function AdminDashboardPage() {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                       {videos.map((video) => {
                         const getYouTubeId = (url: string) => {
-                          const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+                          const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
                           const match = url.match(regex);
                           return match ? match[1] : null;
                         };
                         const videoId = getYouTubeId(video.youtubeUrl);
-                        const thumb = video.thumbnail || (videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : '');
+                        const thumb = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
 
                         return (
                           <div key={video._id} className="group rounded-lg border border-gray-200 bg-white overflow-hidden hover:shadow-md transition-shadow">
@@ -2034,6 +2054,9 @@ export default function AdminDashboardPage() {
 
               {/* Blogs Tab */}
               {activeTab === 'blogs' && <BlogsAdminTab />}
+
+              {/* Gallery Tab */}
+              {activeTab === 'gallery' && <GalleryAdminTab />}
             </AnimatePresence>
           )}
         </div>

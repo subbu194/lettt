@@ -57,7 +57,6 @@ const createBlogSchema = z.object({
   logo: z.string().url("Logo must be a valid URL").optional(),
   extraImages: z
     .array(z.string().url("Each extra image must be a valid URL"))
-    .max(3, "Maximum 3 extra images")
     .default([]),
   content: z.array(contentBlockSchema).default([]),
   tags: z.array(z.string()).default([]),
@@ -266,7 +265,7 @@ export const updateBlog: RequestHandler = async (req, res, next) => {
       (data as Record<string, unknown>).slug = await generateUniqueSlug(data.title, id);
     }
 
-    const blog = await Blog.findByIdAndUpdate(id, { $set: data }, { new: true, runValidators: true }).lean();
+    const blog = await Blog.findByIdAndUpdate(id, { $set: data }, { returnDocument: 'after', runValidators: true }).lean();
     if (!blog) return next(new AppError("Blog not found", 404));
     return res.json(blog);
   } catch (err) {
@@ -283,8 +282,40 @@ export const deleteBlog: RequestHandler = async (req, res, next) => {
     const { id } = req.params;
     if (!isValidObjectId(id)) return next(new AppError("Invalid blog ID", 400));
 
+    // Get the details BEFORE deleting so we can clean up R2 Storage
+    const blogToDelete = await Blog.findById(id);
+    if (!blogToDelete) return next(new AppError("Blog not found", 404));
+
     const blog = await Blog.findByIdAndDelete(id);
-    if (!blog) return next(new AppError("Blog not found", 404));
+    
+    // Automatically wipe all associated images from R2 Storage
+    if (blog) {
+      const { deleteFileFromR2 } = await import("../utils/fileUpload");
+      const urlsToDelete: string[] = [];
+
+      if (blog.coverImage) urlsToDelete.push(blog.coverImage);
+      if (blog.logo) urlsToDelete.push(blog.logo);
+      
+      // Also delete any images embedded directly inside the blog's rich text content blocks
+      if (Array.isArray(blog.content)) {
+        blog.content.forEach(block => {
+          if (block.type === 'image' && block.url) {
+            urlsToDelete.push(block.url);
+          }
+        });
+      }
+
+      if (urlsToDelete.length > 0) {
+        Promise.all(urlsToDelete.map(async (url) => {
+          try {
+            await deleteFileFromR2(url);
+          } catch (e) {
+            console.error(`Failed to delete blog asset ${url} from R2:`, e);
+          }
+        })).catch(console.error);
+      }
+    }
+
     return res.json({ message: "Blog deleted successfully" });
   } catch (err) {
     next(err);

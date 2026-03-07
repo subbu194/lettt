@@ -20,11 +20,11 @@ const pageVariants = {
   },
 };
 
-const pageTransition: any = {
+const pageTransition = {
   type: 'tween',
   ease: 'anticipate',
   duration: 0.4,
-};
+} as const;
 
 export function PageTransition({ children }: Props) {
   return (

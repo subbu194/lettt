@@ -4,14 +4,19 @@ import { Volume2, VolumeX } from 'lucide-react';
 // Declare YouTube IFrame API types
 declare global {
   interface Window {
-    YT: any;
+    YT: {
+      Player: new (elementId: string, options: Record<string, unknown>) => {
+        mute: () => void;
+        unMute: () => void;
+      };
+    };
     onYouTubeIframeAPIReady: () => void;
   }
 }
 
 export function AutoplayVideo() {
   const videoRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<{ mute: () => void; unMute: () => void } | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isPlayerReady, setIsPlayerReady] = useState(false);

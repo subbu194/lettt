@@ -407,7 +407,7 @@ export default function ArtPage() {
 
       const resp = await apiClient.get<ArtResponse>(`/art?${params.toString()}`);
       setItems(resp.data?.items || []);
-      setPagination(resp.data?.pagination || pagination);
+      setPagination(p => resp.data?.pagination || p);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {

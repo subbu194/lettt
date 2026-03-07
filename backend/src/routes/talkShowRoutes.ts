@@ -26,10 +26,11 @@ router.get("/seasons", getSeasons);
 router.get("/admin/stats", authenticateAdmin, getVideoStats);
 router.post("/", authenticateAdmin, createVideo);
 
-// Wildcard param route – must be last among GETs
+router.post("/:id/toggle-featured", authenticateAdmin, toggleFeatured);
+
+// Wildcard param routes – must be last
 router.get("/:id", getVideoById);
 router.put("/:id", authenticateAdmin, updateVideo);
 router.delete("/:id", authenticateAdmin, deleteVideo);
-router.post("/:id/toggle-featured", authenticateAdmin, toggleFeatured);
 
 export default router;

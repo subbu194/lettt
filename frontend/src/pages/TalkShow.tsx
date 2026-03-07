@@ -59,9 +59,9 @@ export default function TalkShowPage() {
     ? videos 
     : videos.filter(v => Number(v.season) === selectedSeason);
 
-  // Extract YouTube video ID for thumbnail
+  // Handles: watch?v=, youtu.be/, /embed/, /shorts/, /live/, /v/
   const getYouTubeId = (url: string) => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
     const match = url.match(regex);
     return match ? match[1] : null;
   };
@@ -154,7 +154,7 @@ export default function TalkShowPage() {
                 const episode = video.episodeNumber ? Number(video.episodeNumber) : null;
                 const youtubeUrl = String(video.youtubeUrl ?? '');
                 const videoId = getYouTubeId(youtubeUrl);
-                const thumb = video.thumbnail ? String(video.thumbnail) : videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : undefined;
+                const thumb = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
 
                 return (
                   <button
@@ -169,6 +169,12 @@ export default function TalkShowPage() {
                       ) : (
                         <div className="flex h-full items-center justify-center text-4xl">🎬</div>
                       )}
+                      {/* Duration Badge */}
+                      {video.duration ? (
+                        <div className="absolute bottom-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[11px] font-semibold tracking-wider text-white backdrop-blur-md">
+                          {video.duration as string}
+                        </div>
+                      ) : null}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                         <div className="rounded-full bg-white/90 p-3 shadow-lg">
                           <svg className="h-6 w-6 text-(--color-red)" fill="currentColor" viewBox="0 0 24 24">

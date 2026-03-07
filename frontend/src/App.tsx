@@ -8,6 +8,7 @@ import { Spinner } from '@/components/shared/Spinner';
 import { FloatingCart } from '@/components/shared/FloatingCart';
 import { useScrollToTop } from '@/hooks/useScrollToTop';
 import { useUIStore } from '@/store/useUIStore';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const Home = lazy(() => import('@/pages/Home'));
 const Events = lazy(() => import('@/pages/Events'));
@@ -42,9 +43,10 @@ function AppShell() {
     <div className="min-h-screen bg-(--color-background) text-(--color-text)">
       {!isAdminPage && <Header />}
       <main className={isAdminPage ? "" : ""}>
-        <Suspense
-          fallback={
-            <div className="flex min-h-[60vh] items-center justify-center">
+        <ErrorBoundary>
+          <Suspense
+            fallback={
+              <div className="flex min-h-[60vh] items-center justify-center">
               <Spinner size="lg" />
             </div>
           }
@@ -80,6 +82,7 @@ function AppShell() {
             </Routes>
           </AnimatePresence>
         </Suspense>
+        </ErrorBoundary>
       </main>
       {!isAdminPage && <Footer />}
 

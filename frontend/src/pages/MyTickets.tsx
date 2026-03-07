@@ -439,7 +439,7 @@ export default function MyTicketsPage() {
 
       const resp = await apiClient.get<TicketsResponse>(`/tickets/my-tickets?${params.toString()}`);
       setTickets(resp.data?.tickets || []);
-      setPagination(resp.data?.pagination || pagination);
+      setPagination(p => resp.data?.pagination || p);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {

@@ -255,7 +255,7 @@ export const updateArt: RequestHandler = async (req, res, next) => {
     const updated = await Art.findByIdAndUpdate(
       id,
       { $set: payload },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!updated) throw new AppError("Art not found", 404);
@@ -284,8 +284,23 @@ export const deleteArt: RequestHandler = async (req, res, next) => {
       throw new AppError("Invalid art ID format", 400);
     }
 
+    // Get the art details BEFORE deleting so we can clean up R2 Storage
+    const artToDelete = await Art.findById(id);
+    if (!artToDelete) throw new AppError("Art not found", 404);
+
     const deleted = await Art.findByIdAndDelete(id);
-    if (!deleted) throw new AppError("Art not found", 404);
+
+    // Automatically wipe all associated images from R2 Storage
+    if (deleted && Array.isArray(deleted.images) && deleted.images.length > 0) {
+      const { deleteFileFromR2 } = await import("../utils/fileUpload");
+      Promise.all(deleted.images.map(async (url) => {
+        try {
+          if (url) await deleteFileFromR2(url);
+        } catch (e) {
+          console.error(`Failed to delete art image ${url} from R2:`, e);
+        }
+      })).catch(console.error);
+    }
 
     return res.json({ message: "Art deleted successfully" });
   } catch (err) {
@@ -369,9 +384,36 @@ export const bulkDeleteArt: RequestHandler = async (req, res, next) => {
 
     const { ids } = bulkDeleteSchema.parse(req.body);
     
+    // Get the art details BEFORE deleting so we can clean up R2 Storage
+    const artsToDelete = await Art.find({ _id: { $in: ids } });
+
     // Delete all art items with the provided IDs
     const result = await Art.deleteMany({ _id: { $in: ids } });
     
+    // Attempt to delete all associated images from R2 in background
+    if (artsToDelete.length > 0) {
+      const { deleteFileFromR2 } = await import("../utils/fileUpload");
+      const urlsToDelete: string[] = [];
+      
+      artsToDelete.forEach(art => {
+        if (Array.isArray(art.images)) {
+          art.images.forEach(url => {
+             if (url) urlsToDelete.push(url);
+          });
+        }
+      });
+
+      if (urlsToDelete.length > 0) {
+        Promise.all(urlsToDelete.map(async (url) => {
+          try {
+            await deleteFileFromR2(url);
+          } catch (e) {
+            console.error(`Failed to delete art image ${url} from R2:`, e);
+          }
+        })).catch(console.error);
+      }
+    }
+
     return res.json({ 
       message: `Successfully deleted ${result.deletedCount} art item(s)`,
       deletedCount: result.deletedCount

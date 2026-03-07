@@ -1,18 +1,18 @@
 type VideoLike = Record<string, unknown>;
 
+// Handles: watch?v=, youtu.be/, /embed/, /shorts/, /live/, /v/
+function extractYouTubeId(url: string): string | null {
+  const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
+}
+
 export function VideoPlayer({ video }: { video: VideoLike }) {
   const title = String(video.title ?? 'Talk Show');
   const description = video.description ? String(video.description) : '';
   const youtubeUrl = String(video.youtubeUrl ?? video.url ?? video.videoUrl ?? video.src ?? '');
   
-  // Extract YouTube video ID from URL
-  const getYouTubeId = (url: string) => {
-    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-    const match = url.match(regex);
-    return match ? match[1] : null;
-  };
-  
-  const videoId = getYouTubeId(youtubeUrl);
+  const videoId = extractYouTubeId(youtubeUrl);
   const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
 
   return (

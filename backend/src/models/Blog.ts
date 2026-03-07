@@ -29,7 +29,7 @@ export interface BlogDocument extends mongoose.Document {
   subject: string; // person / company the blog is about
   coverImage: string;
   logo?: string; // optional logo (company logo, etc.)
-  extraImages: string[]; // up to 3 additional images for the blog
+  extraImages: string[]; // additional images for the blog
   content: ContentBlock[]; // ordered rich-content blocks
   tags: string[];
   isFeatured: boolean;
@@ -78,10 +78,6 @@ const BlogSchema = new Schema<BlogDocument>(
     extraImages: {
       type: [String],
       default: [],
-      validate: {
-        validator: (arr: string[]) => arr.length <= 3,
-        message: "Maximum 3 extra images allowed per blog",
-      },
     },
     content: { type: [ContentBlockSchema], default: [] },
     tags: { type: [String], default: [] },

@@ -4,17 +4,18 @@ import { Art } from "../models/Art";
 import { Event } from "../models/Event";
 import { TalkShowVideo } from "../models/TalkShowVideo";
 import { Blog } from "../models/Blog";
+import { GalleryImage } from "../models/GalleryImage";
 
 const searchQuerySchema = z.object({
   q: z.string().trim().min(1, "Search query is required").max(120),
-  scope: z.enum(["all", "art", "events", "talkshow", "blogs"]).optional().default("all"),
+  scope: z.enum(["all", "art", "events", "talkshow", "blogs", "gallery"]).optional().default("all"),
   limit: z.coerce.number().int().min(1).max(20).optional().default(8),
 });
 
-type SearchScope = "all" | "art" | "events" | "talkshow" | "blogs";
+type SearchScope = "all" | "art" | "events" | "talkshow" | "blogs" | "gallery";
 type SearchSuggestion = {
   id: string;
-  type: "art" | "event" | "talkshow" | "blog";
+  type: "art" | "event" | "talkshow" | "blog" | "gallery";
   title: string;
   subtitle: string;
   image: string | null;
@@ -28,6 +29,7 @@ function splitLimit(total: number, scope: SearchScope): Record<Exclude<SearchSco
       events: scope === "events" ? total : 0,
       talkshow: scope === "talkshow" ? total : 0,
       blogs: scope === "blogs" ? total : 0,
+      gallery: scope === "gallery" ? total : 0,
     };
   }
 
@@ -37,6 +39,7 @@ function splitLimit(total: number, scope: SearchScope): Record<Exclude<SearchSco
     events: perType,
     talkshow: perType,
     blogs: perType,
+    gallery: perType,
   };
 }
 
@@ -59,7 +62,7 @@ export const unifiedSearch: RequestHandler = async (req, res, next) => {
     const startsWith = new RegExp(`^${safe}`, "i");
     const contains = new RegExp(safe, "i");
 
-    const [artResults, eventResults, talkShowResults, blogResults] = await Promise.all([
+    const [artResults, eventResults, talkShowResults, blogResults, galleryResults] = await Promise.all([
       limits.art > 0
         ? Art.find({
             isAvailable: true,
@@ -125,6 +128,18 @@ export const unifiedSearch: RequestHandler = async (req, res, next) => {
             .limit(limits.blogs)
             .lean()
         : Promise.resolve([]),
+      limits.gallery > 0
+        ? GalleryImage.find({
+            $or: [
+              { category: startsWith },
+              { category: contains },
+            ],
+          })
+            .select("imageUrl category")
+            .sort({ createdAt: -1 })
+            .limit(limits.gallery)
+            .lean()
+        : Promise.resolve([]),
     ]);
 
     const suggestions: SearchSuggestion[] = [
@@ -159,6 +174,14 @@ export const unifiedSearch: RequestHandler = async (req, res, next) => {
         subtitle: truncate(item.subject || "Blog"),
         image: item.coverImage || null,
         href: `/blog/${item.slug}`,
+      })),
+      ...galleryResults.map((item) => ({
+        id: String(item._id),
+        type: "gallery" as const,
+        title: item.category || "Gallery",
+        subtitle: "Gallery Image",
+        image: item.imageUrl || null,
+        href: "/gallery",
       })),
     ];
 

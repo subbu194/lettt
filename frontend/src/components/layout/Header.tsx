@@ -36,6 +36,7 @@ export function Header() {
     if (location.pathname.startsWith('/art')) return 'art';
     if (location.pathname.startsWith('/events') || location.pathname.startsWith('/event-checkout')) return 'events';
     if (location.pathname.startsWith('/talkshow')) return 'talkshow';
+    if (location.pathname.startsWith('/gallery')) return 'gallery';
     if (location.pathname.startsWith('/blog') || location.pathname.startsWith('/catalog')) return 'blogs';
     return 'all';
   }, [location.pathname]);
@@ -45,6 +46,7 @@ export function Header() {
     if (searchScope === 'art') return 'Search art...';
     if (searchScope === 'events') return 'Search event...';
     if (searchScope === 'talkshow') return 'Search talk show...';
+    if (searchScope === 'gallery') return 'Search gallery...';
     return 'Search blog...';
   }, [searchScope]);
 
@@ -164,6 +166,7 @@ export function Header() {
     if (type === 'art') return 'Art';
     if (type === 'event') return 'Event';
     if (type === 'talkshow') return 'Talk Show';
+    if (type === 'gallery') return 'Gallery';
     return 'Blog';
   };
 

@@ -14,12 +14,19 @@ const createVideoSchema = z.object({
   youtubeUrl: z.string().url("Must be a valid YouTube URL"),
   season: z.number().min(1, "Season must be at least 1"),
   episodeNumber: z.number().min(1).optional(),
-  thumbnail: z.string().url().optional(),
   duration: z.string().optional(),
   isFeatured: z.boolean().optional().default(false),
 });
 
-const updateVideoSchema = createVideoSchema.partial();
+const updateVideoSchema = z.object({
+  title: z.string().min(2, "Title must be at least 2 characters").optional(),
+  description: z.string().min(10, "Description must be at least 10 characters").optional(),
+  youtubeUrl: z.string().url("Must be a valid YouTube URL").optional(),
+  season: z.number().min(1, "Season must be at least 1").optional(),
+  episodeNumber: z.number().min(1).optional(),
+  duration: z.string().optional(),
+  isFeatured: z.boolean().optional(),
+});
 
 const listQuerySchema = z.object({
   page: z.coerce.number().min(1).optional().default(1),
@@ -35,16 +42,18 @@ function isValidObjectId(id: string): boolean {
 }
 
 // Helper function to extract YouTube video ID from URL
+// Handles: watch?v=, youtu.be/, /embed/, /shorts/, /live/, /v/
 function extractYouTubeId(url: string): string | null {
-  const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+  const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
   const match = url.match(regex);
   return match ? match[1] ?? null : null;
 }
 
 // Helper function to generate YouTube thumbnail URL
+// Uses hqdefault (480x360) which is guaranteed to exist for every video
 function getYouTubeThumbnail(url: string): string | null {
   const videoId = extractYouTubeId(url);
-  return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
+  return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -142,8 +151,8 @@ export const createVideo: RequestHandler = async (req, res, next) => {
 
     const payload = createVideoSchema.parse(req.body);
     
-    // Auto-generate thumbnail from YouTube URL if not provided
-    const thumbnail = payload.thumbnail || getYouTubeThumbnail(payload.youtubeUrl);
+    // Auto-generate thumbnail from YouTube URL
+    const thumbnail = getYouTubeThumbnail(payload.youtubeUrl);
     
     const created = await TalkShowVideo.create({ 
       ...payload, 
@@ -176,16 +185,22 @@ export const updateVideo: RequestHandler = async (req, res, next) => {
     }
 
     const payload = updateVideoSchema.parse(req.body);
-    
-    // If YouTube URL is being updated and no custom thumbnail provided, auto-generate it
-    if (payload.youtubeUrl && !payload.thumbnail) {
-      payload.thumbnail = getYouTubeThumbnail(payload.youtubeUrl) ?? undefined;
+    const updateData: Record<string, unknown> = { ...payload };
+
+    // Regenerate YouTube thumbnail when URL changes
+    if (payload.youtubeUrl) {
+      updateData.thumbnail = getYouTubeThumbnail(payload.youtubeUrl) ?? undefined;
     }
-    
+
+    // Remove undefined keys so they don't overwrite existing values
+    for (const key of Object.keys(updateData)) {
+      if (updateData[key] === undefined) delete updateData[key];
+    }
+
     const updated = await TalkShowVideo.findByIdAndUpdate(
       id,
-      { $set: payload },
-      { new: true, runValidators: true }
+      { $set: updateData },
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!updated) throw new AppError("Video not found", 404);

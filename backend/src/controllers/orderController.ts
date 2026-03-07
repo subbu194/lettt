@@ -190,7 +190,7 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
           { $inc: { seatsLeft: -item.quantity } },
           { 
             session,
-            new: true // Return updated document
+            returnDocument: 'after' // Return updated document
           }
         );
         
@@ -227,7 +227,7 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
           { $inc: { quantity: -item.quantity } },
           { 
             session,
-            new: true
+            returnDocument: 'after'
           }
         );
         

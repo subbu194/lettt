@@ -291,19 +291,26 @@ export const updateEvent: RequestHandler = async (req, res, next) => {
 
     const payload = updateEventSchema.parse(req.body);
     
-    // If totalSeats is being updated and it's increasing, adjust seatsLeft proportionally
+    // If totalSeats is being updated, adjust seatsLeft proportionally
     if (payload.totalSeats !== undefined) {
       const existing = await Event.findById(id);
-      if (existing && payload.totalSeats > existing.totalSeats) {
+      if (existing && payload.totalSeats !== existing.totalSeats) {
         const diff = payload.totalSeats - existing.totalSeats;
-        payload.seatsLeft = existing.seatsLeft + diff;
+        const newSeatsLeft = existing.seatsLeft + diff;
+        
+        // Prevent reducing total seats below the amount of tickets already sold
+        if (newSeatsLeft < 0) {
+          throw new AppError(`Cannot reduce total seats below already sold tickets`, 400);
+        }
+        
+        payload.seatsLeft = newSeatsLeft;
       }
     }
 
     const updated = await Event.findByIdAndUpdate(
       id,
       { $set: payload },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     if (!updated) throw new AppError("Event not found", 404);
@@ -332,8 +339,35 @@ export const deleteEvent: RequestHandler = async (req, res, next) => {
       throw new AppError("Invalid event ID format", 400);
     }
 
+    // Get the event details BEFORE deleting so we can clean up R2 Storage
+    const eventToDelete = await Event.findById(id);
+    if (!eventToDelete) throw new AppError("Event not found", 404);
+
     const deleted = await Event.findByIdAndDelete(id);
-    if (!deleted) throw new AppError("Event not found", 404);
+
+    // Automatically wipe all associated images from R2 Storage
+    if (deleted) {
+      const { deleteFileFromR2 } = await import("../utils/fileUpload");
+      const urlsToDelete: string[] = [];
+
+      if (deleted.coverImage) urlsToDelete.push(deleted.coverImage);
+      
+      if (Array.isArray(deleted.galleryImages)) {
+        deleted.galleryImages.forEach((url) => {
+          if (url) urlsToDelete.push(url);
+        });
+      }
+
+      if (urlsToDelete.length > 0) {
+        Promise.all(urlsToDelete.map(async (url) => {
+          try {
+            await deleteFileFromR2(url);
+          } catch (e) {
+            console.error(`Failed to delete event image ${url} from R2:`, e);
+          }
+        })).catch(console.error);
+      }
+    }
 
     return res.json({ message: "Event deleted successfully" });
   } catch (err) {
@@ -387,9 +421,38 @@ export const bulkDeleteEvents: RequestHandler = async (req, res, next) => {
 
     const { ids } = bulkDeleteSchema.parse(req.body);
     
+    // Get the event details BEFORE deleting so we can clean up R2 Storage
+    const eventsToDelete = await Event.find({ _id: { $in: ids } });
+
     // Delete all events with the provided IDs
     const result = await Event.deleteMany({ _id: { $in: ids } });
     
+    // Attempt to delete all associated images from R2 in background
+    if (eventsToDelete.length > 0) {
+      const { deleteFileFromR2 } = await import("../utils/fileUpload");
+      const urlsToDelete: string[] = [];
+      
+      eventsToDelete.forEach(event => {
+        if (event.coverImage) urlsToDelete.push(event.coverImage);
+        
+        if (Array.isArray(event.galleryImages)) {
+          event.galleryImages.forEach(url => {
+            if (url) urlsToDelete.push(url);
+          });
+        }
+      });
+
+      if (urlsToDelete.length > 0) {
+        Promise.all(urlsToDelete.map(async (url) => {
+          try {
+            await deleteFileFromR2(url);
+          } catch (e) {
+            console.error(`Failed to delete event image ${url} from R2:`, e);
+          }
+        })).catch(console.error);
+      }
+    }
+
     return res.json({ 
       message: `Successfully deleted ${result.deletedCount} event(s)`,
       deletedCount: result.deletedCount

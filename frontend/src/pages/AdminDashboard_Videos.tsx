@@ -14,9 +14,15 @@ interface VideoItem {
   youtubeUrl: string;
   season: number;
   episodeNumber?: number;
-  thumbnail?: string;
+  duration?: string;
   isFeatured: boolean;
   createdAt: string;
+}
+
+function extractYouTubeId(url: string): string | null {
+  const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -32,17 +38,18 @@ export function VideoFormModal({
   onClose: () => void; 
   onSuccess: () => void;
 }) {
-  const [form, setForm] = useState({
-    title: video?.title || '',
-    description: video?.description || '',
-    youtubeUrl: video?.youtubeUrl || '',
-    season: video?.season || 1,
-    episodeNumber: video?.episodeNumber || '',
-    thumbnail: video?.thumbnail || '',
-    isFeatured: video?.isFeatured || false,
-  });
+  const [title, setTitle] = useState(video?.title || '');
+  const [description, setDescription] = useState(video?.description || '');
+  const [youtubeUrl, setYoutubeUrl] = useState(video?.youtubeUrl || '');
+  const [season, setSeason] = useState(video?.season || 1);
+  const [episodeNumber, setEpisodeNumber] = useState<string | number>(video?.episodeNumber || '');
+  const [duration, setDuration] = useState(video?.duration || '');
+  const [isFeatured, setIsFeatured] = useState(video?.isFeatured || false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const videoId = extractYouTubeId(youtubeUrl);
+  const ytThumb = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,14 +57,14 @@ export function VideoFormModal({
     setError('');
 
     try {
-      const payload = {
-        title: form.title,
-        description: form.description,
-        youtubeUrl: form.youtubeUrl,
-        season: Number(form.season),
-        episodeNumber: form.episodeNumber ? Number(form.episodeNumber) : undefined,
-        thumbnail: form.thumbnail || undefined,
-        isFeatured: form.isFeatured,
+      const payload: Record<string, unknown> = {
+        title,
+        description,
+        youtubeUrl,
+        season: Number(season),
+        episodeNumber: episodeNumber ? Number(episodeNumber) : undefined,
+        duration: duration || undefined,
+        isFeatured,
       };
 
       if (video?._id) {
@@ -107,8 +114,8 @@ export function VideoFormModal({
             <input
               type="text"
               required
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="Enter video title"
             />
@@ -120,8 +127,8 @@ export function VideoFormModal({
             </label>
             <textarea
               required
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               rows={3}
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="Enter video description"
@@ -135,14 +142,14 @@ export function VideoFormModal({
             <input
               type="url"
               required
-              value={form.youtubeUrl}
-              onChange={(e) => setForm({ ...form, youtubeUrl: e.target.value })}
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
               className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               placeholder="https://www.youtube.com/watch?v=..."
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Season <span className="text-red-500">*</span>
@@ -151,8 +158,8 @@ export function VideoFormModal({
                 type="number"
                 required
                 min={1}
-                value={form.season}
-                onChange={(e) => setForm({ ...form, season: Number(e.target.value) })}
+                value={season}
+                onChange={(e) => setSeason(Number(e.target.value))}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
               />
             </div>
@@ -164,33 +171,50 @@ export function VideoFormModal({
               <input
                 type="number"
                 min={1}
-                value={form.episodeNumber}
-                onChange={(e) => setForm({ ...form, episodeNumber: e.target.value })}
+                value={episodeNumber}
+                onChange={(e) => setEpisodeNumber(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
                 placeholder="Optional"
               />
             </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Duration
+              </label>
+              <input
+                type="text"
+                value={duration}
+                onChange={(e) => setDuration(e.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+                placeholder="e.g. 15:30"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Custom Thumbnail URL (Optional)
-            </label>
-            <input
-              type="url"
-              value={form.thumbnail}
-              onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
-              placeholder="Leave empty to use YouTube thumbnail"
-            />
-          </div>
+          {/* Thumbnail Preview */}
+          {ytThumb && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Thumbnail Preview
+              </label>
+              <div className="relative aspect-video w-full max-w-xs overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                <img
+                  src={ytThumb}
+                  alt="Thumbnail preview"
+                  className="h-full w-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="featured"
-              checked={form.isFeatured}
-              onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+              checked={isFeatured}
+              onChange={(e) => setIsFeatured(e.target.checked)}
               className="h-4 w-4 rounded border-gray-300"
             />
             <label htmlFor="featured" className="text-sm font-medium text-gray-700">
@@ -204,26 +228,25 @@ export function VideoFormModal({
               {error}
             </div>
           )}
-        </form>
 
-        <div className="flex gap-3 border-t border-gray-100 p-6">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50"
-            disabled={loading}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit}
-            disabled={loading}
-            className="flex-1 rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:opacity-50"
-          >
-            {loading ? 'Saving...' : video ? 'Update Video' : 'Add Video'}
-          </button>
-        </div>
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 rounded-xl border border-gray-200 px-4 py-3 font-medium text-gray-700 hover:bg-gray-50"
+              disabled={loading}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 rounded-xl bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {loading ? 'Saving...' : video ? 'Update Video' : 'Add Video'}
+            </button>
+          </div>
+        </form>
       </motion.div>
     </div>
   );

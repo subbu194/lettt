@@ -40,15 +40,88 @@ interface BlogDetail {
 }
 
 // ─────────────────────────────────────────────────────────────
+// Text helpers
+//
+// Many CMS/DB entries store bullet points as newline-separated
+// text inside a single paragraph block, e.g.:
+//   "• Point one\n• Point two\n- Point three\n1. Point four"
+//
+// renderTextLines() detects this pattern and renders each line
+// as its own visual item instead of running them together.
+// Plain prose paragraphs (no list markers) are rendered normally.
+// ─────────────────────────────────────────────────────────────
+
+// Matches common list-marker prefixes: •, -, *, ◦, 1., a), etc.
+const LIST_MARKER_RE = /^(\s*(•|‣|◦|[-*]|\d+[.)]\s|[a-z][.)]\s))/i;
+
+function isListLine(line: string) {
+  return LIST_MARKER_RE.test(line.trim());
+}
+
+function stripMarker(line: string) {
+  return line.trim().replace(LIST_MARKER_RE, '').trim();
+}
+
+/**
+ * Split raw text on newlines, filter blank lines, then decide:
+ * - If ALL non-empty lines look like list items → render as <ul>
+ * - If SOME lines look like list items → render mixed (list items
+ *   get bullets, plain lines get their own <p>)
+ * - If NO lines are list items → render as a single flowing <p>
+ *   (join lines with a space so pre-wrap line breaks don't show)
+ */
+function RichParagraph({ text, style }: { text: string; style?: React.CSSProperties }) {
+  if (!text) return null;
+  const rawLines = text.split('\n');
+  const blocks: { isList: boolean; content: string }[] = [];
+  
+  for (const line of rawLines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    
+    if (isListLine(trimmed)) {
+      blocks.push({ isList: true, content: stripMarker(trimmed) });
+    } else {
+      if (blocks.length > 0 && blocks[blocks.length - 1].isList) {
+        // Append hard-wrapped line to the previous list item
+        blocks[blocks.length - 1].content += ' ' + trimmed;
+      } else if (blocks.length > 0 && !blocks[blocks.length - 1].isList) {
+        // Append hard-wrapped line to the previous paragraph
+        blocks[blocks.length - 1].content += ' ' + trimmed;
+      } else {
+        blocks.push({ isList: false, content: trimmed });
+      }
+    }
+  }
+
+  if (blocks.length === 0) return null;
+
+  return (
+    <div style={{ margin: '0 0 1.1em 0', display: 'flex', flexDirection: 'column', gap: '0.6rem', ...style }}>
+      {blocks.map((b, i) => b.isList ? (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'flex-start', gap: '0.6rem',
+          fontSize: '1.05rem', lineHeight: 1.75, color: '#374151',
+        }}>
+          <span style={{
+            marginTop: '0.55rem', width: '6px', height: '6px',
+            borderRadius: '50%', background: '#ef4444', flexShrink: 0,
+          }} />
+          <span>{b.content}</span>
+        </div>
+      ) : (
+        <p key={i} style={{
+          fontSize: '1.05rem', lineHeight: 1.85, color: '#374151', margin: 0,
+        }}>
+          {b.content}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
 // Grouping: convert flat block array into render units
-//
-// • FloatGroup  — a left/right image + following text blocks
-//                 → rendered with CSS Grid (2 col, no floats)
-// • SingleBlock — everything else, full width
-//
-// A float image grabs all following paragraph/heading/quote
-// blocks until it hits another image, a divider, or EOF.
-// If it has no text blocks after it → fall back to center img.
 // ─────────────────────────────────────────────────────────────
 
 type FloatGroup = {
@@ -84,7 +157,6 @@ function buildRenderUnits(blocks: ContentBlock[]): RenderUnit[] {
         i++;
       }
       if (textBlocks.length === 0) {
-        // no text to pair with — render as plain center image
         units.push({ kind: 'single', block: { ...b, align: 'center' } });
       } else {
         units.push({ kind: 'float', align: b.align as 'left' | 'right', image: b, textBlocks });
@@ -99,16 +171,13 @@ function buildRenderUnits(blocks: ContentBlock[]): RenderUnit[] {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Shared text-block renderer (used in both float + standalone)
+// Shared text-block renderer
 // ─────────────────────────────────────────────────────────────
 
 function TextBlock({ block }: { block: ContentBlock }) {
   if (block.type === 'paragraph') {
-    return (
-      <p style={{ fontSize: '1.05rem', lineHeight: 1.85, color: '#374151', margin: '0 0 1.1em 0' }}>
-        {block.text}
-      </p>
-    );
+    // Use RichParagraph so newline-separated bullets render correctly
+    return <RichParagraph text={block.text ?? ''} />;
   }
 
   if (block.type === 'heading') {
@@ -118,7 +187,8 @@ function TextBlock({ block }: { block: ContentBlock }) {
       fontWeight: lvl === 1 ? 800 : lvl === 2 ? 700 : 600,
       color: '#111827',
       letterSpacing: '-0.02em',
-      lineHeight: 1.25,
+      lineHeight: 1.3,
+      // No whiteSpace:pre-wrap — headings should never have forced line breaks
       margin: `${lvl === 1 ? '1.5rem' : lvl === 2 ? '1.25rem' : '1rem'} 0 0.45rem 0`,
     };
     if (lvl === 1) return <h1 style={st}>{block.text}</h1>;
@@ -138,6 +208,8 @@ function TextBlock({ block }: { block: ContentBlock }) {
         fontSize: '1rem',
         color: '#1f2937',
         lineHeight: 1.7,
+        // Quotes can preserve intentional line breaks
+        whiteSpace: 'pre-wrap',
       }}>
         {block.text}
       </blockquote>
@@ -148,8 +220,7 @@ function TextBlock({ block }: { block: ContentBlock }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// Float group: CSS Grid 2-column — image | text or text | image
-// No floats, no clearfix, no overflow hacks.
+// Float group — responsive CSS Grid, stacks on mobile
 // ─────────────────────────────────────────────────────────────
 
 function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
@@ -157,18 +228,14 @@ function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
 
   return (
     <div style={{
-      display: 'grid',
-      // image column is fixed 200px, text column takes the rest
-      gridTemplateColumns: imageFirst ? '200px 1fr' : '1fr 200px',
-      gap: '1.5rem',
-      alignItems: 'start',
-      margin: '1.75rem 0',
+      margin: '2rem 0',
+      overflow: 'hidden', // Clears the float so subsequent blocks start cleanly below
     }}>
-      {/* Image always in column order matching left/right intent */}
       <figure style={{
-        margin: 0,
-        gridColumn: imageFirst ? 1 : 2,
-        gridRow: 1,
+        margin: imageFirst ? '0.4rem 2rem 1.5rem 0' : '0.4rem 0 1.5rem 2rem',
+        float: imageFirst ? 'left' : 'right',
+        width: '100%',
+        maxWidth: '340px',
       }}>
         <img
           src={unit.image.url}
@@ -176,16 +243,14 @@ function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
           style={{
             width: '100%',
             borderRadius: '0.75rem',
-            objectFit: 'cover',
             display: 'block',
             boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            maxHeight: '300px',
           }}
         />
         {unit.image.caption && (
           <figcaption style={{
-            marginTop: '0.35rem',
-            fontSize: '0.72rem',
+            marginTop: '0.6rem',
+            fontSize: '0.75rem',
             color: '#9ca3af',
             textAlign: 'center',
             fontStyle: 'italic',
@@ -196,11 +261,7 @@ function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
         )}
       </figure>
 
-      {/* Text column */}
-      <div style={{
-        gridColumn: imageFirst ? 2 : 1,
-        gridRow: 1,
-      }}>
+      <div>
         {unit.textBlocks.map((tb, i) => <TextBlock key={i} block={tb} />)}
       </div>
     </div>
@@ -212,7 +273,6 @@ function FloatGroupRenderer({ unit }: { unit: FloatGroup }) {
 // ─────────────────────────────────────────────────────────────
 
 function SingleBlockRenderer({ block }: { block: ContentBlock }) {
-  // Delegate text-like blocks
   if (block.type === 'paragraph' || block.type === 'heading' || block.type === 'quote') {
     return <TextBlock block={block} />;
   }
@@ -236,8 +296,8 @@ function SingleBlockRenderer({ block }: { block: ContentBlock }) {
           <img
             src={block.url} alt={block.caption ?? ''}
             style={{
-              width: '100%', objectFit: 'cover', borderRadius: '1rem',
-              maxHeight: '480px', display: 'block',
+              width: '100%', borderRadius: '1rem',
+              display: 'block',
               boxShadow: '0 8px 40px rgba(0,0,0,0.12)',
             }}
           />
@@ -253,14 +313,13 @@ function SingleBlockRenderer({ block }: { block: ContentBlock }) {
       );
     }
 
-    // center (default for standalone images)
     return (
       <figure style={{ margin: '2rem 0', textAlign: 'center' }}>
         <img
           src={block.url} alt={block.caption ?? ''}
           style={{
-            maxWidth: '100%', width: '100%', borderRadius: '1rem',
-            objectFit: 'cover', maxHeight: '440px', display: 'block',
+            width: '100%', borderRadius: '1rem',
+            display: 'block',
             boxShadow: '0 4px 24px rgba(0,0,0,0.1)',
           }}
         />
@@ -338,15 +397,47 @@ export default function BlogDetailPage() {
 
   return (
     <PageTransition>
-      <article style={{ background: 'var(--color-background, #f9fafb)', minHeight: '100vh' }}>
+      <article style={{ background: 'var(--color-background, #f9fafb)', minHeight: '100vh', position: 'relative' }}>
+
+        {/* ── Back button ── */}
+        <Link to="/blog" style={{
+          position: 'fixed', top: '1.25rem', left: '1.25rem', zIndex: 50,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: '2.5rem', height: '2.5rem', borderRadius: '50%',
+          background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)',
+          color: '#fff', textDecoration: 'none',
+          boxShadow: '0 2px 12px rgba(0,0,0,0.25)',
+          transition: 'background 0.2s',
+        }}>
+          <ArrowLeft size={18} />
+        </Link>
 
         {/* ── Hero ── */}
-        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', maxHeight: '520px' }}>
-          <img
-            src={blog.coverImage} alt={blog.title}
-            style={{ width: '100%', maxHeight: '520px', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
-          />
-          {/* Gradient covers only the bottom portion — image stays visible above */}
+        <div style={{ position: 'relative', width: '100%', overflow: 'hidden', maxHeight: '560px' }}>
+          <div style={{ display: 'flex', width: '100%', maxHeight: '560px' }}>
+            {blog.logo && (
+              <div style={{
+                width: '20%', minWidth: '120px', maxWidth: '280px', flexShrink: 0,
+                background: '#111827',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                padding: '2rem',
+              }}>
+                <img
+                  src={blog.logo} alt="logo"
+                  style={{
+                    maxWidth: '80%', maxHeight: '60%', objectFit: 'contain',
+                    filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+                  }}
+                />
+              </div>
+            )}
+            <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+              <img
+                src={blog.coverImage} alt={blog.title}
+                style={{ width: '100%', height: '100%', minHeight: '360px', maxHeight: '560px', objectFit: 'cover', objectPosition: 'center top', display: 'block' }}
+              />
+            </div>
+          </div>
           <div style={{
             position: 'absolute', left: 0, right: 0, bottom: 0, height: '65%',
             background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)',
@@ -354,26 +445,9 @@ export default function BlogDetailPage() {
           }} />
 
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}>
-            <div className="lux-container" style={{ paddingBottom: '2.25rem' }}>
+            <div style={{ maxWidth: '100%', margin: '0 auto', padding: '0 2rem 2.25rem 2rem' }}>
               <motion.div variants={fadeInUp} initial="initial" animate="animate">
-                <Link to="/blog" style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
-                  color: 'rgba(255,255,255,0.6)', fontSize: '0.78rem',
-                  textDecoration: 'none', marginBottom: '0.9rem',
-                }}>
-                  <ArrowLeft size={13} /> All Blogs
-                </Link>
-
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
-                  {blog.logo && (
-                    <div style={{
-                      width: '2rem', height: '2rem', borderRadius: '50%', background: '#fff',
-                      overflow: 'hidden', flexShrink: 0, boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <img src={blog.logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain', padding: '3px' }} />
-                    </div>
-                  )}
                   <span style={{ color: '#fb7185', fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                     {blog.subject}
                   </span>
@@ -388,10 +462,9 @@ export default function BlogDetailPage() {
                     </span>
                   )}
                 </div>
-
                 <h1 style={{
                   fontSize: 'clamp(1.5rem, 4vw, 2.6rem)', fontWeight: 800, color: '#fff',
-                  lineHeight: 1.2, maxWidth: '48rem', margin: 0,
+                  lineHeight: 1.2, margin: 0,
                   textShadow: '0 2px 12px rgba(0,0,0,0.35)',
                 }}>
                   {blog.title}
@@ -403,8 +476,10 @@ export default function BlogDetailPage() {
 
         {/* ── Meta bar ── */}
         <div style={{ background: '#fff', borderBottom: '1px solid rgba(0,0,0,0.07)' }}>
-          <div className="lux-container" style={{
+          <div style={{
+            maxWidth: '100%', margin: '0 auto',
             paddingTop: '0.8rem', paddingBottom: '0.8rem',
+            paddingLeft: '2rem', paddingRight: '2rem',
             display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem',
             fontSize: '0.8rem', color: '#6b7280',
           }}>
@@ -429,8 +504,8 @@ export default function BlogDetailPage() {
         </div>
 
         {/* ── Article body ── */}
-        <div className="lux-container" style={{ paddingTop: '2.75rem', paddingBottom: '4rem' }}>
-          <div style={{ maxWidth: '46rem', margin: '0 auto' }}>
+        <div style={{ paddingTop: '2.75rem', paddingBottom: '4rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
+          <div style={{ maxWidth: '100%', margin: '0 auto' }}>
 
             {/* Excerpt lead */}
             <p style={{
@@ -447,7 +522,7 @@ export default function BlogDetailPage() {
                 No content available for this article yet.
               </p>
             ) : (
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                 {units.map((unit, i) =>
                   unit.kind === 'float'
                     ? <FloatGroupRenderer key={i} unit={unit} />
@@ -459,14 +534,14 @@ export default function BlogDetailPage() {
         </div>
 
         {/* ── Back link ── */}
-        <div className="lux-container" style={{ paddingBottom: '4rem' }}>
+        <div style={{ maxWidth: '100%', margin: '0 auto', paddingBottom: '4rem', paddingLeft: '2rem', paddingRight: '2rem' }}>
           <Link to="/blog" style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
             padding: '0.6rem 1.2rem', borderRadius: '0.75rem',
             border: '1px solid rgba(0,0,0,0.1)', background: '#fff',
             fontSize: '0.875rem', fontWeight: 500, color: '#374151', textDecoration: 'none',
           }}>
-            <ArrowLeft size={15} /> Back to Blog
+            <ArrowLeft size={15} /> All Blogs
           </Link>
         </div>
 

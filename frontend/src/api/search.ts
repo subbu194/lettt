@@ -1,10 +1,10 @@
 import apiClient from '@/api/client';
 
-export type SearchScope = 'all' | 'art' | 'events' | 'talkshow' | 'blogs';
+export type SearchScope = 'all' | 'art' | 'events' | 'talkshow' | 'blogs' | 'gallery';
 
 export type SearchSuggestion = {
   id: string;
-  type: 'art' | 'event' | 'talkshow' | 'blog';
+  type: 'art' | 'event' | 'talkshow' | 'blog' | 'gallery';
   title: string;
   subtitle: string;
   image: string | null;

@@ -30,9 +30,9 @@ function loadInitial(): CartItem[] {
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
     // Filter out any event items from old cart data
-    return (parsed as any[]).filter((item: any) => 
+    return (parsed as Record<string, unknown>[]).filter((item) => 
       !item.itemType || item.itemType === 'art'
-    );
+    ) as CartItem[];
   } catch {
     return [];
   }

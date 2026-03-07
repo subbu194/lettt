@@ -112,13 +112,13 @@ export function TalkShowVideos() {
                 const youtubeUrl = String(video.youtubeUrl ?? '');
 
                 const getYouTubeId = (url: string) => {
-                  const regex = /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/;
+                  const regex = /(?:youtube\.com\/(?:shorts\/|live\/|v\/|embed\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
                   const match = url.match(regex);
                   return match ? match[1] : null;
                 };
 
                 const videoId = getYouTubeId(youtubeUrl);
-                const thumb = video.thumbnail ? String(video.thumbnail) : videoId ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` : undefined;
+                const thumb = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : undefined;
 
                 return (
                   <button
@@ -136,6 +136,13 @@ export function TalkShowVideos() {
                           <Play className="h-12 w-12 text-red-200" />
                         </div>
                       )}
+                      
+                      {/* Duration Badge */}
+                      {video.duration ? (
+                        <div className="absolute top-2 right-2 rounded-md bg-black/80 px-1.5 py-0.5 text-[11px] font-semibold tracking-wider text-white backdrop-blur-md z-10">
+                          {video.duration as string}
+                        </div>
+                      ) : null}
                       {/* Play button overlay */}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-all duration-300">
                         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 shadow-lg scale-75 opacity-0 group-hover:scale-100 group-hover:opacity-100 transition-all duration-300">

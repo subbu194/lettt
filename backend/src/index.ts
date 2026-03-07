@@ -16,6 +16,7 @@ import uploadRoutes from "./routes/uploadRoutes";
 import exportRoutes from "./routes/exportRoutes";
 import talkShowRoutes from "./routes/talkShowRoutes";
 import blogRoutes from "./routes/blogRoutes";
+import galleryRoutes from "./routes/galleryRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
@@ -55,6 +56,7 @@ async function start() {
   app.use("/api/v1/export", exportRoutes);
   app.use("/api/v1/talkshow", talkShowRoutes);
   app.use("/api/v1/blogs", blogRoutes);
+  app.use("/api/v1/gallery", galleryRoutes);
   app.use("/api/v1/search", searchRoutes);
 
   app.get("/", (_req, res) => {

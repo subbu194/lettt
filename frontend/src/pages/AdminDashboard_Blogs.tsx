@@ -487,10 +487,8 @@ export function BlogFormModal({
   }, [stateKey]);
 
   const imageBlockCount = blocks.filter(b => b.type === 'image').length;
-  const imageBlocksMaxed = imageBlockCount >= 3;
 
   const addBlock = (type: BlockType) => {
-    if (type === 'image' && imageBlocksMaxed) return;
     setBlocks(prev => [...prev, newBlock(type)]);
   };
   const updateBlock = (i: number, updated: EditorBlock) =>
@@ -677,14 +675,13 @@ export function BlogFormModal({
             <div className="flex items-start justify-between mb-1">
               <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Article Content</h3>
               {imageBlockCount > 0 && (
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${imageBlocksMaxed ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>
-                  {imageBlockCount}/3 images used
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                  {imageBlockCount} images
                 </span>
               )}
             </div>
             <p className="mb-4 text-xs text-gray-500 leading-relaxed">
               Build your article block by block — text, headings, quotes, or images anywhere in the flow.
-              Each <strong>Image block</strong> uploads one photo. Maximum <strong>3 image blocks</strong> per article.
             </p>
 
             <div className="space-y-3">
@@ -707,7 +704,6 @@ export function BlogFormModal({
             {/* Add-block toolbar */}
             <div className="mt-4 flex flex-wrap gap-2">
               {(['paragraph', 'heading', 'image', 'quote', 'divider'] as BlockType[]).map(type => {
-                const disabled = type === 'image' && imageBlocksMaxed;
                 const iconNode: Record<BlockType, React.ReactNode> = {
                   paragraph: <AlignLeft size={12} />,
                   heading:   <HIcon size={12} />,
@@ -719,29 +715,16 @@ export function BlogFormModal({
                   <button
                     key={type} type="button"
                     onClick={() => addBlock(type)}
-                    disabled={disabled}
-                    title={disabled ? 'Maximum 3 image blocks reached' : `Add ${blockLabel[type]}`}
-                    className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition ${
-                      disabled
-                        ? 'border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed'
-                        : 'border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700'
-                    }`}
+                    title={`Add ${blockLabel[type]}`}
+                    className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
                   >
                     <Plus size={12} />
                     {iconNode[type]}
                     {blockLabel[type]}
-                    {disabled && <span className="ml-1 text-[10px] text-gray-300">(max)</span>}
                   </button>
                 );
               })}
             </div>
-
-            {imageBlocksMaxed && (
-              <p className="mt-2 flex items-center gap-1.5 text-xs text-red-500">
-                <AlertCircle size={12} />
-                Maximum 3 image blocks reached. Remove one to add another.
-              </p>
-            )}
           </section>
 
           {/* Submit */}

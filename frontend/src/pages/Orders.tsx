@@ -398,7 +398,7 @@ export default function OrdersPage() {
 
       const resp = await apiClient.get<OrdersResponse>(`/orders/my-orders?${params.toString()}`);
       setOrders(resp.data?.orders || []);
-      setPagination(resp.data?.pagination || pagination);
+      setPagination(p => resp.data?.pagination || p);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
