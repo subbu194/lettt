@@ -49,8 +49,8 @@ export function TalkShowVideos() {
             <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-(--color-red) mb-4">
               Talk Show
             </span>
-            <h2 className="heading-md text-(--color-soft-black)">Latest Episodes</h2>
-            <p className="mt-2 text-sm text-(--color-muted) max-w-md">Watch interviews and behind-the-scenes moments</p>
+            <h2 className="heading-md text-(--color-soft-black)">Real Stories. Real Talent.</h2>
+            <p className="mt-2 text-sm text-(--color-muted) max-w-md">Meaningful conversations that bring out journeys, struggles, and achievements</p>
           </div>
 
           <div className="flex items-center gap-2">

@@ -20,6 +20,7 @@ const Gallery = lazy(() => import('@/pages/Gallery'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const AdminLogin = lazy(() => import('@/pages/AdminLogin'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
+const BlogEditorPage = lazy(() => import('@/pages/AdminDashboard_Blogs').then(module => ({ default: module.BlogEditorPage })));
 const Art = lazy(() => import('@/pages/Art'));
 const ArtDetail = lazy(() => import('@/pages/ArtDetail'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
@@ -77,6 +78,8 @@ function AppShell() {
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route element={<AdminRoute />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/blogs/new" element={<BlogEditorPage />} />
+                <Route path="/admin/blogs/:blogId" element={<BlogEditorPage />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

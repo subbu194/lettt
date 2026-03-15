@@ -82,8 +82,8 @@ export default function TalkShowPage() {
               transition={{ duration: 0.4 }}
             >
               <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Talk Show</span>
-              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">Latest <span className="text-gradient-red">Episodes</span></h1>
-              <p className="mt-3 text-white/60">Intimate conversations and performances — curated for a premium experience.</p>
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">Real Stories. <span className="text-gradient-red">Real Talent.</span></h1>
+              <p className="mt-3 text-white/60">We interview talented individuals from every field, without any age limit or boundaries. Through meaningful conversations, we bring out your journey, struggles, achievements, and vision — inspiring others while giving you the recognition you deserve.</p>
             </motion.div>
           </div>
         </div>

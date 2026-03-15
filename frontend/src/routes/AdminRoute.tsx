@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { useAdminStore } from '@/store/useAdminStore';
 import { useUserStore } from '@/store/useUserStore';
 import apiClient from '@/api/client';
@@ -32,10 +33,15 @@ export function AdminRoute() {
           logoutAdmin();
           setIsValidAdmin(false);
         }
-      } catch {
-        // Token is invalid - logout
-        logoutAdmin();
-        setIsValidAdmin(false);
+      } catch (err) {
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+        if (status === 401 || status === 403) {
+          logoutAdmin();
+          setIsValidAdmin(false);
+        } else {
+          // Keep session on transient/network errors
+          setIsValidAdmin(true);
+        }
       } finally {
         setIsVerifying(false);
       }

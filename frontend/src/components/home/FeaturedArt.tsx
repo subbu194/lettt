@@ -44,10 +44,10 @@ export function FeaturedArt() {
         <div className="fade-in flex items-end justify-between gap-4">
           <div>
             <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-(--color-red) mb-4">
-              Collection
+              Online Art Platform
             </span>
             <h2 className="heading-md text-(--color-soft-black)">Featured Art</h2>
-            <p className="mt-2 text-sm text-(--color-muted) max-w-md">Spotlight pieces from emerging artists</p>
+            <p className="mt-2 text-sm text-(--color-muted) max-w-md">Your art doesn't just stay on a wall — it reaches homes, offices, and hearts everywhere</p>
           </div>
 
           <div className="flex items-center gap-2">

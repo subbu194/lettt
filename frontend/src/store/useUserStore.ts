@@ -15,20 +15,16 @@ type UserState = {
 
 const TOKEN_KEY = 'token';
 
-// Validate JWT token format and expiry
+// Validate JWT token format (no expiry enforcement)
 function isValidTokenFormat(token: string): boolean {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) return false;
-    
-    // Decode payload (without verification - just to check format)
-    const payload = JSON.parse(atob(parts[1]));
-    
-    // Check if token has expired (if exp claim exists)
-    if (payload.exp && payload.exp * 1000 < Date.now()) {
-      return false;
-    }
-    
+
+    const base64Url = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64Url.padEnd(base64Url.length + (4 - (base64Url.length % 4)) % 4, '=');
+    JSON.parse(atob(padded));
+
     return true;
   } catch {
     return false;
@@ -75,7 +71,7 @@ export const useUserStore = create<UserState>((set, get) => ({
     
     if (!token) return false;
     
-    // Check token format and expiry
+    // Check token format
     if (!isValidTokenFormat(token)) {
       logout();
       return false;
@@ -91,14 +87,13 @@ export const useUserStore = create<UserState>((set, get) => ({
       });
       
       if (!response.ok) {
-        logout();
         return false;
       }
-      
+
       return true;
     } catch {
       // If verification fails, don't logout (might be network issue)
-      // But return false to indicate validation couldn't complete
+      // Return false to indicate validation couldn't complete
       return false;
     }
   },

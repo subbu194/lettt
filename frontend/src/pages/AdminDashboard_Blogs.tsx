@@ -5,14 +5,20 @@ import React, {
   useState, useCallback, useEffect, useRef, useMemo,
 } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import {
   X, AlertCircle, Plus, Trash2, GripVertical,
   Image as ImageIcon, Quote, Minus, ChevronUp, ChevronDown,
   Eye, EyeOff, Star, AlignLeft, AlignCenter,
-  AlignRight, Maximize2, BookOpen, Edit2, Upload, CheckCircle,
+  AlignRight, Maximize2, BookOpen, Edit2, CheckCircle, Crop,
+  ArrowLeft,
 } from 'lucide-react';
+
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
+import { LocalImageCropModal } from '@/components/shared/image-crop';
+import { Spinner } from '@/components/shared/Spinner';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -93,35 +99,54 @@ interface SingleImageUploaderProps {
   existingImage?: string;
   onRemoveExisting?: () => void;
   label?: string;
+  circularCrop?: boolean;
 }
 
 function SingleImageUploader({
   value, onChange, existingImage, onRemoveExisting, label = 'Image',
+  circularCrop = false,
 }: SingleImageUploaderProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const objectUrl = useMemo(() => (value ? URL.createObjectURL(value) : null), [value]);
   useEffect(() => () => { if (objectUrl) URL.revokeObjectURL(objectUrl); }, [objectUrl]);
 
-  const preview = objectUrl ?? existingImage;
+  const preview = previewUrl ?? objectUrl ?? existingImage;
 
   const handleRemove = () => {
-    if (value) {
-      onChange(null);            // clear new file, existing URL survives
+    if (value || previewUrl) {
+      onChange(null);
+      setPreviewUrl(null);
     } else {
-      onRemoveExisting?.();      // clear the saved URL
+      onRemoveExisting?.();
     }
+  };
+
+  const handleCropComplete = (blob: Blob, croppedUrl: string) => {
+    const file = new File([blob], `${label.toLowerCase().replace(/\s+/g, '-')}-cropped.jpg`, { type: 'image/jpeg' });
+    onChange(file);
+    setPreviewUrl(croppedUrl);
   };
 
   return (
     <div>
       {preview ? (
-        <div className="relative inline-block">
+        <div className="relative inline-block group">
           <img
             src={preview}
             alt={label}
-            className="h-36 w-auto max-w-xs rounded-xl object-cover border border-gray-200 shadow-sm"
+            className={`h-36 w-auto max-w-xs object-cover border border-gray-200 shadow-sm ${circularCrop ? 'rounded-full' : 'rounded-xl'}`}
           />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setIsCropModalOpen(true)}
+              className="flex items-center gap-1 rounded-lg bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-800 shadow hover:bg-gray-50 transition"
+            >
+              <Crop size={12} /> Change
+            </button>
+          </div>
           <button
             type="button"
             onClick={handleRemove}
@@ -133,23 +158,19 @@ function SingleImageUploader({
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setIsCropModalOpen(true)}
           className="flex flex-col items-center justify-center gap-2 h-36 w-full max-w-xs rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition"
         >
-          <Upload size={20} />
-          <span className="text-xs font-medium">Upload {label}</span>
+          <Crop size={20} />
+          <span className="text-xs font-medium">Upload & Crop {label}</span>
         </button>
       )}
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={e => {
-          const f = e.target.files?.[0];
-          if (f) onChange(f);
-          e.target.value = '';
-        }}
+
+      <LocalImageCropModal
+        isOpen={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
+        CircularCrop={circularCrop}
       />
     </div>
   );
@@ -197,13 +218,15 @@ function ImageBlockUploader({
   block: EditorBlock;
   onChange: (u: EditorBlock) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   // Stable ref to always call the latest onChange
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
-  const handleFile = async (file: File, snapshot: EditorBlock) => {
+  const handleCropComplete = async (blob: Blob, _previewUrl: string) => {
+    const file = new File([blob], 'blog-image-cropped.jpg', { type: 'image/jpeg' });
+    const snapshot = block;
     onChangeRef.current({ ...snapshot, _uploading: true, _uploadError: undefined });
     try {
       const url = await uploadFile(file, 'blogs');
@@ -230,10 +253,10 @@ function ImageBlockUploader({
           <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/25 rounded-xl transition-colors flex items-center justify-center gap-2 opacity-0 group-hover/img:opacity-100">
             <button
               type="button"
-              onClick={() => inputRef.current?.click()}
+              onClick={() => setIsCropModalOpen(true)}
               className="flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-gray-800 shadow hover:bg-gray-50 transition"
             >
-              <Upload size={12} /> Replace
+              <Crop size={12} /> Replace
             </button>
             <button
               type="button"
@@ -252,7 +275,7 @@ function ImageBlockUploader({
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={() => setIsCropModalOpen(true)}
           disabled={block._uploading}
           className="flex flex-col items-center justify-center gap-2 w-full h-40 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 hover:border-red-300 hover:text-red-500 hover:bg-red-50 disabled:opacity-60 disabled:cursor-wait transition"
         >
@@ -263,8 +286,8 @@ function ImageBlockUploader({
             </>
           ) : (
             <>
-              <ImageIcon size={22} />
-              <span className="text-xs font-medium">Click to upload image</span>
+              <Crop size={22} />
+              <span className="text-xs font-medium">Click to upload & crop image</span>
               <span className="text-[10px] text-gray-300">PNG, JPG, WEBP</span>
             </>
           )}
@@ -277,17 +300,10 @@ function ImageBlockUploader({
         </p>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={e => {
-          const f = e.target.files?.[0];
-          // Pass current block snapshot — avoids stale-closure bug
-          if (f) handleFile(f, block);
-          e.target.value = '';
-        }}
+      <LocalImageCropModal
+        isOpen={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        onCropComplete={handleCropComplete}
       />
 
       {/* Caption */}
@@ -435,8 +451,96 @@ function BlockEditor({
   );
 }
 
+export function DeleteBlogModal({
+  blog, onClose, onSuccess,
+}: {
+  blog: BlogItem;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await apiClient.delete(`/blogs/${blog._id}`);
+      onSuccess();
+      onClose();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+      >
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 mx-auto">
+          <AlertCircle className="h-6 w-6 text-red-600" />
+        </div>
+        <h3 className="mt-4 text-center text-lg font-bold text-gray-900">Delete Blog?</h3>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          "<span className="font-medium text-gray-700">{blog.title}</span>" will be permanently deleted.
+        </p>
+        <div className="mt-6 flex gap-3">
+          <button onClick={onClose}
+            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button onClick={handleDelete} disabled={loading}
+            className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition">
+            {loading ? 'Deleting…' : 'Delete'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
-// Blog Form Modal
+// Pagination
+// ─────────────────────────────────────────────────────────────
+
+interface PaginationData {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+function Pagination({ pagination, onPageChange }: {
+  pagination: PaginationData;
+  onPageChange: (p: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
+      <p className="text-gray-500">
+        {pagination.total} blog{pagination.total !== 1 ? 's' : ''} · page {pagination.page} of {pagination.totalPages}
+      </p>
+      <div className="flex gap-2">
+        <button onClick={() => onPageChange(pagination.page - 1)} disabled={!pagination.hasPrev}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Prev
+        </button>
+        <button onClick={() => onPageChange(pagination.page + 1)} disabled={!pagination.hasNext}
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          Next
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Blog Editor Page
 //
 // FIX: useEffect key is `blog?._id ?? '__new__'` — ensures
 //      opening "New Blog" always resets state, even if the
@@ -444,14 +548,51 @@ function BlockEditor({
 // FIX: cleanBlocks typed correctly via EditorBlock destructure.
 // ─────────────────────────────────────────────────────────────
 
-export function BlogFormModal({
-  blog, onClose, onSuccess,
-}: {
-  blog?: BlogItem | null;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const isEditing = !!blog?._id;
+export function BlogEditorPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { blogId } = useParams<{ blogId: string }>();
+  const locationState = location.state as { from?: string } | undefined;
+  const backTo = locationState?.from ?? '/admin/dashboard?tab=blogs';
+  const isEditing = Boolean(blogId);
+
+  const [blog, setBlog] = useState<BlogItem | null>(null);
+  const [isLoadingBlog, setIsLoadingBlog] = useState(isEditing);
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let isActive = true;
+    if (!blogId) {
+      setBlog(null);
+      setIsLoadingBlog(false);
+      setLoadError('');
+      return () => {
+        isActive = false;
+      };
+    }
+
+    const fetchBlog = async () => {
+      setIsLoadingBlog(true);
+      setLoadError('');
+      try {
+        const { data } = await apiClient.get<BlogItem>(`/blogs/${blogId}`);
+        if (!isActive) return;
+        setBlog(data);
+      } catch {
+        if (!isActive) return;
+        setLoadError('Unable to load blog details. Please try again.');
+        setBlog(null);
+      } finally {
+        if (isActive) setIsLoadingBlog(false);
+      }
+    };
+
+    fetchBlog();
+    return () => {
+      isActive = false;
+    };
+  }, [blogId]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -544,11 +685,10 @@ export function BlogFormModal({
         isPublished,
       };
 
-      if (isEditing) await apiClient.put(`/blogs/${blog!._id}`, payload);
+      if (isEditing && blogId) await apiClient.put(`/blogs/${blogId}`, payload);
       else await apiClient.post('/blogs', payload);
 
-      onSuccess();
-      onClose();
+      navigate(backTo, { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -556,281 +696,233 @@ export function BlogFormModal({
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto"
-      onClick={onClose}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.97, y: 20 }}
-        transition={{ type: 'spring', duration: 0.4 }}
-        className="relative w-full max-w-4xl my-6 rounded-3xl bg-gray-50 shadow-2xl"
-        onClick={e => e.stopPropagation()}
-      >
-        {/* Modal header */}
-        <div className="flex items-center justify-between border-b border-gray-200 bg-white rounded-t-3xl px-6 py-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white">
-              <BookOpen size={18} />
+  const handleBack = () => navigate(backTo);
+
+  if (isLoadingBlog) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50/80">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError && isEditing && !blog) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50/80 px-4">
+        <div className="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl bg-red-100">
+              <AlertCircle size={18} className="text-red-600" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">
-                {isEditing ? 'Edit Blog' : 'New Blog'}
-              </h2>
-              <p className="text-xs text-gray-500">Magazine-style article editor</p>
+              <h2 className="text-lg font-semibold text-gray-900">Unable to load blog</h2>
+              <p className="text-sm text-gray-500">{loadError}</p>
             </div>
           </div>
-          <button onClick={onClose} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
-            <X size={20} />
-          </button>
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+            >
+              Back to Blogs
+            </button>
+          </div>
         </div>
+      </div>
+    );
+  }
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-8">
-          {error && (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
-              <AlertCircle size={16} /> {error}
-            </div>
-          )}
+  return (
+    <div className="min-h-screen bg-gray-50/80">
+      <div className="mx-auto w-full max-w-5xl px-4 py-6">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="inline-flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-900 transition"
+        >
+          <ArrowLeft size={16} />
+          Back to Blogs
+        </button>
 
-          {/* Basic Info */}
-          <section>
-            <h3 className="mb-4 text-sm font-bold text-gray-700 uppercase tracking-wider">Basic Info</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block mb-1 text-xs font-semibold text-gray-600">Title *</label>
-                <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Blog title"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition" />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.97, y: 20 }}
+          transition={{ type: 'spring', duration: 0.4 }}
+          className="mt-4 w-full rounded-3xl bg-gray-50 shadow-2xl"
+        >
+          <div className="flex items-center justify-between border-b border-gray-200 bg-white rounded-t-3xl px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-600 text-white">
+                <BookOpen size={18} />
               </div>
               <div>
-                <label className="block mb-1 text-xs font-semibold text-gray-600">Subject / Person / Company *</label>
-                <input type="text" required value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. John Doe, Acme Corp"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition" />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block mb-1 text-xs font-semibold text-gray-600">
-                  Excerpt * <span className="text-gray-400 font-normal">(max 400 chars)</span>
-                </label>
-                <textarea required value={excerpt} onChange={e => setExcerpt(e.target.value)}
-                  placeholder="Short description shown on blog cards…" maxLength={400} rows={3}
-                  className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 transition" />
-                <p className="mt-1 text-right text-xs text-gray-400">{excerpt.length}/400</p>
-              </div>
-              <div>
-                <label className="block mb-1 text-xs font-semibold text-gray-600">
-                  Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
-                </label>
-                <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="talent, music, startup"
-                  className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 transition" />
-              </div>
-              <div className="flex items-center gap-6 pt-5">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-red-600 w-4 h-4" />
-                  <span className="text-sm text-gray-700 font-medium flex items-center gap-1">
-                    {isPublished ? <Eye size={15} className="text-green-600" /> : <EyeOff size={15} className="text-gray-400" />}
-                    Published
-                  </span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="accent-red-600 w-4 h-4" />
-                  <span className="text-sm text-gray-700 font-medium flex items-center gap-1">
-                    <Star size={15} className={isFeatured ? 'text-amber-500' : 'text-gray-400'} />
-                    Featured
-                  </span>
-                </label>
+                <h2 className="text-lg font-bold text-gray-900">
+                  {isEditing ? 'Edit Blog' : 'New Blog'}
+                </h2>
+                <p className="text-xs text-gray-500">Magazine-style article editor</p>
               </div>
             </div>
-          </section>
+            <button onClick={handleBack} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition">
+              <X size={20} />
+            </button>
+          </div>
 
-          {/* Cover Image */}
-          <section>
-            <h3 className="mb-4 text-sm font-bold text-gray-700 uppercase tracking-wider">Cover Image *</h3>
-            <SingleImageUploader
-              value={coverImageFile} onChange={setCoverImageFile}
-              existingImage={existingCoverImage || undefined}
-              onRemoveExisting={() => setExistingCoverImage('')}
-              label="Cover Image"
-            />
-          </section>
+          <form onSubmit={handleSubmit} className="p-6 space-y-8">
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">
+                <AlertCircle size={16} /> {error}
+              </div>
+            )}
 
-          {/* Logo */}
-          <section>
-            <h3 className="mb-1 text-sm font-bold text-gray-700 uppercase tracking-wider">
-              Logo <span className="text-gray-400 font-normal text-xs">(optional)</span>
-            </h3>
-            <p className="mb-3 text-xs text-gray-500">
-              Company / person logo shown as a circle badge on cards and in the article header.
-            </p>
-            <SingleImageUploader
-              value={logoFile} onChange={setLogoFile}
-              existingImage={existingLogo || undefined}
-              onRemoveExisting={() => setExistingLogo('')}
-              label="Logo"
-            />
-          </section>
-
-          {/* Article Content */}
-          <section>
-            <div className="flex items-start justify-between mb-1">
-              <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Article Content</h3>
-              {imageBlockCount > 0 && (
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
-                  {imageBlockCount} images
-                </span>
-              )}
-            </div>
-            <p className="mb-4 text-xs text-gray-500 leading-relaxed">
-              Build your article block by block — text, headings, quotes, or images anywhere in the flow.
-            </p>
-
-            <div className="space-y-3">
-              {blocks.length === 0 && (
-                <div className="rounded-xl border-2 border-dashed border-gray-200 py-10 text-center text-sm text-gray-400">
-                  No content yet — add blocks using the toolbar below
+            {/* Basic Info */}
+            <section>
+              <h3 className="mb-4 text-sm font-bold text-gray-700 uppercase tracking-wider">Basic Info</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="block mb-1 text-xs font-semibold text-gray-600">Title *</label>
+                  <input type="text" required value={title} onChange={e => setTitle(e.target.value)} placeholder="Blog title"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition" />
                 </div>
-              )}
-              {blocks.map((block, i) => (
-                <BlockEditor
-                  key={i} block={block} index={i} total={blocks.length}
-                  onChange={updated => updateBlock(i, updated)}
-                  onRemove={() => removeBlock(i)}
-                  onMoveUp={() => moveBlock(i, 'up')}
-                  onMoveDown={() => moveBlock(i, 'down')}
-                />
-              ))}
+                <div>
+                  <label className="block mb-1 text-xs font-semibold text-gray-600">Subject / Person / Company *</label>
+                  <input type="text" required value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g. John Doe, Acme Corp"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="block mb-1 text-xs font-semibold text-gray-600">
+                    Excerpt * <span className="text-gray-400 font-normal">(max 400 chars)</span>
+                  </label>
+                  <textarea required value={excerpt} onChange={e => setExcerpt(e.target.value)}
+                    placeholder="Short description shown on blog cards…" maxLength={400} rows={3}
+                    className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 transition" />
+                  <p className="mt-1 text-right text-xs text-gray-400">{excerpt.length}/400</p>
+                </div>
+                <div>
+                  <label className="block mb-1 text-xs font-semibold text-gray-600">
+                    Tags <span className="text-gray-400 font-normal">(comma-separated)</span>
+                  </label>
+                  <input type="text" value={tags} onChange={e => setTags(e.target.value)} placeholder="talent, music, startup"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 transition" />
+                </div>
+                <div className="flex items-center gap-6 pt-5">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)} className="accent-red-600 w-4 h-4" />
+                    <span className="text-sm text-gray-700 font-medium flex items-center gap-1">
+                      {isPublished ? <Eye size={15} className="text-green-600" /> : <EyeOff size={15} className="text-gray-400" />}
+                      Published
+                    </span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input type="checkbox" checked={isFeatured} onChange={e => setIsFeatured(e.target.checked)} className="accent-red-600 w-4 h-4" />
+                    <span className="text-sm text-gray-700 font-medium flex items-center gap-1">
+                      <Star size={15} className={isFeatured ? 'text-amber-500' : 'text-gray-400'} />
+                      Featured
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            {/* Cover Image */}
+            <section>
+              <h3 className="mb-4 text-sm font-bold text-gray-700 uppercase tracking-wider">Cover Image *</h3>
+              <SingleImageUploader
+                value={coverImageFile} onChange={setCoverImageFile}
+                existingImage={existingCoverImage || undefined}
+                onRemoveExisting={() => setExistingCoverImage('')}
+                label="Cover Image"
+              />
+            </section>
+
+            {/* Logo */}
+            <section>
+              <h3 className="mb-1 text-sm font-bold text-gray-700 uppercase tracking-wider">
+                Logo <span className="text-gray-400 font-normal text-xs">(optional)</span>
+              </h3>
+              <p className="mb-3 text-xs text-gray-500">
+                Company / person logo shown as a circle badge on cards and in the article header.
+              </p>
+              <SingleImageUploader
+                value={logoFile} onChange={setLogoFile}
+                existingImage={existingLogo || undefined}
+                onRemoveExisting={() => setExistingLogo('')}
+                label="Logo"
+                circularCrop
+              />
+            </section>
+
+            {/* Article Content */}
+            <section>
+              <div className="flex items-start justify-between mb-1">
+                <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Article Content</h3>
+                {imageBlockCount > 0 && (
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                    {imageBlockCount} images
+                  </span>
+                )}
+              </div>
+              <p className="mb-4 text-xs text-gray-500 leading-relaxed">
+                Build your article block by block — text, headings, quotes, or images anywhere in the flow.
+              </p>
+
+              <div className="space-y-3">
+                {blocks.length === 0 && (
+                  <div className="rounded-xl border-2 border-dashed border-gray-200 py-10 text-center text-sm text-gray-400">
+                    No content yet — add blocks using the toolbar below
+                  </div>
+                )}
+                {blocks.map((block, i) => (
+                  <BlockEditor
+                    key={i} block={block} index={i} total={blocks.length}
+                    onChange={updated => updateBlock(i, updated)}
+                    onRemove={() => removeBlock(i)}
+                    onMoveUp={() => moveBlock(i, 'up')}
+                    onMoveDown={() => moveBlock(i, 'down')}
+                  />
+                ))}
+              </div>
+
+              {/* Add-block toolbar */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {(['paragraph', 'heading', 'image', 'quote', 'divider'] as BlockType[]).map(type => {
+                  const iconNode: Record<BlockType, React.ReactNode> = {
+                    paragraph: <AlignLeft size={12} />,
+                    heading:   <HIcon size={12} />,
+                    image:     <ImageIcon size={12} />,
+                    quote:     <Quote size={12} />,
+                    divider:   <Minus size={12} />,
+                  };
+                  return (
+                    <button
+                      key={type} type="button"
+                      onClick={() => addBlock(type)}
+                      title={`Add ${blockLabel[type]}`}
+                      className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                    >
+                      <Plus size={12} />
+                      {iconNode[type]}
+                      {blockLabel[type]}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Submit */}
+            <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
+              <button type="button" onClick={handleBack}
+                className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+                Cancel
+              </button>
+              <button type="submit" disabled={loading}
+                className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition">
+                {loading ? 'Saving…' : isEditing ? 'Save Changes' : 'Create Blog'}
+              </button>
             </div>
-
-            {/* Add-block toolbar */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {(['paragraph', 'heading', 'image', 'quote', 'divider'] as BlockType[]).map(type => {
-                const iconNode: Record<BlockType, React.ReactNode> = {
-                  paragraph: <AlignLeft size={12} />,
-                  heading:   <HIcon size={12} />,
-                  image:     <ImageIcon size={12} />,
-                  quote:     <Quote size={12} />,
-                  divider:   <Minus size={12} />,
-                };
-                return (
-                  <button
-                    key={type} type="button"
-                    onClick={() => addBlock(type)}
-                    title={`Add ${blockLabel[type]}`}
-                    className="flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition border-gray-200 bg-white text-gray-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                  >
-                    <Plus size={12} />
-                    {iconNode[type]}
-                    {blockLabel[type]}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Submit */}
-          <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
-            <button type="button" onClick={onClose}
-              className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-              Cancel
-            </button>
-            <button type="submit" disabled={loading}
-              className="flex items-center gap-2 rounded-xl bg-red-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition">
-              {loading ? 'Saving…' : isEditing ? 'Save Changes' : 'Create Blog'}
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Delete Confirm Modal
-// ─────────────────────────────────────────────────────────────
-
-export function DeleteBlogModal({
-  blog, onClose, onSuccess,
-}: {
-  blog: BlogItem;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [loading, setLoading] = useState(false);
-
-  const handleDelete = async () => {
-    setLoading(true);
-    try {
-      await apiClient.delete(`/blogs/${blog._id}`);
-      onSuccess();
-      onClose();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 mx-auto">
-          <AlertCircle className="h-6 w-6 text-red-600" />
-        </div>
-        <h3 className="mt-4 text-center text-lg font-bold text-gray-900">Delete Blog?</h3>
-        <p className="mt-2 text-center text-sm text-gray-500">
-          "<span className="font-medium text-gray-700">{blog.title}</span>" will be permanently deleted.
-        </p>
-        <div className="mt-6 flex gap-3">
-          <button onClick={onClose}
-            className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
-            Cancel
-          </button>
-          <button onClick={handleDelete} disabled={loading}
-            className="flex-1 rounded-xl bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60 transition">
-            {loading ? 'Deleting…' : 'Delete'}
-          </button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// Pagination
-// ─────────────────────────────────────────────────────────────
-
-interface PaginationData {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
-
-function Pagination({ pagination, onPageChange }: {
-  pagination: PaginationData;
-  onPageChange: (p: number) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm">
-      <p className="text-gray-500">
-        {pagination.total} blog{pagination.total !== 1 ? 's' : ''} · page {pagination.page} of {pagination.totalPages}
-      </p>
-      <div className="flex gap-2">
-        <button onClick={() => onPageChange(pagination.page - 1)} disabled={!pagination.hasPrev}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-          Prev
-        </button>
-        <button onClick={() => onPageChange(pagination.page + 1)} disabled={!pagination.hasNext}
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
-          Next
-        </button>
+          </form>
+        </motion.div>
       </div>
     </div>
   );
@@ -841,12 +933,13 @@ function Pagination({ pagination, onPageChange }: {
 // ─────────────────────────────────────────────────────────────
 
 export function BlogsAdminTab() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
   const [pagination, setPagination] = useState<PaginationData | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [blogModal, setBlogModal] = useState<{ open: boolean; item?: BlogItem | null }>({ open: false });
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; item?: BlogItem }>({ open: false });
 
   const fetchBlogs = useCallback(async (p = 1) => {
@@ -868,14 +961,16 @@ export function BlogsAdminTab() {
 
   useEffect(() => { fetchBlogs(page); }, [page, fetchBlogs]);
 
-  // Fetch full blog (content included) before edit — list endpoint omits content
-  const handleOpenEdit = async (blog: BlogItem) => {
-    try {
-      const { data } = await apiClient.get<BlogItem>(`/blogs/${blog._id}`);
-      setBlogModal({ open: true, item: data });
-    } catch {
-      setBlogModal({ open: true, item: blog });
-    }
+  const handleCreate = () => {
+    navigate('/admin/blogs/new', {
+      state: { from: `${location.pathname}${location.search}` },
+    });
+  };
+
+  const handleOpenEdit = (blog: BlogItem) => {
+    navigate(`/admin/blogs/${blog._id}`, {
+      state: { from: `${location.pathname}${location.search}` },
+    });
   };
 
   const handleTogglePublished = async (blog: BlogItem) => {
@@ -897,7 +992,7 @@ export function BlogsAdminTab() {
           <p className="mt-1 text-gray-500">Write magazine-style articles about talent, people &amp; companies</p>
         </div>
         <button
-          onClick={() => setBlogModal({ open: true, item: null })}
+          onClick={handleCreate}
           className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/40 transition"
         >
           <Plus className="h-5 w-5" /> New Blog
@@ -913,7 +1008,8 @@ export function BlogsAdminTab() {
           className="flex-1 max-w-xs rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400/30 focus:border-red-400 transition"
         />
         <button onClick={() => { setPage(1); fetchBlogs(1); }}
-          className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition">
+          className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
+        >
           Search
         </button>
       </div>
@@ -928,8 +1024,9 @@ export function BlogsAdminTab() {
           <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="font-semibold text-gray-900">No blogs yet</h3>
           <p className="mt-1 text-sm text-gray-500">Create your first blog article</p>
-          <button onClick={() => setBlogModal({ open: true, item: null })}
-            className="mt-4 rounded-xl bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition">
+          <button onClick={handleCreate}
+            className="mt-4 rounded-xl bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700 transition"
+          >
             New Blog
           </button>
         </div>
@@ -1000,13 +1097,6 @@ export function BlogsAdminTab() {
       )}
 
       <AnimatePresence>
-        {blogModal.open && (
-          <BlogFormModal
-            blog={blogModal.item}
-            onClose={() => setBlogModal({ open: false })}
-            onSuccess={() => fetchBlogs(page)}
-          />
-        )}
         {deleteModal.open && deleteModal.item && (
           <DeleteBlogModal
             blog={deleteModal.item}

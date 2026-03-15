@@ -34,7 +34,7 @@ export function Hero() {
         />
       </div>
 
-      <div className="w-full px-5 py-20 sm:px-8 relative z-10">
+      <div className="w-full sm:px-8 relative z-10">
         <div className="mx-auto max-w-4xl text-center">
           {/* Logo */}
           <motion.div
@@ -47,23 +47,31 @@ export function Hero() {
           </motion.div>
 
           {/* Headline */}
-          <motion.h1
+          {/* <motion.h1
             className="mt-6 heading-xl text-(--color-soft-black)"
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
           >
             <span className="animated-gradient-text">Let the Talent Talk</span>
-          </motion.h1>
+          </motion.h1> */}
 
           {/* Subtitle */}
           <motion.p
-            className="mt-5 text-lg leading-relaxed text-(--color-muted) max-w-xl mx-auto sm:text-xl"
+            className="mt-3 text-xl font-medium text-(--color-red) sm:text-2xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.35 }}
           >
-            Discover exclusive events, cinematic talk shows, and a community where talent rises.
+            Where Every Talent Finds a Voice
+          </motion.p>
+          <motion.p
+            className="mt-4 text-base leading-relaxed text-(--color-muted) max-w-2xl mx-auto sm:text-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.45 }}
+          >
+            A platform built around you and your talent. We believe everyone is special in their own unique way — your talent deserves to be seen, heard, and celebrated.
           </motion.p>
 
           {/* CTA Buttons */}

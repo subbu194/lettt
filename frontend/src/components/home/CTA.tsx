@@ -32,8 +32,8 @@ export function CTA() {
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
           >
-            Join the community where{' '}
-            <span className="text-gradient-red">talent rises</span>.
+            Because when <span className="text-gradient-red">talent speaks</span>,{' '}
+            the world <span className="text-gradient-red">listens</span>.
           </motion.h2>
 
           <motion.p
@@ -43,7 +43,7 @@ export function CTA() {
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
           >
-            Create an account to access art drops, event purchases, and exclusive content.
+            Don't wait for the world to discover you. Let your talent talk — and the world will listen.
           </motion.p>
 
           <motion.div

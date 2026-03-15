@@ -456,12 +456,12 @@ export default function ArtPage() {
               transition={{ duration: 0.5 }}
               className="max-w-2xl"
             >
-              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Gallery</span>
+              <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">Online Art Platform</span>
               <h1 className="mt-4 text-5xl font-extrabold tracking-tight md:text-6xl">
-                Art <span className="text-gradient-red">Gallery</span>
+                Taking Creativity <span className="text-gradient-red">Global</span>
               </h1>
               <p className="mt-4 text-lg text-white/60">
-                Discover extraordinary artworks from talented artists. Each piece tells a unique story.
+                An online space where artwork and paintings can be sold to art lovers across the world. Artists get a global audience, creativity reaches beyond geographical limits, and talent gets the commercial value it truly deserves.
               </p>
             </motion.div>
           </div>

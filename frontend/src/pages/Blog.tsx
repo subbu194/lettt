@@ -176,13 +176,13 @@ export default function BlogPage() {
             >
               <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
                 <BookOpen size={13} />
-                Blog
+                Blogs & Catalogue
               </span>
               <h1 className="mt-4 text-4xl font-extrabold tracking-tight md:text-5xl">
-                Stories, People &amp; <span className="text-gradient-red">Talent</span>
+                Documenting <span className="text-gradient-red">Talent</span> for the World
               </h1>
               <p className="mt-3 max-w-xl text-white/60 leading-relaxed">
-                In-depth articles about the artists, companies and creative minds shaping the world of talent.
+                We believe everyone is blessed with some form of talent. Through inspiring blogs, feature stories, and show catalogues, we document and showcase talented individuals and their journeys.
               </p>
             </motion.div>
           </div>

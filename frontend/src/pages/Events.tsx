@@ -543,13 +543,13 @@ export default function EventsPage() {
               className="max-w-2xl"
             >
               <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
-                Discover & Book
+                Art & Artists Exhibition
               </span>
               <h1 className="mt-4 text-5xl font-extrabold tracking-tight md:text-6xl">
-                Upcoming <span className="text-gradient-red">Events</span>
+                A Stage for <span className="text-gradient-red">Creativity</span>
               </h1>
               <p className="mt-4 text-lg text-white/60">
-                Discover amazing talent showcases, art exhibitions, and cultural events. Book your tickets now!
+                Our exhibitions celebrate artists and creators. Display your artwork, promote your brand, and connect with a larger audience. It's not just an exhibition — it's an opportunity to grow, network, and turn passion into profession.
               </p>
             </motion.div>
           </div>

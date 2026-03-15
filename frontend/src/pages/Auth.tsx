@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogIn, UserPlus, LogOut } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Login } from '@/components/auth/Login';
 import { Signup } from '@/components/auth/Signup';
 import { useUserStore } from '@/store/useUserStore';
@@ -16,6 +17,15 @@ type Props = {
 export default function AuthPage({ initialTab }: Props) {
   const [tab, setTab] = useState<'login' | 'signup'>(initialTab ?? 'login');
   const { isAuthenticated, logout } = useUserStore();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const redirectTo = searchParams.get('redirect') || '/';
+      navigate(redirectTo, { replace: true });
+    }
+  }, [isAuthenticated, navigate, searchParams]);
 
   const handleTabChange = (newTab: 'login' | 'signup') => {
     if (newTab !== tab) {
