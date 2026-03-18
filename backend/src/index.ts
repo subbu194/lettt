@@ -18,22 +18,31 @@ import talkShowRoutes from "./routes/talkShowRoutes";
 import blogRoutes from "./routes/blogRoutes";
 import galleryRoutes from "./routes/galleryRoutes";
 import searchRoutes from "./routes/searchRoutes";
+import { razorpayWebhook } from "./controllers/orderController";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
 
 async function start() {
+  if (!process.env.RAZORPAY_WEBHOOK_SECRET) {
+    throw new Error("Missing RAZORPAY_WEBHOOK_SECRET");
+  }
+
   await connectDatabase();
   await initializeR2();
+  await initializeRazorpay();
 
 
   app.use(
     cors({
       origin: "*",
-      credentials: true,
+      credentials: false,
     })
   );
+
+  // Razorpay webhook signature verification needs the raw request body.
+  app.post("/api/v1/orders/webhook", express.raw({ type: "application/json" }), razorpayWebhook);
 
   app.use(express.json({ limit: "1mb" }));
   app.use(express.urlencoded({ extended: true }));

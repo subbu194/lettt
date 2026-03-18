@@ -27,15 +27,36 @@ export function setAdminToken(token?: string) {
   updateAuthHeader();
 }
 
-// Prioritize admin token over user token when both exist
+// Default to user token so user-facing routes (orders/tickets/profile) stay correct.
 function updateAuthHeader() {
-  const token = adminToken || userToken;
+  const token = userToken || adminToken;
   if (token) {
     apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     delete apiClient.defaults.headers.common['Authorization'];
   }
 }
+
+function isAdminRequest(url?: string) {
+  if (!url) return false;
+  return /(^|\/)admin(\/|$|\?)/i.test(url);
+}
+
+apiClient.interceptors.request.use((config) => {
+  const requestUrl = config.url || '';
+  const token = isAdminRequest(requestUrl)
+    ? (adminToken || userToken)
+    : (userToken || adminToken);
+
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${token}`;
+  } else if (config.headers && 'Authorization' in config.headers) {
+    delete config.headers.Authorization;
+  }
+
+  return config;
+});
 
 // Initialize tokens from localStorage
 const storedUserToken = localStorage.getItem('token');

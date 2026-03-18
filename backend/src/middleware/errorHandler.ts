@@ -34,8 +34,19 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return res.status(400).json({ error: message });
   }
 
+  if (name === "CastError") {
+    return res.status(400).json({ error: "Invalid identifier in request" });
+  }
+
   if (statusCode >= 500) {
-    // Never leak internals in production
+    const isOperational = err instanceof AppError && err.isOperational;
+    if (isOperational) {
+      return res.status(statusCode).json({ error: err.message || "Request failed" });
+    }
+
+    console.error("Unhandled error:", err);
+
+    // Never leak internals in production for unhandled exceptions.
     const message = process.env.NODE_ENV === "development" ? (err?.message ?? "Server error") : "Server error";
     return res.status(500).json({ error: message });
   }

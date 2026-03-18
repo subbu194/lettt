@@ -19,6 +19,8 @@ export interface OrderDocument extends mongoose.Document {
   paymentStatus: PaymentStatus;
   razorpayOrderId?: string;
   razorpayPaymentId?: string;
+  paymentCapturedAt?: Date;
+  lastWebhookEventKey?: string;
   address: string;
   phone: string;
   createdAt: Date;
@@ -45,14 +47,16 @@ const OrderSchema = new Schema<OrderDocument>(
     paymentStatus: { type: String, enum: ["created", "paid", "failed"], default: "created" },
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
+    paymentCapturedAt: { type: Date },
+    lastWebhookEventKey: { type: String },
     address: { type: String, required: true },
     phone: { type: String, required: true },
   },
   { timestamps: true }
 );
 
-// Generate unique order number before saving
-OrderSchema.pre("save", async function () {
+// Generate unique order number before validation so required checks pass.
+OrderSchema.pre("validate", function () {
   if (!this.orderNumber) {
     const timestamp = Date.now().toString(36).toUpperCase();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -64,5 +68,6 @@ OrderSchema.pre("save", async function () {
 OrderSchema.index({ userId: 1, createdAt: -1 });
 OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
 OrderSchema.index({ razorpayOrderId: 1 }, { sparse: true }); // Sparse because it's optional
+OrderSchema.index({ razorpayPaymentId: 1 }, { sparse: true, unique: true });
 
 export const Order = mongoose.model<OrderDocument>("Order", OrderSchema);

@@ -55,7 +55,6 @@ export const LocalCropExample: React.FC = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onCropComplete={handleCropComplete}
-        aspectRatio={1} // Square crop
         CircularCrop={true} // Circular preview for profile pics
         maxFileSize={5 * 1024 * 1024} // 5MB limit
       />
@@ -128,7 +127,6 @@ export const RemoteCropExample: React.FC = () => {
         imageUrl={currentImageUrl}
         onCropComplete={handleCropComplete}
         onDeleteOldImage={handleDeleteOldImage}
-        aspectRatio={16 / 9} // Banner aspect ratio
         circularCrop={false}
         title="Edit Event Banner"
       />
@@ -146,7 +144,6 @@ export const RemoteCropExample: React.FC = () => {
  * isOpen: boolean - Controls modal visibility
  * onClose: () => void - Called when modal should close
  * onCropComplete: (blob: Blob, previewUrl: string) => void - Called with cropped image
- * aspectRatio?: number - Crop aspect ratio (default: 1)
  * maxFileSize?: number - Max file size in bytes (default: 10MB)
  * acceptedFileTypes?: string[] - Accepted MIME types (default: ['image/jpeg', 'image/png', 'image/webp'])
  * CircularCrop?: boolean - Use circular crop shape (default: false)
@@ -160,7 +157,6 @@ export const RemoteCropExample: React.FC = () => {
  * imageUrl: string - URL of the image to crop (R2 URL)
  * onCropComplete: (blob: Blob) => Promise<void> - Called with cropped image blob
  * onDeleteOldImage?: () => Promise<void> - Called before upload to delete old image
- * aspectRatio?: number - Crop aspect ratio (default: 1)
  * circularCrop?: boolean - Use circular crop shape (default: false)
  * title?: string - Modal title (default: 'Edit Image')
  */

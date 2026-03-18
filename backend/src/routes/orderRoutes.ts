@@ -2,6 +2,7 @@ import { Router } from "express";
 import { 
   createOrder, 
   verifyOrder, 
+  reconcileOrder,
   myOrders, 
   getOrderById,
   adminListOrders,
@@ -17,6 +18,7 @@ const router = Router();
 // ─────────────────────────────────────────────────────────────
 router.post("/create", authenticateUser, createOrder);
 router.post("/verify", authenticateUser, verifyOrder);
+router.post("/reconcile", authenticateUser, reconcileOrder);
 router.get("/my-orders", authenticateUser, myOrders);
 router.get("/my-orders/:id", authenticateUser, getOrderById);
 

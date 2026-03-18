@@ -3,7 +3,7 @@ import { z } from "zod";
 import { AppError } from "../middleware/errorHandler";
 import { getRazorpayInstance, getRazorpayKeyId } from "../utils/razorpay";
 import crypto from "node:crypto";
-import { Order } from "../models/Order";
+import { Order, type OrderDocument } from "../models/Order";
 import { Ticket } from "../models/Ticket";
 import { Event } from "../models/Event";
 import { Art } from "../models/Art";
@@ -17,11 +17,14 @@ import { jsonToCSV, flattenObject } from "../utils/csvExport";
 
 const orderItemSchema = z.object({
   itemType: z.enum(["art", "event"]),
-  itemId: z.string().min(1),
-  title: z.string().min(1),
+  itemId: z.string().refine((value) => mongoose.Types.ObjectId.isValid(value), {
+    message: "Invalid item ID",
+  }),
   quantity: z.number().int().min(1),
-  price: z.number().min(0),
   frameSize: z.string().optional(), // For art items
+  // Kept optional for backward compatibility from older frontend payloads.
+  title: z.string().optional(),
+  price: z.number().optional(),
 });
 
 const createOrderSchema = z.object({
@@ -37,31 +40,161 @@ const listQuerySchema = z.object({
 });
 
 // ─────────────────────────────────────────────────────────────
-// Helper: Validate stock/seats availability
+// Helpers
 // ─────────────────────────────────────────────────────────────
 
-async function validateAvailability(items: z.infer<typeof orderItemSchema>[]) {
+async function buildAuthoritativeOrderItems(items: z.infer<typeof orderItemSchema>[]) {
+  const normalizedItems: Array<{
+    itemType: "art" | "event";
+    itemId: string;
+    title: string;
+    quantity: number;
+    price: number;
+    frameSize?: string;
+  }> = [];
+
   const errors: string[] = [];
-  
+
   for (const item of items) {
     if (item.itemType === "event") {
       const event = await Event.findById(item.itemId);
       if (!event) {
-        errors.push(`Event "${item.title}" not found`);
+        errors.push("Selected event not found");
       } else if (event.seatsLeft < item.quantity) {
-        errors.push(`Only ${event.seatsLeft} seats left for "${item.title}"`);
+        errors.push(`Only ${event.seatsLeft} seats left for "${event.title}"`);
+      } else {
+        normalizedItems.push({
+          itemType: "event",
+          itemId: item.itemId,
+          title: event.title,
+          quantity: item.quantity,
+          price: event.ticketPrice,
+        });
       }
     } else if (item.itemType === "art") {
       const art = await Art.findById(item.itemId);
       if (!art) {
-        errors.push(`Art "${item.title}" not found`);
+        errors.push("Selected artwork not found");
       } else if (!art.isAvailable) {
-        errors.push(`Art "${item.title}" is currently unavailable`);
+        errors.push(`Art "${art.title}" is currently unavailable`);
+      } else if (art.quantity < item.quantity) {
+        errors.push(`Only ${art.quantity} quantity left for "${art.title}"`);
+      } else {
+        normalizedItems.push({
+          itemType: "art",
+          itemId: item.itemId,
+          title: art.title,
+          quantity: item.quantity,
+          price: art.price,
+          frameSize: item.frameSize,
+        });
       }
     }
   }
-  
-  return errors;
+
+  return { errors, normalizedItems };
+}
+
+function safeSignatureCompare(expectedHex: string, actualHex: string): boolean {
+  try {
+    const expected = Buffer.from(expectedHex, "hex");
+    const actual = Buffer.from(actualHex, "hex");
+    if (expected.length === 0 || expected.length !== actual.length) return false;
+    return crypto.timingSafeEqual(expected, actual);
+  } catch {
+    return false;
+  }
+}
+
+function toPaymentProviderError(err: unknown, fallbackMessage: string): AppError {
+  const statusFromError =
+    typeof (err as { statusCode?: unknown })?.statusCode === "number"
+      ? Number((err as { statusCode: number }).statusCode)
+      : undefined;
+
+  const nestedDescription = (err as { error?: { description?: unknown } })?.error?.description;
+  const directDescription = (err as { description?: unknown })?.description;
+  const rawMessage =
+    typeof nestedDescription === "string"
+      ? nestedDescription
+      : typeof directDescription === "string"
+        ? directDescription
+        : err instanceof Error
+          ? err.message
+          : fallbackMessage;
+
+  const normalizedStatus =
+    statusFromError && statusFromError >= 400 && statusFromError < 500 ? statusFromError : 502;
+
+  return new AppError(rawMessage || fallbackMessage, normalizedStatus);
+}
+
+async function fulfillPaidOrder(order: OrderDocument, session: mongoose.ClientSession) {
+  const tickets: Array<{ ticketId: string; eventTitle: string; quantity: number }> = [];
+
+  for (const item of order.items) {
+    if (item.itemType === "event") {
+      const eventId = new mongoose.Types.ObjectId(item.itemId);
+
+      const updateResult = await Event.findOneAndUpdate(
+        {
+          _id: eventId,
+          seatsLeft: { $gte: item.quantity },
+        },
+        { $inc: { seatsLeft: -item.quantity } },
+        {
+          session,
+          returnDocument: "after",
+        }
+      );
+
+      if (!updateResult) {
+        throw new AppError(`Not enough seats left for "${item.title}".`, 400);
+      }
+
+      const ticketId = `TKT-${Date.now().toString(36).toUpperCase()}-${nanoid(6).toUpperCase()}`;
+      await Ticket.create(
+        [
+          {
+            userId: order.userId,
+            eventId,
+            orderId: order._id,
+            ticketId,
+            quantity: item.quantity,
+            status: "active",
+          },
+        ],
+        { session }
+      );
+
+      tickets.push({ ticketId, eventTitle: item.title, quantity: item.quantity });
+      continue;
+    }
+
+    const artId = new mongoose.Types.ObjectId(item.itemId);
+    const updateResult = await Art.findOneAndUpdate(
+      {
+        _id: artId,
+        isAvailable: true,
+        quantity: { $gte: item.quantity },
+      },
+      { $inc: { quantity: -item.quantity } },
+      {
+        session,
+        returnDocument: "after",
+      }
+    );
+
+    if (!updateResult) {
+      throw new AppError(`"${item.title}" is no longer available in requested quantity.`, 400);
+    }
+
+    if (updateResult.quantity === 0) {
+      await Art.updateOne({ _id: artId }, { isAvailable: false }, { session });
+    }
+  }
+
+  return tickets;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -71,16 +204,22 @@ async function validateAvailability(items: z.infer<typeof orderItemSchema>[]) {
 export const createOrder: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new AppError("Unauthorized", 401);
-    
+
     const { items, address, phone } = createOrderSchema.parse(req.body);
-    
-    // Validate availability before creating payment
-    const availabilityErrors = await validateAvailability(items);
-    if (availabilityErrors.length > 0) {
-      throw new AppError(availabilityErrors.join("; "), 400);
+
+    const { errors, normalizedItems } = await buildAuthoritativeOrderItems(items);
+    if (errors.length > 0) {
+      throw new AppError(errors.join("; "), 400);
     }
 
-    const amount = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
+    const hasArtItems = normalizedItems.some((item) => item.itemType === "art");
+    if (hasArtItems && !address?.trim()) {
+      throw new AppError("Delivery address is required for art orders", 400);
+    }
+
+    const finalAddress = address?.trim() || "Digital Ticket - No shipping required";
+
+    const amount = normalizedItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
     const amountPaise = Math.round(amount * 100);
 
     if (amountPaise < 100) {
@@ -88,13 +227,28 @@ export const createOrder: RequestHandler = async (req, res, next) => {
     }
 
     const razorpay = getRazorpayInstance();
-    const order = await razorpay.orders.create({ 
-      amount: amountPaise, 
-      currency: "INR",
-      notes: {
-        userId: req.user.userId,
-        itemCount: items.length.toString(),
-      }
+    let order: { id: string };
+    try {
+      order = (await razorpay.orders.create({
+        amount: amountPaise,
+        currency: "INR",
+        notes: {
+          userId: req.user.userId,
+          itemCount: normalizedItems.length.toString(),
+        },
+      })) as { id: string };
+    } catch (err) {
+      throw toPaymentProviderError(err, "Unable to create payment order. Please try again.");
+    }
+
+    await Order.create({
+      userId: new mongoose.Types.ObjectId(req.user.userId),
+      items: normalizedItems,
+      totalAmount: amount,
+      paymentStatus: "created",
+      razorpayOrderId: order.id,
+      address: finalAddress,
+      phone,
     });
 
     return res.status(201).json({ 
@@ -117,162 +271,405 @@ const verifySchema = z.object({
   razorpay_order_id: z.string().min(1),
   razorpay_payment_id: z.string().min(1),
   razorpay_signature: z.string().min(1),
-  items: z.array(orderItemSchema).min(1),
-  address: z.string().min(10),
-  phone: z.string().min(10),
+  address: z.string().min(10).optional(),
+  phone: z.string().regex(/^\d{10}$/).optional(),
 });
+
+const reconcileSchema = z.object({
+  razorpay_order_id: z.string().min(1),
+  address: z.string().min(10).optional(),
+  phone: z.string().regex(/^\d{10}$/).optional(),
+});
+
+async function buildOrderSuccessPayload(order: OrderDocument) {
+  const tickets = await Ticket.find({ orderId: order._id }).select("ticketId quantity").lean();
+
+  return {
+    success: true,
+    order: {
+      _id: order._id,
+      orderNumber: order.orderNumber,
+      totalAmount: order.totalAmount,
+      paymentStatus: order.paymentStatus,
+      items: order.items,
+    },
+    tickets,
+  };
+}
+
+function assertOrderOwnership(order: OrderDocument, requesterUserId: string, requesterRole: string) {
+  const isAdmin = requesterRole === "admin";
+  if (!isAdmin && order.userId.toString() !== requesterUserId) {
+    throw new AppError("Forbidden", 403);
+  }
+}
 
 export const verifyOrder: RequestHandler = async (req, res, next) => {
   const session = await mongoose.startSession();
-  
+
   try {
     if (!req.user) throw new AppError("Unauthorized", 401);
-    
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, items, address, phone } = verifySchema.parse(req.body);
+
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, address, phone } = verifySchema.parse(req.body);
+
+    const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+
+    if (!existingOrder) {
+      throw new AppError("Order not found for verification", 404);
+    }
+
+    assertOrderOwnership(existingOrder, req.user.userId, req.user.role);
+
+    if (existingOrder.paymentStatus === "paid") {
+      return res.status(200).json({
+        ...(await buildOrderSuccessPayload(existingOrder)),
+        message: "Payment already verified",
+      });
+    }
+
+    if (existingOrder.paymentStatus === "failed") {
+      throw new AppError("This payment attempt is already marked failed", 400);
+    }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     if (!keySecret) throw new AppError("Payment configuration error", 500);
 
-    // Verify signature
-    const hmac = crypto.createHmac("sha256", keySecret);
-    hmac.update(`${razorpay_order_id}|${razorpay_payment_id}`);
-    const digest = hmac.digest("hex");
-    
-    if (digest !== razorpay_signature) {
-      // Log failed payment attempt
-      await Order.create({
-        userId: new mongoose.Types.ObjectId(req.user.userId),
-        items,
-        totalAmount: items.reduce((s, it) => s + it.price * it.quantity, 0),
-        paymentStatus: "failed",
-        razorpayOrderId: razorpay_order_id,
-        razorpayPaymentId: razorpay_payment_id,
-        address,
-        phone,
-      });
+    const digest = crypto
+      .createHmac("sha256", keySecret)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
+
+    if (!safeSignatureCompare(digest, razorpay_signature)) {
+      existingOrder.paymentStatus = "failed";
+      existingOrder.razorpayPaymentId = razorpay_payment_id;
+      await existingOrder.save();
       throw new AppError("Payment verification failed. Please contact support if amount was deducted.", 400);
     }
 
-    // Start transaction
-    session.startTransaction();
-    
-    const totalAmount = items.reduce((s, it) => s + it.price * it.quantity, 0);
-    
-    // Create order first
-    const [savedOrder] = await Order.create([{
-      userId: new mongoose.Types.ObjectId(req.user.userId),
-      items,
-      totalAmount,
-      paymentStatus: "paid",
-      razorpayOrderId: razorpay_order_id,
+    const duplicatePaidOrder = await Order.findOne({
       razorpayPaymentId: razorpay_payment_id,
-      address,
-      phone,
-    }], { session });
+      _id: { $ne: existingOrder._id },
+      paymentStatus: "paid",
+    }).lean();
 
-    if (!savedOrder) {
-      throw new AppError("Failed to create order", 500);
+    if (duplicatePaidOrder) {
+      throw new AppError("Payment already linked with another order", 409);
     }
 
-    const tickets: Array<{ ticketId: string; eventTitle: string; quantity: number }> = [];
-
-    // Process each item with atomic operations
-    for (const item of items) {
-      if (item.itemType === "event") {
-        const eventId = new mongoose.Types.ObjectId(item.itemId);
-        
-        // ATOMIC OPERATION: Decrement seats only if enough available (prevents race condition)
-        const updateResult = await Event.findOneAndUpdate(
-          { 
-            _id: eventId, 
-            seatsLeft: { $gte: item.quantity } // Only update if enough seats available
-          }, 
-          { $inc: { seatsLeft: -item.quantity } },
-          { 
-            session,
-            returnDocument: 'after' // Return updated document
-          }
-        );
-        
-        // If update failed, it means seats were sold out during payment
-        if (!updateResult) {
-          throw new AppError(
-            `Sorry, only ${(await Event.findById(eventId).session(session))?.seatsLeft || 0} seats left for "${item.title}". ` +
-            `A refund will be initiated automatically.`,
-            400
-          );
-        }
-        
-        // Create ticket
-        const ticketId = `TKT-${Date.now().toString(36).toUpperCase()}-${nanoid(6).toUpperCase()}`;
-        await Ticket.create([{
-          userId: new mongoose.Types.ObjectId(req.user.userId),
-          eventId,
-          orderId: savedOrder._id,
-          ticketId,
-          quantity: item.quantity,
-          status: "active",
-        }], { session });
-        
-        tickets.push({ ticketId, eventTitle: item.title, quantity: item.quantity });
-      } else if (item.itemType === "art") {
-        // ATOMIC OPERATION: Decrement art quantity
-        const artId = new mongoose.Types.ObjectId(item.itemId);
-        const updateResult = await Art.findOneAndUpdate(
-          {
-            _id: artId,
-            isAvailable: true,
-            quantity: { $gte: item.quantity }
-          },
-          { $inc: { quantity: -item.quantity } },
-          { 
-            session,
-            returnDocument: 'after'
-          }
-        );
-        
-        if (!updateResult) {
-          throw new AppError(
-            `Sorry, "${item.title}" is no longer available in the requested quantity. ` +
-            `A refund will be initiated automatically.`,
-            400
-          );
-        }
-        
-        // Mark as unavailable if quantity reaches 0
-        if (updateResult.quantity === 0) {
-          await Art.updateOne(
-            { _id: artId },
-            { isAvailable: false },
-            { session }
-          );
-        }
-      }
+    const razorpay = getRazorpayInstance();
+    let payment: {
+      id: string;
+      order_id: string;
+      amount: number;
+      currency: string;
+      status: string;
+      created_at?: number;
+    };
+    try {
+      payment = (await razorpay.payments.fetch(razorpay_payment_id)) as {
+        id: string;
+        order_id: string;
+        amount: number;
+        currency: string;
+        status: string;
+        created_at?: number;
+      };
+    } catch (err) {
+      throw toPaymentProviderError(err, "Unable to verify payment with provider.");
     }
 
-    // Commit transaction
+    const expectedAmountPaise = Math.round(existingOrder.totalAmount * 100);
+    if (
+      payment.id !== razorpay_payment_id ||
+      payment.order_id !== razorpay_order_id ||
+      payment.amount !== expectedAmountPaise ||
+      payment.currency !== "INR" ||
+      (payment.status !== "captured" && payment.status !== "authorized")
+    ) {
+      throw new AppError("Payment details mismatch. Verification failed.", 400);
+    }
+
+    session.startTransaction();
+
+    const orderInTxn = await Order.findOne({ _id: existingOrder._id }).session(session);
+    if (!orderInTxn) {
+      throw new AppError("Order not found", 404);
+    }
+
+    if (orderInTxn.paymentStatus === "paid") {
+      await session.commitTransaction();
+      return res.status(200).json({
+        ...(await buildOrderSuccessPayload(orderInTxn)),
+        message: "Payment already verified",
+      });
+    }
+
+    if (orderInTxn.paymentStatus === "failed") {
+      throw new AppError("This payment attempt is already marked failed", 400);
+    }
+
+    orderInTxn.paymentStatus = "paid";
+    orderInTxn.razorpayPaymentId = razorpay_payment_id;
+    orderInTxn.paymentCapturedAt = new Date((payment.created_at || Math.floor(Date.now() / 1000)) * 1000);
+    if (address?.trim()) orderInTxn.address = address.trim();
+    if (phone?.trim()) orderInTxn.phone = phone.trim();
+    await orderInTxn.save({ session });
+
+    const tickets = await fulfillPaidOrder(orderInTxn, session);
+
     await session.commitTransaction();
 
     return res.status(200).json({ 
       success: true, 
       message: "Payment successful! Your order has been placed.",
       order: {
-        _id: savedOrder._id,
-        orderNumber: savedOrder.orderNumber,
-        totalAmount: savedOrder.totalAmount,
-        paymentStatus: savedOrder.paymentStatus,
-        items: savedOrder.items,
+        _id: orderInTxn._id,
+        orderNumber: orderInTxn.orderNumber,
+        totalAmount: orderInTxn.totalAmount,
+        paymentStatus: orderInTxn.paymentStatus,
+        items: orderInTxn.items,
       },
       tickets: tickets.length > 0 ? tickets : undefined,
     });
   } catch (err) {
-    // Rollback transaction on any error
     if (session.inTransaction()) {
       await session.abortTransaction();
     }
     next(err);
   } finally {
-    // Always end session
+    session.endSession();
+  }
+};
+
+export const reconcileOrder: RequestHandler = async (req, res, next) => {
+  const session = await mongoose.startSession();
+
+  try {
+    if (!req.user) throw new AppError("Unauthorized", 401);
+
+    const { razorpay_order_id, address, phone } = reconcileSchema.parse(req.body);
+
+    const existingOrder = await Order.findOne({ razorpayOrderId: razorpay_order_id });
+
+    if (!existingOrder) {
+      throw new AppError("Order not found", 404);
+    }
+
+    assertOrderOwnership(existingOrder, req.user.userId, req.user.role);
+
+    if (existingOrder.paymentStatus === "paid") {
+      return res.status(200).json({
+        ...(await buildOrderSuccessPayload(existingOrder)),
+        message: "Order already paid",
+      });
+    }
+
+    if (existingOrder.paymentStatus === "failed") {
+      return res.status(200).json({ success: false, paymentStatus: "failed", message: "Payment marked as failed" });
+    }
+
+    const razorpay = getRazorpayInstance();
+    let paymentsResult: {
+      items?: Array<{
+        id: string;
+        order_id: string;
+        amount: number;
+        currency: string;
+        status: string;
+        created_at?: number;
+      }>;
+    };
+    try {
+      paymentsResult = (await razorpay.orders.fetchPayments(razorpay_order_id)) as {
+        items?: Array<{
+          id: string;
+          order_id: string;
+          amount: number;
+          currency: string;
+          status: string;
+          created_at?: number;
+        }>;
+      };
+    } catch (err) {
+      throw toPaymentProviderError(err, "Unable to reconcile payment with provider.");
+    }
+
+    const matchedPayment = paymentsResult.items?.find((payment) => payment.status === "captured");
+
+    if (!matchedPayment) {
+      return res.status(200).json({ success: false, paymentStatus: "created", message: "Payment still pending" });
+    }
+
+    if (
+      matchedPayment.order_id !== razorpay_order_id ||
+      matchedPayment.amount !== Math.round(existingOrder.totalAmount * 100) ||
+      matchedPayment.currency !== "INR"
+    ) {
+      throw new AppError("Payment details mismatch during reconciliation", 400);
+    }
+
+    const duplicatePaidOrder = await Order.findOne({
+      razorpayPaymentId: matchedPayment.id,
+      _id: { $ne: existingOrder._id },
+      paymentStatus: "paid",
+    }).lean();
+
+    if (duplicatePaidOrder) {
+      throw new AppError("Payment already linked with another order", 409);
+    }
+
+    session.startTransaction();
+
+    const orderInTxn = await Order.findOne({ _id: existingOrder._id }).session(session);
+    if (!orderInTxn) throw new AppError("Order not found", 404);
+
+    if (orderInTxn.paymentStatus === "paid") {
+      await session.commitTransaction();
+      return res.status(200).json({
+        ...(await buildOrderSuccessPayload(orderInTxn)),
+        message: "Order already paid",
+      });
+    }
+
+    if (orderInTxn.paymentStatus === "failed") {
+      await session.commitTransaction();
+      return res.status(200).json({ success: false, paymentStatus: "failed", message: "Payment marked as failed" });
+    }
+
+    orderInTxn.paymentStatus = "paid";
+    orderInTxn.razorpayPaymentId = matchedPayment.id;
+    orderInTxn.paymentCapturedAt = new Date((matchedPayment.created_at || Math.floor(Date.now() / 1000)) * 1000);
+    if (address?.trim()) orderInTxn.address = address.trim();
+    if (phone?.trim()) orderInTxn.phone = phone.trim();
+    await orderInTxn.save({ session });
+
+    await fulfillPaidOrder(orderInTxn, session);
+    await session.commitTransaction();
+
+    return res.status(200).json({
+      ...(await buildOrderSuccessPayload(orderInTxn)),
+      message: "Payment reconciled successfully",
+    });
+  } catch (err) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    next(err);
+  } finally {
+    session.endSession();
+  }
+};
+
+export const razorpayWebhook: RequestHandler = async (req, res, next) => {
+  const session = await mongoose.startSession();
+
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) throw new AppError("Webhook secret is not configured", 500);
+
+    if (!Buffer.isBuffer(req.body)) {
+      throw new AppError("Invalid webhook payload", 400);
+    }
+
+    const signature = req.header("x-razorpay-signature");
+    if (!signature) throw new AppError("Missing webhook signature", 400);
+
+    const expectedSignature = crypto.createHmac("sha256", webhookSecret).update(req.body).digest("hex");
+    if (!safeSignatureCompare(expectedSignature, signature)) {
+      throw new AppError("Invalid webhook signature", 401);
+    }
+
+    const payload = JSON.parse(req.body.toString("utf8")) as {
+      event?: string;
+      created_at?: number;
+      payload?: {
+        payment?: { entity?: { id?: string; order_id?: string; amount?: number; currency?: string; created_at?: number } };
+        order?: { entity?: { id?: string } };
+      };
+    };
+
+    const eventType = payload.event;
+    const paymentEntity = payload.payload?.payment?.entity;
+    const orderEntity = payload.payload?.order?.entity;
+    const razorpayOrderId = paymentEntity?.order_id || orderEntity?.id;
+    const razorpayPaymentId = paymentEntity?.id;
+    const eventKey = `${eventType || "unknown"}:${razorpayPaymentId || razorpayOrderId || "na"}:${payload.created_at || 0}`;
+
+    if (!razorpayOrderId || !eventType) {
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
+    if (eventType === "payment.failed") {
+      await Order.updateOne(
+        {
+          razorpayOrderId,
+          paymentStatus: "created",
+        },
+        {
+          $set: {
+            paymentStatus: "failed",
+            razorpayPaymentId: razorpayPaymentId,
+            lastWebhookEventKey: eventKey,
+          },
+        }
+      );
+
+      return res.status(200).json({ received: true });
+    }
+
+    if (eventType !== "payment.captured" && eventType !== "order.paid") {
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
+    session.startTransaction();
+
+    const orderInTxn = await Order.findOne({ razorpayOrderId }).session(session);
+    if (!orderInTxn) {
+      await session.commitTransaction();
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
+    if (orderInTxn.lastWebhookEventKey === eventKey) {
+      await session.commitTransaction();
+      return res.status(200).json({ received: true, duplicate: true });
+    }
+
+    if (orderInTxn.paymentStatus === "paid") {
+      orderInTxn.lastWebhookEventKey = eventKey;
+      if (razorpayPaymentId && !orderInTxn.razorpayPaymentId) {
+        orderInTxn.razorpayPaymentId = razorpayPaymentId;
+      }
+      await orderInTxn.save({ session });
+      await session.commitTransaction();
+      return res.status(200).json({ received: true });
+    }
+
+    if (paymentEntity?.amount && paymentEntity.amount !== Math.round(orderInTxn.totalAmount * 100)) {
+      throw new AppError("Webhook payment amount mismatch", 400);
+    }
+
+    if (paymentEntity?.currency && paymentEntity.currency !== "INR") {
+      throw new AppError("Webhook currency mismatch", 400);
+    }
+
+    orderInTxn.paymentStatus = "paid";
+    if (razorpayPaymentId) orderInTxn.razorpayPaymentId = razorpayPaymentId;
+    orderInTxn.lastWebhookEventKey = eventKey;
+    orderInTxn.paymentCapturedAt = new Date(
+      ((paymentEntity?.created_at || payload.created_at || Math.floor(Date.now() / 1000)) as number) * 1000
+    );
+    await orderInTxn.save({ session });
+
+    await fulfillPaidOrder(orderInTxn, session);
+    await session.commitTransaction();
+
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
+    next(err);
+  } finally {
     session.endSession();
   }
 };
