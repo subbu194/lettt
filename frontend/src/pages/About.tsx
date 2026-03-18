@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { fadeInUp } from '@/utils/animations';
 import { Quote, Target, Heart, Users, Lightbulb, Award, Mic, Palette, ShoppingBag, BookOpen } from 'lucide-react';
+import logo from '@/assets/lettt-logo.PNG';
+import founderImage from '@/assets/founder.png';
 
 export default function AboutPage() {
   const pillars = [
@@ -54,6 +56,15 @@ export default function AboutPage() {
               variants={fadeInUp}
               transition={{ duration: 0.4 }}
             >
+              <div className="mb-8 flex justify-center">
+                <div className="rounded-3xl bg-white/95 p-4 shadow-2xl shadow-red-950/30 ring-1 ring-white/40 backdrop-blur-sm">
+                  <img
+                    src={logo}
+                    alt="Let The Talent Talk logo"
+                    className="h-16 w-auto sm:h-20 md:h-24"
+                  />
+                </div>
+              </div>
               <span className="inline-block rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">About Us</span>
               <h1 className="mt-6 text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl">
                 Let The Talent Talk
@@ -161,6 +172,9 @@ export default function AboutPage() {
               <p className="mt-8 text-2xl font-bold text-gradient-red">
                 Because when talent speaks, the world listens.
               </p>
+              <div className="mt-8 flex justify-center">
+                <img src={logo} alt="Let The Talent Talk" className="h-12 w-auto opacity-85" />
+              </div>
             </motion.div>
           </div>
         </div>
@@ -193,7 +207,22 @@ export default function AboutPage() {
               <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-red-600/10 blur-3xl" />
               
               <div className="relative">
-                <div className="flex flex-col md:flex-row gap-10 items-start">
+                <div className="flex flex-col gap-10 md:flex-row md:items-start">
+                  <div className="mx-auto w-full max-w-xs md:mx-0 md:w-80">
+                    <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-white/5 p-2">
+                      <img
+                        src={founderImage}
+                        alt="Salman WTBI, Founder of Let The Talent Talk"
+                        className="h-full w-full rounded-xl object-cover"
+                      />
+                      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/50 to-transparent" />
+                    </div>
+                    <div className="mt-4 flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white/70">
+                      <span className="h-2 w-2 rounded-full bg-(--color-red)" />
+                      Founder Spotlight
+                    </div>
+                  </div>
+
                   {/* Founder Info */}
                   <div className="flex-1">
                     <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white/80 mb-6">
@@ -267,11 +296,17 @@ export default function AboutPage() {
 
             {/* Founder's Message */}
             <motion.div
-              className="mt-12 rounded-2xl bg-red-50 border border-red-100 p-10 md:p-12"
+              className="relative mt-12 overflow-hidden rounded-2xl bg-red-50 border border-red-100 p-10 md:p-12"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
+              <img
+                src={logo}
+                alt=""
+                aria-hidden
+                className="pointer-events-none absolute -right-10 -top-10 h-28 w-auto opacity-10"
+              />
               <div className="flex items-start gap-4">
                 <Quote className="h-10 w-10 text-(--color-red) shrink-0 mt-1" />
                 <div>
@@ -321,6 +356,9 @@ export default function AboutPage() {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
             >
+              <div className="mb-8 flex justify-center">
+                <img src={logo} alt="Let The Talent Talk logo" className="h-14 w-auto opacity-80" />
+              </div>
               <p className="text-2xl md:text-3xl font-bold leading-relaxed">
                 "Don't wait for the world to discover you.
                 <br />
