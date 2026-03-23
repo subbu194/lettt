@@ -314,7 +314,7 @@ export default function CheckoutPage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
+                        placeholder=""
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.name 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="john@example.com"
+                        placeholder=""
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.email 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
@@ -365,7 +365,7 @@ export default function CheckoutPage() {
                             setPhone(value);
                           }
                         }}
-                        placeholder="9876543210"
+                        placeholder=""
                         maxLength={10}
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.phone 
@@ -401,7 +401,7 @@ export default function CheckoutPage() {
                       <textarea
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
-                        placeholder="House/Flat no., Building name, Street name"
+                        placeholder=""
                         rows={3}
                         className={`w-full rounded-xl border bg-white p-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.address 
@@ -423,7 +423,7 @@ export default function CheckoutPage() {
                           type="text"
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
-                          placeholder="Mumbai"
+                          placeholder=""
                           className="h-12 w-full rounded-xl border border-black/4 bg-white px-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         />
                       </div>
@@ -440,7 +440,7 @@ export default function CheckoutPage() {
                               setPincode(value);
                             }
                           }}
-                          placeholder="400001"
+                          placeholder=""
                           maxLength={6}
                           className="h-12 w-full rounded-xl border border-black/4 bg-white px-4 text-sm transition-all focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         />

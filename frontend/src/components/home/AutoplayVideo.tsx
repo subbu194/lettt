@@ -49,10 +49,12 @@ export function AutoplayVideo() {
       if (window.YT && window.YT.Player && !playerRef.current) {
         playerRef.current = new window.YT.Player('youtube-player', {
           videoId: 'MhAR5LFctsQ',
+          host: 'https://www.youtube-nocookie.com',
           playerVars: {
             autoplay: 1, mute: 1, loop: 1, playlist: 'MhAR5LFctsQ',
             controls: 0, showinfo: 0, rel: 0, modestbranding: 1,
             fs: 0, disablekb: 1, iv_load_policy: 3,
+            origin: window.location.origin,
           },
           events: {
             onReady: () => setIsPlayerReady(true),

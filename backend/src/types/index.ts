@@ -4,6 +4,7 @@ export type JwtPayload = {
   userId: string;
   email: string;
   role: UserRole;
+  tokenVersion: number;
 };
 
 export type SafeUser = {
@@ -14,6 +15,9 @@ export type SafeUser = {
   profileImage?: string;
   phone?: string;
   address?: string;
+  city?: string;
+  pincode?: string;
+  isProfileComplete?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };

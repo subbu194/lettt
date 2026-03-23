@@ -2,6 +2,10 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
+import rateLimit from "express-rate-limit";
+import { logger } from "./utils/logger";
 import { connectDatabase } from "./config/database";
 import { initializeR2 } from "./config/r2";
 import { initializeRazorpay } from "./config/razorpay";
@@ -19,6 +23,7 @@ import blogRoutes from "./routes/blogRoutes";
 import galleryRoutes from "./routes/galleryRoutes";
 import searchRoutes from "./routes/searchRoutes";
 import { razorpayWebhook } from "./controllers/orderController";
+import { mongoSanitize } from "./middleware/mongoSanitize";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -33,19 +38,43 @@ async function start() {
   await initializeR2();
   await initializeRazorpay();
 
+  if (process.env.TRUST_PROXY === "true") {
+    app.set("trust proxy", 1);
+  }
 
-  app.use(
-    cors({
-      origin: "*",
-      credentials: false,
-    })
-  );
+  // Security
+  app.use(helmet());
+  app.use(cors({ origin: true, credentials: true }));
 
-  // Razorpay webhook signature verification needs the raw request body.
+  // Logging
+  app.use((req, _res, next) => {
+    logger.info(`${req.method} ${req.originalUrl} - IP: ${req.ip}`);
+    next();
+  });
+
+  // Body parsers
   app.post("/api/v1/orders/webhook", express.raw({ type: "application/json" }), razorpayWebhook);
-
   app.use(express.json({ limit: "1mb" }));
-  app.use(express.urlencoded({ extended: true }));
+  app.use(mongoSanitize);
+  app.use(cookieParser());
+
+  // Rate Limiting
+  const defaultLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: "Too many requests, please try again later" },
+  });
+
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Brute-force protection: Too many login attempts" },
+  });
+
+  app.use("/api/v1/", defaultLimiter);
+  app.use("/api/v1/auth/login", authLimiter);
+  app.use("/api/v1/auth/signup", authLimiter);
+  app.use("/api/v1/auth/admin/login", authLimiter);
 
   // Health route
   app.use("/api/v1", healthRoutes);

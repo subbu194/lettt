@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { useUserStore } from '@/store/useUserStore';
 
-type AuthResponse = { token?: string; user?: Record<string, unknown> };
+type AuthResponse = { user?: Record<string, unknown> };
 
 export function Login() {
   const login = useUserStore((s) => s.login);
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -29,20 +27,11 @@ export function Login() {
     setLoading(true);
     
     try {
+      // Backend uses httpOnly cookies for auth - no token in response body
       const resp = await apiClient.post<AuthResponse>('/auth/login', { email, password });
-      const token = resp.data?.token;
-      if (!token) {
-        setError('Login succeeded but no token was returned.');
-        return;
-      }
-      login(token, resp.data?.user);
+      // Login successful if we get here (cookies are set automatically)
+      login(resp.data?.user);
       setSuccess(true);
-      
-      // Redirect to the intended page or home
-      const redirectTo = searchParams.get('redirect') || '/';
-      setTimeout(() => {
-        navigate(redirectTo);
-      }, 1000);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {

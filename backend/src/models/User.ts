@@ -1,7 +1,6 @@
 import mongoose, { Schema } from "mongoose";
-import type { UserRole, JwtPayload, SafeUser } from "../types";
+import type { UserRole, SafeUser } from "../types";
 import { comparePassword, hashPassword } from "../utils/password";
-import { signJwt } from "../utils/jwt";
 
 export interface UserDocument extends mongoose.Document {
   email: string;
@@ -11,8 +10,11 @@ export interface UserDocument extends mongoose.Document {
   profileImage?: string;
   phone?: string;
   address?: string;
+  city?: string;
+  pincode?: string;
+  isProfileComplete: boolean;
+  tokenVersion: number;
   comparePassword: (candidate: string) => Promise<boolean>;
-  generateToken: (secret?: string) => string;
   toSafeJSON: () => SafeUser;
 }
 
@@ -24,33 +26,22 @@ const UserSchema = new Schema<UserDocument>(
       unique: true,
       lowercase: true,
       trim: true,
+      index: true,
     },
     password: {
       type: String,
       required: true,
       select: false,
     },
-    name: {
-      type: String,
-      trim: true,
-    },
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
-    },
-    profileImage: {
-      type: String,
-      trim: true,
-    },
-    phone: {
-      type: String,
-      trim: true,
-    },
-    address: {
-      type: String,
-      trim: true,
-    },
+    name: { type: String, trim: true },
+    role: { type: String, enum: ["user", "admin"], default: "user", index: true },
+    profileImage: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    address: { type: String, trim: true },
+    city: { type: String, trim: true },
+    pincode: { type: String, trim: true },
+    isProfileComplete: { type: Boolean, default: false },
+    tokenVersion: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
@@ -64,19 +55,6 @@ UserSchema.methods.comparePassword = async function (candidate: string) {
   return comparePassword(candidate, this.password);
 };
 
-UserSchema.methods.generateToken = function (secret?: string) {
-  const jwtSecret = secret ?? process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    throw new Error("JWT_SECRET is not configured");
-  }
-  const payload: JwtPayload = {
-    userId: this._id.toString(),
-    email: this.email,
-    role: this.role,
-  };
-  return signJwt(payload, jwtSecret);
-};
-
 UserSchema.methods.toSafeJSON = function () {
   return {
     _id: this._id.toString(),
@@ -86,6 +64,9 @@ UserSchema.methods.toSafeJSON = function () {
     profileImage: this.profileImage,
     phone: this.phone,
     address: this.address,
+    city: this.city,
+    pincode: this.pincode,
+    isProfileComplete: this.isProfileComplete,
     createdAt: this.createdAt,
     updatedAt: this.updatedAt,
   };

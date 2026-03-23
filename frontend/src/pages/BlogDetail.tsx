@@ -74,11 +74,11 @@ function RichParagraph({ text, style }: { text: string; style?: React.CSSPropert
   if (!text) return null;
   const rawLines = text.split('\n');
   const blocks: { isList: boolean; content: string }[] = [];
-  
+
   for (const line of rawLines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
-    
+
     if (isListLine(trimmed)) {
       blocks.push({ isList: true, content: stripMarker(trimmed) });
     } else {

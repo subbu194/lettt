@@ -17,20 +17,35 @@ export function Hero() {
         <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-red-100/60 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-125 h-125 rounded-full bg-red-50/80 blur-3xl" />
         {/* Floating geometric shapes */}
+        {/* Large rounded square — top right */}
         <motion.div
-          className="absolute top-1/4 right-[15%] w-20 h-20 rounded-2xl border border-red-200/40 rotate-12"
-          animate={{ y: [-10, 10, -10], rotate: [12, 18, 12] }}
+          className="absolute top-1/4 right-[15%] w-20 h-20 rounded-2xl bg-red-100 border-2 border-red-300 rotate-12 shadow-md shadow-red-200/60"
+          animate={{ y: [-10, 10, -10], rotate: [12, 20, 12] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
         />
+        {/* Circle — bottom left */}
         <motion.div
-          className="absolute bottom-1/3 left-[10%] w-14 h-14 rounded-full border border-red-200/30"
+          className="absolute bottom-1/3 left-[10%] w-14 h-14 rounded-full bg-red-50 border-2 border-red-400 shadow-md shadow-red-300/50"
           animate={{ y: [8, -8, 8], x: [-4, 4, -4] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
+        {/* Small rotated square — right middle */}
         <motion.div
-          className="absolute top-[60%] right-[8%] w-8 h-8 bg-red-100/40 rounded-lg rotate-45"
-          animate={{ y: [-6, 6, -6], rotate: [45, 50, 45] }}
+          className="absolute top-[60%] right-[8%] w-10 h-10 bg-red-500 rounded-lg rotate-45 shadow-lg shadow-red-400/50"
+          animate={{ y: [-6, 6, -6], rotate: [45, 55, 45] }}
           transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Extra: small circle — top left area */}
+        <motion.div
+          className="absolute top-[20%] left-[8%] w-6 h-6 rounded-full bg-red-400 shadow-md shadow-red-300/60"
+          animate={{ y: [-5, 5, -5], x: [3, -3, 3] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+        {/* Extra: tiny diamond — bottom right */}
+        <motion.div
+          className="absolute bottom-[20%] right-[18%] w-5 h-5 bg-red-300 rounded-sm rotate-45 shadow shadow-red-200/70"
+          animate={{ y: [4, -4, 4], rotate: [45, 38, 45] }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
         />
       </div>
 

@@ -12,6 +12,8 @@ interface LocalImageCropModalProps {
   maxFileSize?: number; // in bytes
   acceptedFileTypes?: string[];
   CircularCrop?: boolean;
+  /** Output MIME type for the cropped image. Use 'image/png' to preserve transparency. Defaults to 'image/jpeg'. */
+  outputMimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
 }
 
 const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
@@ -21,6 +23,7 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
   maxFileSize = 10 * 1024 * 1024, // 10MB
   acceptedFileTypes = ['image/jpeg', 'image/png', 'image/webp'],
   CircularCrop = false,
+  outputMimeType = 'image/jpeg',
 }) => {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -98,8 +101,8 @@ const LocalImageCropModal: React.FC<LocalImageCropModalProps> = ({
           }
           onClose();
         },
-        'image/jpeg',
-        0.9
+        outputMimeType,
+        outputMimeType === 'image/png' ? undefined : 0.9  // PNG is lossless, no quality arg needed
       );
     } catch {
       setError('Failed to crop the image. Please try again.');

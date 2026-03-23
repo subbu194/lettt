@@ -43,7 +43,7 @@ export const listGalleryImages: RequestHandler = async (req, res, next) => {
 
     if (search) {
       const safe = escapeRegex(search);
-      filter.category = new RegExp(safe, "i");
+      filter.$or = [{ category: { $regex: safe, $options: "i" } }];
     }
 
     const skip = (page - 1) * limit;
@@ -258,6 +258,43 @@ export const getGalleryStats: RequestHandler = async (req, res, next) => {
     return res.json({
       totalImages,
       totalCategories: categories,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN: Get categories with image counts
+// ─────────────────────────────────────────────────────────────
+
+export const getCategoriesWithCounts: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+
+    const categoryCounts = await GalleryImage.aggregate([
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          count: 1,
+        },
+      },
+      {
+        $sort: { category: 1 },
+      },
+    ]);
+
+    return res.json({
+      categories: categoryCounts,
     });
   } catch (err) {
     next(err);

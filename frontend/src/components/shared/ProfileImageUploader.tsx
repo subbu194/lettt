@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, AlertCircle, Loader2 } from 'lucide-react';
 import apiClient from '@/api/client';
@@ -15,6 +15,12 @@ export function ProfileImageUploader({ currentImage, userName, onImageUpdate }: 
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (preview) URL.revokeObjectURL(preview);
+    };
+  }, [preview]);
 
   const getInitials = () => {
     if (!userName) return '?';
@@ -39,6 +45,7 @@ export function ProfileImageUploader({ currentImage, userName, onImageUpdate }: 
 
     // Show preview immediately
     const previewUrl = URL.createObjectURL(file);
+    if (preview) URL.revokeObjectURL(preview);
     setPreview(previewUrl);
 
     // Upload to R2

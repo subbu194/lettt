@@ -1,4 +1,5 @@
 import type { ErrorRequestHandler, RequestHandler } from "express";
+import { logger } from "../utils/logger";
 
 export class AppError extends Error {
   statusCode: number;
@@ -39,17 +40,19 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   }
 
   if (statusCode >= 500) {
+    logger.error(`[Unhandled Error] ${err.message}`, { stack: err.stack });
+    
     const isOperational = err instanceof AppError && err.isOperational;
     if (isOperational) {
       return res.status(statusCode).json({ error: err.message || "Request failed" });
     }
 
-    console.error("Unhandled error:", err);
-
     // Never leak internals in production for unhandled exceptions.
-    const message = process.env.NODE_ENV === "development" ? (err?.message ?? "Server error") : "Server error";
+    const message = process.env.NODE_ENV === "development" ? (err?.message ?? "Server error") : "Internal Server Error";
     return res.status(500).json({ error: message });
   }
+
+  logger.warn(`[AppError] ${statusCode} - ${err.message}`);
 
   return res.status(statusCode).json({ error: err?.message ?? "Request failed" });
 };

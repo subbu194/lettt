@@ -7,6 +7,7 @@ import {
   deleteGalleryImage,
   bulkDeleteGalleryImages,
   getGalleryStats,
+  getCategoriesWithCounts,
 } from "../controllers/galleryController";
 import { authenticateAdmin } from "../middleware/auth";
 
@@ -18,6 +19,7 @@ router.get("/categories", getCategories);
 
 // Admin Routes
 router.get("/admin/stats", authenticateAdmin, getGalleryStats);
+router.get("/admin/categories-with-counts", authenticateAdmin, getCategoriesWithCounts);
 router.post("/", authenticateAdmin, createGalleryImage);
 router.post("/bulk", authenticateAdmin, bulkCreateGalleryImages);
 router.delete("/bulk", authenticateAdmin, bulkDeleteGalleryImages);

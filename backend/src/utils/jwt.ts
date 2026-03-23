@@ -1,36 +1,33 @@
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "../types";
+import type { SignOptions } from "jsonwebtoken";
 
-export function signJwt(payload: JwtPayload, secret: string) {
-  // Tokens must NOT expire: do not set expiresIn.
-  return jwt.sign(payload, secret);
+export function signJwt(
+  payload: JwtPayload,
+  secret: string,
+  expiresIn: SignOptions["expiresIn"]
+) {
+  return jwt.sign(payload, secret, { expiresIn });
 }
 
-export function verifyJwt(token: string): JwtPayload {
-  const userSecret = process.env.JWT_SECRET;
-  const adminSecret = process.env.JWT_ADMIN_SECRET;
+export function signAccessToken(payload: JwtPayload, isAdmin: boolean = false): string {
+  const secret = isAdmin ? process.env.JWT_ADMIN_SECRET : process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT secret not configured");
+  return signJwt(payload, secret, "15m");
+}
 
-  if (!userSecret && !adminSecret) {
-    throw new Error("JWT secrets are not configured");
-  }
+export function signRefreshToken(payload: JwtPayload, isAdmin: boolean = false): string {
+  const secret = isAdmin ? process.env.JWT_ADMIN_REFRESH_SECRET : process.env.JWT_REFRESH_SECRET;
+  if (!secret) throw new Error("JWT refresh secret not configured");
+  return signJwt(payload, secret, "7d");
+}
 
-  const tryVerify = (secret?: string) => {
-    if (!secret) return null;
-    try {
-      const decoded = jwt.verify(token, secret);
-      return decoded as JwtPayload;
-    } catch {
-      return null;
-    }
-  };
-
-  const decoded = tryVerify(userSecret) ?? tryVerify(adminSecret);
-  if (!decoded) {
-    const err = new Error("Invalid token");
-    // Tag for error handler
+export function verifyJwt(token: string, secret: string): JwtPayload {
+  try {
+    return jwt.verify(token, secret) as JwtPayload;
+  } catch (error) {
+    const err = new Error("Invalid or expired token");
     (err as any).name = "JsonWebTokenError";
     throw err;
   }
-
-  return decoded;
 }

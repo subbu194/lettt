@@ -23,9 +23,16 @@ type CartState = {
 
 const STORAGE_KEY = 'Let the talent talk_cart';
 
+// Migrate legacy localStorage cart to sessionStorage
+const legacyCart = localStorage.getItem(STORAGE_KEY);
+if (legacyCart && !sessionStorage.getItem(STORAGE_KEY)) {
+  sessionStorage.setItem(STORAGE_KEY, legacyCart);
+  localStorage.removeItem(STORAGE_KEY);
+}
+
 function loadInitial(): CartItem[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -40,7 +47,15 @@ function loadInitial(): CartItem[] {
 
 function persist(items: CartItem[]) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // ignore
+  }
+}
+
+function clearPersisted() {
+  try {
+    sessionStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
   }
@@ -66,7 +81,7 @@ export const useCartStore = create<CartState>((set, get) => ({
     set({ items: next });
   },
   clearCart: () => {
-    persist([]);
+    clearPersisted();
     set({ items: [] });
   },
   setQty: (id, qty) => {

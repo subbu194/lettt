@@ -391,29 +391,31 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
 
     session.startTransaction();
 
-    const orderInTxn = await Order.findOne({ _id: existingOrder._id }).session(session);
+    const orderInTxn = await Order.findOneAndUpdate(
+      { _id: existingOrder._id, paymentStatus: "created" },
+      { 
+        $set: { 
+          paymentStatus: "paid",
+          razorpayPaymentId: razorpay_payment_id,
+          paymentCapturedAt: new Date((payment.created_at || Math.floor(Date.now() / 1000)) * 1000),
+          address: address?.trim() || existingOrder.address,
+          phone: phone?.trim() || existingOrder.phone,
+        }
+      },
+      { session, returnDocument: 'after' }
+    );
+
     if (!orderInTxn) {
-      throw new AppError("Order not found", 404);
+      await session.abortTransaction();
+      const currentOrder = await Order.findById(existingOrder._id);
+      if (currentOrder && currentOrder.paymentStatus === "paid") {
+        return res.status(200).json({
+          ...(await buildOrderSuccessPayload(currentOrder)),
+          message: "Payment already verified",
+        });
+      }
+      throw new AppError("Failed to lock order or order already processed", 400);
     }
-
-    if (orderInTxn.paymentStatus === "paid") {
-      await session.commitTransaction();
-      return res.status(200).json({
-        ...(await buildOrderSuccessPayload(orderInTxn)),
-        message: "Payment already verified",
-      });
-    }
-
-    if (orderInTxn.paymentStatus === "failed") {
-      throw new AppError("This payment attempt is already marked failed", 400);
-    }
-
-    orderInTxn.paymentStatus = "paid";
-    orderInTxn.razorpayPaymentId = razorpay_payment_id;
-    orderInTxn.paymentCapturedAt = new Date((payment.created_at || Math.floor(Date.now() / 1000)) * 1000);
-    if (address?.trim()) orderInTxn.address = address.trim();
-    if (phone?.trim()) orderInTxn.phone = phone.trim();
-    await orderInTxn.save({ session });
 
     const tickets = await fulfillPaidOrder(orderInTxn, session);
 
@@ -520,28 +522,31 @@ export const reconcileOrder: RequestHandler = async (req, res, next) => {
 
     session.startTransaction();
 
-    const orderInTxn = await Order.findOne({ _id: existingOrder._id }).session(session);
-    if (!orderInTxn) throw new AppError("Order not found", 404);
+    const orderInTxn = await Order.findOneAndUpdate(
+      { _id: existingOrder._id, paymentStatus: "created" },
+      { 
+        $set: { 
+          paymentStatus: "paid",
+          razorpayPaymentId: matchedPayment.id,
+          paymentCapturedAt: new Date((matchedPayment.created_at || Math.floor(Date.now() / 1000)) * 1000),
+          address: address?.trim() || existingOrder.address,
+          phone: phone?.trim() || existingOrder.phone,
+        }
+      },
+      { session, returnDocument: 'after' }
+    );
 
-    if (orderInTxn.paymentStatus === "paid") {
-      await session.commitTransaction();
-      return res.status(200).json({
-        ...(await buildOrderSuccessPayload(orderInTxn)),
-        message: "Order already paid",
-      });
+    if (!orderInTxn) {
+      await session.abortTransaction();
+      const currentOrder = await Order.findById(existingOrder._id);
+      if (currentOrder && currentOrder.paymentStatus === "paid") {
+        return res.status(200).json({
+          ...(await buildOrderSuccessPayload(currentOrder)),
+          message: "Order already paid",
+        });
+      }
+      return res.status(200).json({ success: false, paymentStatus: "failed", message: "Failed to process reconciliation" });
     }
-
-    if (orderInTxn.paymentStatus === "failed") {
-      await session.commitTransaction();
-      return res.status(200).json({ success: false, paymentStatus: "failed", message: "Payment marked as failed" });
-    }
-
-    orderInTxn.paymentStatus = "paid";
-    orderInTxn.razorpayPaymentId = matchedPayment.id;
-    orderInTxn.paymentCapturedAt = new Date((matchedPayment.created_at || Math.floor(Date.now() / 1000)) * 1000);
-    if (address?.trim()) orderInTxn.address = address.trim();
-    if (phone?.trim()) orderInTxn.phone = phone.trim();
-    await orderInTxn.save({ session });
 
     await fulfillPaidOrder(orderInTxn, session);
     await session.commitTransaction();
@@ -623,42 +628,41 @@ export const razorpayWebhook: RequestHandler = async (req, res, next) => {
 
     session.startTransaction();
 
-    const orderInTxn = await Order.findOne({ razorpayOrderId }).session(session);
+    const orderInTxn = await Order.findOneAndUpdate(
+      { 
+        razorpayOrderId, 
+        paymentStatus: { $ne: "paid" }, // Only process if not already paid
+        lastWebhookEventKey: { $ne: eventKey } // Idempotency check 
+      },
+      {
+        $set: {
+          paymentStatus: "paid",
+          razorpayPaymentId: razorpayPaymentId || undefined,
+          lastWebhookEventKey: eventKey,
+          paymentCapturedAt: new Date(
+            ((paymentEntity?.created_at || payload.created_at || Math.floor(Date.now() / 1000)) as number) * 1000
+          )
+        }
+      },
+      { session, returnDocument: 'after' }
+    );
+
     if (!orderInTxn) {
-      await session.commitTransaction();
+      // Check if it was already paid (idempotency)
+      const existing = await Order.findOne({ razorpayOrderId }).session(session);
+      if (existing && existing.paymentStatus === "paid") {
+        await session.commitTransaction();
+        return res.status(200).json({ received: true, already_processed: true });
+      }
+      
+      await session.abortTransaction();
       return res.status(200).json({ received: true, ignored: true });
     }
 
-    if (orderInTxn.lastWebhookEventKey === eventKey) {
-      await session.commitTransaction();
-      return res.status(200).json({ received: true, duplicate: true });
-    }
-
-    if (orderInTxn.paymentStatus === "paid") {
-      orderInTxn.lastWebhookEventKey = eventKey;
-      if (razorpayPaymentId && !orderInTxn.razorpayPaymentId) {
-        orderInTxn.razorpayPaymentId = razorpayPaymentId;
-      }
-      await orderInTxn.save({ session });
-      await session.commitTransaction();
-      return res.status(200).json({ received: true });
-    }
-
+    // Security checks on the authoritative order object
     if (paymentEntity?.amount && paymentEntity.amount !== Math.round(orderInTxn.totalAmount * 100)) {
       throw new AppError("Webhook payment amount mismatch", 400);
     }
-
-    if (paymentEntity?.currency && paymentEntity.currency !== "INR") {
-      throw new AppError("Webhook currency mismatch", 400);
-    }
-
-    orderInTxn.paymentStatus = "paid";
-    if (razorpayPaymentId) orderInTxn.razorpayPaymentId = razorpayPaymentId;
-    orderInTxn.lastWebhookEventKey = eventKey;
-    orderInTxn.paymentCapturedAt = new Date(
-      ((paymentEntity?.created_at || payload.created_at || Math.floor(Date.now() / 1000)) as number) * 1000
-    );
-    await orderInTxn.save({ session });
 
     await fulfillPaidOrder(orderInTxn, session);
     await session.commitTransaction();

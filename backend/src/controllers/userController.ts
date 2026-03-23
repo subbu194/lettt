@@ -5,11 +5,14 @@ import { Order } from "../models/Order";
 import { Ticket } from "../models/Ticket";
 import { AppError } from "../middleware/errorHandler";
 import { isStrongPassword } from "../utils/password";
+import { sanitizeEmail, validateEmail } from "../utils/emailValidator";
 
 const updateProfileDetailsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   phone: z.string().min(10, "Phone must be at least 10 characters").optional(),
   address: z.string().min(5, "Address must be at least 5 characters").optional(),
+  city: z.string().min(2, "City must be at least 2 characters").optional(),
+  pincode: z.string().min(5, "Pincode must be at least 5 characters").optional(),
   profileImage: z.string().url("Profile image must be a valid URL").optional(),
 });
 
@@ -52,7 +55,14 @@ export const updateProfileDetails: RequestHandler = async (req, res, next) => {
     if (updates.name !== undefined) user.name = updates.name;
     if (updates.phone !== undefined) user.phone = updates.phone;
     if (updates.address !== undefined) user.address = updates.address;
+    if (updates.city !== undefined) user.city = updates.city;
+    if (updates.pincode !== undefined) user.pincode = updates.pincode;
     if (updates.profileImage !== undefined) user.profileImage = updates.profileImage;
+
+    // Mark profile as complete if all required fields are filled
+    if (user.phone && user.address && user.city && user.pincode) {
+      user.isProfileComplete = true;
+    }
 
     await user.save();
 
@@ -72,6 +82,12 @@ export const updateEmail: RequestHandler = async (req, res, next) => {
 
     const { email, currentPassword } = updateEmailSchema.parse(req.body);
 
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      throw new AppError(emailValidation.error || "Invalid email", 400);
+    }
+    const sanitizedEmail = sanitizeEmail(email);
+
     const user = await User.findById(req.user.userId).select("+password");
     if (!user) throw new AppError("User not found", 404);
 
@@ -83,14 +99,14 @@ export const updateEmail: RequestHandler = async (req, res, next) => {
 
     // Check if email is already taken by another user
     const emailExists = await User.findOne({
-      email: email.toLowerCase(),
+      email: sanitizedEmail,
       _id: { $ne: user._id }
     });
     if (emailExists) {
       throw new AppError("Email already in use", 400);
     }
 
-    user.email = email.toLowerCase();
+    user.email = sanitizedEmail;
     await user.save();
 
     return res.status(200).json({

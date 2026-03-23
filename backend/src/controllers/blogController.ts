@@ -3,6 +3,7 @@ import { z } from "zod";
 import mongoose from "mongoose";
 import { Blog } from "../models/Blog";
 import { AppError } from "../middleware/errorHandler";
+import { logger } from "../utils/logger";
 
 // ─────────────────────────────────────────────────────────────
 // Slug helper
@@ -22,15 +23,15 @@ async function generateUniqueSlug(title: string, excludeId?: string): Promise<st
   let slug = base;
   let counter = 1;
 
-  while (true) {
+  while (counter < 100) {
     const filter: Record<string, unknown> = { slug };
     if (excludeId) filter._id = { $ne: new mongoose.Types.ObjectId(excludeId) };
-    const existing = await Blog.findOne(filter).lean();
-    if (!existing) break;
+    const existing = await Blog.findOne(filter).select("_id").lean();
+    if (!existing) return slug;
     slug = `${base}-${counter++}`;
   }
 
-  return slug;
+  return `${base}-${Date.now()}`;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -231,19 +232,37 @@ export const adminListBlogs: RequestHandler = async (req, res, next) => {
 
 export const createBlog: RequestHandler = async (req, res, next) => {
   try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+
     const data = createBlogSchema.parse(req.body);
+    
+    let slug = await generateUniqueSlug(data.title);
+    let blog;
+    let retries = 3;
 
-    if (!req.user) return next(new AppError("Unauthorized", 401));
+    while (retries > 0) {
+      try {
+        blog = await Blog.create({
+          ...data,
+          slug,
+          createdBy: req.user.userId,
+        });
+        break;
+      } catch (err: any) {
+        if (err.code === 11000 && err.keyPattern?.slug) {
+          logger.warn(`Slug collision for ${slug}, retrying...`);
+          slug = await generateUniqueSlug(data.title + "-" + Math.floor(Math.random() * 1000));
+          retries--;
+          if (retries === 0) throw err;
+        } else {
+          throw err;
+        }
+      }
+    }
 
-    const slug = await generateUniqueSlug(data.title);
-
-    const blog = await Blog.create({
-      ...data,
-      slug,
-      createdBy: req.user.userId,
-    });
-
-    return res.status(201).json(blog);
+    return res.status(201).json({ blog });
   } catch (err) {
     next(err);
   }

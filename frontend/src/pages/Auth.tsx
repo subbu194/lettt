@@ -4,6 +4,7 @@ import { LogIn, UserPlus, LogOut } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Login } from '@/components/auth/Login';
 import { Signup } from '@/components/auth/Signup';
+import { CompleteProfile } from '@/components/auth/CompleteProfile';
 import { useUserStore } from '@/store/useUserStore';
 import { Button } from '@/components/shared/Button';
 import { AuthBackground } from '@/components/auth/AuthBackground';
@@ -16,16 +17,18 @@ type Props = {
 
 export default function AuthPage({ initialTab }: Props) {
   const [tab, setTab] = useState<'login' | 'signup'>(initialTab ?? 'login');
-  const { isAuthenticated, logout } = useUserStore();
+  const { isAuthenticated, logout, user } = useUserStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
     if (isAuthenticated) {
-      const redirectTo = searchParams.get('redirect') || '/';
-      navigate(redirectTo, { replace: true });
+      if (user?.isProfileComplete) {
+        const redirectTo = searchParams.get('redirect') || '/';
+        navigate(redirectTo, { replace: true });
+      }
     }
-  }, [isAuthenticated, navigate, searchParams]);
+  }, [isAuthenticated, user?.isProfileComplete, navigate, searchParams]);
 
   const handleTabChange = (newTab: 'login' | 'signup') => {
     if (newTab !== tab) {
@@ -80,6 +83,7 @@ export default function AuthPage({ initialTab }: Props) {
               </motion.div>
 
               {/* Tab Switcher with Enhanced Animation */}
+              {!isAuthenticated && (
               <motion.div
                 className="rounded-2xl border border-black/4 bg-white/70 backdrop-blur-xl p-2 shadow-lg mb-6"
                 initial={{ opacity: 0, y: 20 }}
@@ -139,6 +143,7 @@ export default function AuthPage({ initialTab }: Props) {
                   </motion.button>
                 </div>
               </motion.div>
+              )}
 
               {/* Form Container with Smooth Transitions */}
               <motion.div
@@ -147,35 +152,39 @@ export default function AuthPage({ initialTab }: Props) {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.2 }}
               >
-                <AnimatePresence mode="wait">
-                  {tab === 'login' ? (
-                    <motion.div
-                      key="login"
-                      initial={{ opacity: 0, x: -30, scale: 0.95 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      exit={{ opacity: 0, x: 30, scale: 0.95 }}
-                      transition={{ 
-                        duration: 0.4,
-                        ease: [0.4, 0, 0.2, 1]
-                      }}
-                    >
-                      <Login />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="signup"
-                      initial={{ opacity: 0, x: 30, scale: 0.95 }}
-                      animate={{ opacity: 1, x: 0, scale: 1 }}
-                      exit={{ opacity: 0, x: -30, scale: 0.95 }}
-                      transition={{ 
-                        duration: 0.4,
-                        ease: [0.4, 0, 0.2, 1]
-                      }}
-                    >
-                      <Signup />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isAuthenticated && !user?.isProfileComplete ? (
+                  <CompleteProfile />
+                ) : (
+                  <AnimatePresence mode="wait">
+                    {tab === 'login' ? (
+                      <motion.div
+                        key="login"
+                        initial={{ opacity: 0, x: -30, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 30, scale: 0.95 }}
+                        transition={{ 
+                          duration: 0.4,
+                          ease: [0.4, 0, 0.2, 1]
+                        }}
+                      >
+                        <Login />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="signup"
+                        initial={{ opacity: 0, x: 30, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -30, scale: 0.95 }}
+                        transition={{ 
+                          duration: 0.4,
+                          ease: [0.4, 0, 0.2, 1]
+                        }}
+                      >
+                        <Signup />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
               </motion.div>
 
               {/* Logout Button for Authenticated Users */}

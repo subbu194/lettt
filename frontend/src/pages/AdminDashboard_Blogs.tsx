@@ -100,11 +100,14 @@ interface SingleImageUploaderProps {
   onRemoveExisting?: () => void;
   label?: string;
   circularCrop?: boolean;
+  /** Output MIME type for cropped image. Use 'image/png' to preserve transparency. */
+  outputMimeType?: 'image/jpeg' | 'image/png' | 'image/webp';
 }
 
 function SingleImageUploader({
   value, onChange, existingImage, onRemoveExisting, label = 'Image',
   circularCrop = false,
+  outputMimeType = 'image/jpeg',
 }: SingleImageUploaderProps) {
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -124,7 +127,8 @@ function SingleImageUploader({
   };
 
   const handleCropComplete = (blob: Blob, croppedUrl: string) => {
-    const file = new File([blob], `${label.toLowerCase().replace(/\s+/g, '-')}-cropped.jpg`, { type: 'image/jpeg' });
+    const ext = outputMimeType === 'image/png' ? 'png' : outputMimeType === 'image/webp' ? 'webp' : 'jpg';
+    const file = new File([blob], `${label.toLowerCase().replace(/\s+/g, '-')}-cropped.${ext}`, { type: outputMimeType });
     onChange(file);
     setPreviewUrl(croppedUrl);
   };
@@ -171,6 +175,7 @@ function SingleImageUploader({
         onClose={() => setIsCropModalOpen(false)}
         onCropComplete={handleCropComplete}
         CircularCrop={circularCrop}
+        outputMimeType={outputMimeType}
       />
     </div>
   );
@@ -850,6 +855,7 @@ export function BlogEditorPage() {
                 onRemoveExisting={() => setExistingLogo('')}
                 label="Logo"
                 circularCrop
+                outputMimeType="image/png"
               />
             </section>
 

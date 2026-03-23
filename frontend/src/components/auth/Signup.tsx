@@ -1,24 +1,26 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Mail, Lock, AlertCircle, Loader2, Eye, EyeOff, CheckCircle2, Shield } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import apiClient from '@/api/client';
 import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { useUserStore } from '@/store/useUserStore';
 
-type AuthResponse = { token?: string; user?: Record<string, unknown> };
+type AuthResponse = { user?: Record<string, unknown> };
 
 export function Signup() {
-  const login = useUserStore((s) => s.login);
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const { login } = useUserStore();
+  
+  // Credentials step
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  
+
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -55,26 +57,18 @@ export function Signup() {
     }
     setLoading(true);
     try {
+      // Backend uses httpOnly cookies for auth - no token in response body
       const resp = await apiClient.post<AuthResponse>('/auth/signup', { name, email, password });
-      const token = resp.data?.token;
-      if (!token) {
-        setError('Signup succeeded but no token was returned.');
-        return;
-      }
-      login(token, resp.data?.user);
+      // Signup successful if we get here (cookies are set automatically)
+      login(resp.data?.user);
       setSuccess(true);
-      
-      // Redirect to the intended page or home
-      const redirectTo = searchParams.get('redirect') || '/';
-      setTimeout(() => {
-        navigate(redirectTo);
-      }, 1500);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <motion.div

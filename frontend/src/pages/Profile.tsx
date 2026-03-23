@@ -20,6 +20,9 @@ interface UserProfile {
   profileImage?: string;
   phone?: string;
   address?: string;
+  city?: string;
+  pincode?: string;
+  isProfileComplete?: boolean;
   createdAt?: string;
   updatedAt?: string;
   [key: string]: unknown;
@@ -41,6 +44,8 @@ export default function Profile() {
     name: '',
     phone: '',
     address: '',
+    city: '',
+    pincode: '',
   });
 
   // Email form
@@ -79,6 +84,8 @@ export default function Profile() {
         name: data.user.name || '',
         phone: data.user.phone || '',
         address: data.user.address || '',
+        city: data.user.city || '',
+        pincode: data.user.pincode || '',
       });
       setEmailForm({
         email: data.user.email,
@@ -314,6 +321,41 @@ export default function Profile() {
                         className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
                         placeholder="Enter your full address"
                       />
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="city" className="mb-2 block text-sm font-semibold">
+                          City
+                        </label>
+                        <input
+                          type="text"
+                          id="city"
+                          value={personalForm.city}
+                          onChange={(e) => setPersonalForm({ ...personalForm, city: e.target.value })}
+                          className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
+                          placeholder="Enter your city"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="pincode" className="mb-2 block text-sm font-semibold">
+                          PIN Code
+                        </label>
+                        <input
+                          type="text"
+                          id="pincode"
+                          value={personalForm.pincode}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '');
+                            if (value.length <= 6) {
+                              setPersonalForm({ ...personalForm, pincode: value });
+                            }
+                          }}
+                          maxLength={6}
+                          className="w-full rounded-xl border border-black/4 bg-white px-4 py-3 text-sm focus:border-red-200 focus:outline-none focus:ring-2 focus:ring-(--color-red)/20"
+                          placeholder="Enter PIN code"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>

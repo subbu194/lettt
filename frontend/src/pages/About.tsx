@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { PageTransition } from '@/components/shared/PageTransition';
 import { fadeInUp } from '@/utils/animations';
 import { Quote, Target, Heart, Users, Lightbulb, Award, Mic, Palette, ShoppingBag, BookOpen } from 'lucide-react';
-import logo from '@/assets/lettt-logo.PNG';
+import logo from '@/assets/lettt-logo.png';
 import founderImage from '@/assets/founder.png';
 
 export default function AboutPage() {

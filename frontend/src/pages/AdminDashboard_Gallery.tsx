@@ -29,6 +29,11 @@ interface PaginationData {
 // Upload Modal
 // ─────────────────────────────────────────────────────────────
 
+interface CategoryWithCount {
+  category: string;
+  count: number;
+}
+
 function GalleryUploadModal({
   onClose,
   onSuccess,
@@ -38,9 +43,33 @@ function GalleryUploadModal({
 }) {
   const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState('');
+  const [useExistingCategory, setUseExistingCategory] = useState(true);
+  const [existingCategories, setExistingCategories] = useState<CategoryWithCount[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const resp = await apiClient.get<{ categories: CategoryWithCount[] }>('/gallery/admin/categories-with-counts');
+        const cats = resp.data?.categories || [];
+        setExistingCategories(cats);
+        if (cats.length > 0) {
+          setCategory(cats[0].category);
+          setUseExistingCategory(true);
+        } else {
+          setUseExistingCategory(false);
+        }
+      } catch {
+        setUseExistingCategory(false);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -146,13 +175,79 @@ function GalleryUploadModal({
             <label className="block text-sm font-medium text-gray-700">
               Category <span className="text-gray-400">(Optional)</span>
             </label>
-            <input
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g., Events, Art, Behind the Scenes"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
-            />
+            
+            {loadingCategories ? (
+              <div className="flex items-center gap-2 py-3">
+                <Spinner size="sm" />
+                <span className="text-sm text-gray-500">Loading categories...</span>
+              </div>
+            ) : existingCategories.length > 0 ? (
+              <div className="space-y-3">
+                {/* Toggle between existing and new category */}
+                <div className="flex items-center gap-4 rounded-lg bg-gray-50 p-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseExistingCategory(true);
+                      if (existingCategories.length > 0) {
+                        setCategory(existingCategories[0].category);
+                      }
+                    }}
+                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      useExistingCategory
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Existing Category
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseExistingCategory(false);
+                      setCategory('');
+                    }}
+                    className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                      !useExistingCategory
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    New Category
+                  </button>
+                </div>
+
+                {useExistingCategory ? (
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+                  >
+                    {existingCategories.map((cat) => (
+                      <option key={cat.category} value={cat.category}>
+                        {cat.category} ({cat.count} image{cat.count !== 1 ? 's' : ''})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    placeholder="e.g., Events, Art, Behind the Scenes"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+                  />
+                )}
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="e.g., Events, Art, Behind the Scenes"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50/50 px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+              />
+            )}
           </div>
 
           <div className="space-y-2">

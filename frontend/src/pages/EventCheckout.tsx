@@ -367,7 +367,7 @@ export default function EventCheckoutPage() {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="John Doe"
+                        placeholder=""
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.name 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
@@ -390,7 +390,7 @@ export default function EventCheckoutPage() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="john@example.com"
+                        placeholder=""
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.email 
                             ? 'border-red-300 focus:border-red-500 focus:ring-red-200' 
@@ -418,7 +418,7 @@ export default function EventCheckoutPage() {
                             setPhone(value);
                           }
                         }}
-                        placeholder="9876543210"
+                        placeholder=""
                         maxLength={10}
                         className={`h-12 w-full rounded-xl border bg-white pl-12 pr-4 text-sm transition-all focus:outline-none focus:ring-2 ${
                           formErrors.phone 

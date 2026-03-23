@@ -8,7 +8,7 @@ import { useAdminStore } from '@/store/useAdminStore';
 import { useUserStore } from '@/store/useUserStore';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 
-type AuthResponse = { token?: string; user?: Record<string, unknown> };
+type AuthResponse = { user?: Record<string, unknown> };
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -29,13 +29,10 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
     try {
+      // Backend uses httpOnly cookies for auth - no token in response body
       const resp = await apiClient.post<AuthResponse>('/auth/admin/login', { email, password });
-      const token = resp.data?.token;
-      if (!token) {
-        setError('Login succeeded but no token was returned.');
-        return;
-      }
-      loginAdmin(token, resp.data?.user);
+      // Login successful if we get here (cookies are set automatically)
+      loginAdmin(resp.data?.user);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err));
