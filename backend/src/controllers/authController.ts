@@ -6,6 +6,7 @@ import { isStrongPassword } from "../utils/password";
 import { validateEmail, sanitizeEmail } from "../utils/emailValidator";
 import { signAccessToken, signRefreshToken, verifyJwt } from "../utils/jwt";
 import { setAuthCookies, clearAuthCookies } from "../utils/cookie";
+import { logger } from "../utils/logger";
 
 const emailSchema = z.string().email();
 
@@ -124,6 +125,10 @@ export const logout: RequestHandler = async (req: Request, res: Response, next: 
 export const refreshUserToken: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies?.refreshToken;
+    const origin = req.headers.origin;
+    
+    logger.info(`[Auth] User refresh attempt - Origin: ${origin}, Cookie Present: ${!!token}`);
+
     if (!token) throw new AppError("Refresh token missing", 401);
 
     const secret = process.env.JWT_REFRESH_SECRET;
@@ -141,6 +146,7 @@ export const refreshUserToken: RequestHandler = async (req: Request, res: Respon
 
     return res.status(200).json({ ok: true });
   } catch (error) {
+    logger.warn(`[Auth] User refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     clearAuthCookies(res, false);
     return res.status(401).json({ message: "Unauthorized refresh" });
   }
@@ -149,6 +155,10 @@ export const refreshUserToken: RequestHandler = async (req: Request, res: Respon
 export const refreshAdminToken: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies?.adminRefreshToken;
+    const origin = req.headers.origin;
+    
+    logger.info(`[Auth] Admin refresh attempt - Origin: ${origin}, Cookie Present: ${!!token}`);
+
     if (!token) throw new AppError("Admin refresh token missing", 401);
 
     const secret = process.env.JWT_ADMIN_REFRESH_SECRET;
@@ -166,6 +176,7 @@ export const refreshAdminToken: RequestHandler = async (req: Request, res: Respo
 
     return res.status(200).json({ ok: true });
   } catch (error) {
+    logger.warn(`[Auth] Admin refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     clearAuthCookies(res, true);
     return res.status(401).json({ message: "Unauthorized admin refresh" });
   }

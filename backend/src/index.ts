@@ -43,21 +43,24 @@ async function start() {
   }
 
   // Security
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" }
+  }));
 
   // CORS: In production, whitelist the frontend origin(s) explicitly.
-  // Set ALLOWED_ORIGINS env var as a comma-separated list, e.g.:
-  //   ALLOWED_ORIGINS=https://wtbiindia.in,https://www.wtbiindia.in
   const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim().replace(/\/$/, ""))
     : null;
 
   app.use(
     cors({
       origin: allowedOrigins
         ? (origin, callback) => {
-            // Allow requests with no origin (server-to-server, curl, webhooks)
-            if (!origin || allowedOrigins.includes(origin)) {
+            // Normalize origin to remove trailing slash for comparison
+            const normalizedOrigin = origin ? origin.replace(/\/$/, "") : "";
+            
+            if (!origin || allowedOrigins.includes(normalizedOrigin)) {
               callback(null, true);
             } else {
               callback(new Error(`CORS: origin ${origin} not allowed`));

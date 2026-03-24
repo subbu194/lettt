@@ -77,6 +77,25 @@ apiClient.interceptors.response.use(
       return apiClient(originalRequest);
     } catch (refreshError) {
       processQueue(refreshError);
+
+      console.error('[Auth Service] Silently refreshing session failed. Redirecting to login...');
+
+      // Session is truly gone. Clear all local auth state and redirect.
+      if (isAdminRequest) {
+        localStorage.removeItem('isAdminAuthenticated');
+        localStorage.removeItem('admin'); // Clean up any other potential items
+        if (!window.location.pathname.includes('/admin/login')) {
+          window.location.href = '/admin/login?error=SessionExpired';
+        }
+      } else {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('user');
+        localStorage.removeItem('token'); // Clean up any old manual tokens
+        if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
+          window.location.href = '/auth?redirect=' + encodeURIComponent(window.location.pathname) + '&msg=SessionExpired';
+        }
+      }
+
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

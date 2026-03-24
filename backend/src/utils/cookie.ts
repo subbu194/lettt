@@ -24,6 +24,10 @@ function getCookieOptions(isProd: boolean) {
     secure: isProd, // must be true for sameSite: "none"
     sameSite: isProd ? ("none" as const) : ("lax" as const),
     domain: isProd ? getCookieDomain() : undefined,
+    // CHIPS (Cookies Having Independent Partitioned State)
+    // This allows the cookie to be stored even if third-party cookies are blocked,
+    // because it partitions the cookie to the site the user is visiting.
+    partitioned: isProd, 
   };
 }
 
@@ -37,6 +41,10 @@ export const setAuthCookies = (
   const accessKey = isAdmin ? "adminToken" : "token";
   const refreshKey = isAdmin ? "adminRefreshToken" : "refreshToken";
   const base = getCookieOptions(isProd);
+
+  // First, clear any stale cookies from the OLD configuration
+  // (old refresh tokens had restricted paths and sameSite: "strict")
+  clearLegacyCookies(res, isProd, isAdmin);
 
   // Access Token: Short Lived (15 minutes)
   res.cookie(accessKey, accessToken, {
@@ -55,12 +63,36 @@ export const setAuthCookies = (
   });
 };
 
+/**
+ * Clear old cookies that were set with the previous configuration.
+ * Old refresh tokens used restricted paths like /api/v1/auth/refresh
+ * and sameSite: "strict". We need to clear those on the old paths
+ * and with the old sameSite value, otherwise the browser keeps them.
+ */
+function clearLegacyCookies(res: Response, isProd: boolean, isAdmin: boolean) {
+  const refreshKey = isAdmin ? "adminRefreshToken" : "refreshToken";
+  const oldPath = isAdmin ? "/api/v1/auth/admin/refresh" : "/api/v1/auth/refresh";
+
+  // Clear with old sameSite: "strict" + old path
+  res.clearCookie(refreshKey, { httpOnly: true, secure: isProd, sameSite: "strict", path: oldPath });
+  // Also try with "lax" in case it was set in dev
+  res.clearCookie(refreshKey, { httpOnly: true, secure: isProd, sameSite: "lax", path: oldPath });
+}
+
 export const clearAuthCookies = (res: Response, isAdmin: boolean = false) => {
   const isProd = process.env.NODE_ENV === "production";
   const accessKey = isAdmin ? "adminToken" : "token";
   const refreshKey = isAdmin ? "adminRefreshToken" : "refreshToken";
   const base = getCookieOptions(isProd);
 
+  // Clear current cookies (new path: "/")
   res.clearCookie(accessKey, { ...base, path: "/" });
   res.clearCookie(refreshKey, { ...base, path: "/" });
+
+  // Also clear old cookies with legacy sameSite: "strict" attribute
+  res.clearCookie(accessKey, { httpOnly: true, secure: isProd, sameSite: "strict", path: "/" });
+
+  // Clear old path-restricted refresh cookies
+  clearLegacyCookies(res, isProd, isAdmin);
 };
+
