@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAdminStore } from '@/store/useAdminStore';
@@ -14,7 +14,19 @@ export function AdminRoute() {
   const [isValidAdmin, setIsValidAdmin] = useState(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
 
+  const handleLogoutAndRelogin = useCallback(async () => {
+    try {
+      await apiClient.post('/auth/admin/logout');
+    } catch {
+      // Best effort
+    }
+    logoutAdmin();
+    window.location.href = '/admin/login';
+  }, [logoutAdmin]);
+
   useEffect(() => {
+    let cancelled = false;
+
     const verifyAdminToken = async () => {
       if (!isAdminAuthenticated) {
         setIsVerifying(false);
@@ -24,28 +36,34 @@ export function AdminRoute() {
 
       try {
         // Verify admin token by calling the admin-specific verify endpoint
-        // This endpoint uses authenticateAdmin middleware which checks adminToken cookie
+        // If the access token is expired, the interceptor will auto-refresh
+        // using the refresh cookie, then retry this request
         await apiClient.get('/auth/admin/verify');
-        setIsValidAdmin(true);
-        setVerificationError(null);
+        if (!cancelled) {
+          setIsValidAdmin(true);
+          setVerificationError(null);
+        }
       } catch (err) {
+        if (cancelled) return;
         const status = axios.isAxiosError(err) ? err.response?.status : undefined;
         if (status === 401 || status === 403) {
           logoutAdmin();
           setIsValidAdmin(false);
           setVerificationError('Session expired. Please sign in again.');
         } else {
-          // Do not grant access if verification fails
+          // Network error or server down — don't lock the admin out
           setIsValidAdmin(false);
           setVerificationError('Unable to verify admin session. Please retry.');
         }
       } finally {
-        setIsVerifying(false);
+        if (!cancelled) setIsVerifying(false);
       }
     };
 
     verifyAdminToken();
-  }, [isAdminAuthenticated, logoutAdmin]);
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdminAuthenticated]);
 
   // Show loading spinner while verifying
   if (isVerifying) {
@@ -70,10 +88,7 @@ export function AdminRoute() {
             <div className="mt-6 flex justify-center gap-3">
               <button
                 className="rounded-xl px-4 py-2 text-sm font-semibold border border-black/10 hover:bg-gray-50 transition"
-                onClick={() => {
-                  logoutAdmin();
-                  window.location.href = '/admin/login';
-                }}
+                onClick={handleLogoutAndRelogin}
               >
                 Logout & Re-login
               </button>
@@ -93,3 +108,4 @@ export function AdminRoute() {
 
   return <Outlet />;
 }
+

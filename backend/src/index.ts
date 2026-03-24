@@ -44,7 +44,29 @@ async function start() {
 
   // Security
   app.use(helmet());
-  app.use(cors({ origin: true, credentials: true }));
+
+  // CORS: In production, whitelist the frontend origin(s) explicitly.
+  // Set ALLOWED_ORIGINS env var as a comma-separated list, e.g.:
+  //   ALLOWED_ORIGINS=https://wtbiindia.in,https://www.wtbiindia.in
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+    : null;
+
+  app.use(
+    cors({
+      origin: allowedOrigins
+        ? (origin, callback) => {
+            // Allow requests with no origin (server-to-server, curl, webhooks)
+            if (!origin || allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+              callback(new Error(`CORS: origin ${origin} not allowed`));
+            }
+          }
+        : true, // development: allow any origin
+      credentials: true,
+    })
+  );
 
   // Logging
   app.use((req, _res, next) => {
