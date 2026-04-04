@@ -19,7 +19,7 @@ export function signAccessToken(payload: JwtPayload, isAdmin: boolean = false): 
 export function signRefreshToken(payload: JwtPayload, isAdmin: boolean = false): string {
   const secret = isAdmin ? process.env.JWT_ADMIN_REFRESH_SECRET : process.env.JWT_REFRESH_SECRET;
   if (!secret) throw new Error("JWT refresh secret not configured");
-  return signJwt(payload, secret, "7d");
+  return signJwt(payload, secret, "30d");
 }
 
 export function verifyJwt(token: string, secret: string): JwtPayload {

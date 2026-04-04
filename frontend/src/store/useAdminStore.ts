@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-
+import apiClient from '@/api/client';
 
 type AdminLike = Record<string, unknown>;
 
@@ -25,6 +25,8 @@ export const useAdminStore = create<AdminState>((set) => ({
   logoutAdmin: () => {
     localStorage.removeItem(IS_ADMIN_KEY);
     set({ isAdminAuthenticated: false, admin: null });
+    // Clear HttpOnly cookies on backend
+    apiClient.post('/auth/admin/logout').catch(() => {});
   },
   setAdmin: (admin) => set({ admin }),
 }));

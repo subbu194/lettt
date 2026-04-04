@@ -42,14 +42,15 @@ apiClient.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
     // Only handle 401s, and don't retry refresh/login endpoints themselves
+    const url = originalRequest.url ?? '';
     if (
       error.response?.status !== 401 ||
       originalRequest._retry ||
-      originalRequest.url?.includes('/auth/login') ||
-      originalRequest.url?.includes('/auth/signup') ||
-      originalRequest.url?.includes('/auth/admin/login') ||
-      originalRequest.url?.includes('/auth/refresh') ||
-      originalRequest.url?.includes('/auth/admin/refresh')
+      url.includes('/auth/login') ||
+      url.includes('/auth/signup') ||
+      url.includes('/auth/admin/login') ||
+      url.includes('/auth/refresh') ||
+      url.includes('/auth/admin/refresh')
     ) {
       return Promise.reject(error);
     }
@@ -83,14 +84,14 @@ apiClient.interceptors.response.use(
       // Session is truly gone. Clear all local auth state and redirect.
       if (isAdminRequest) {
         localStorage.removeItem('isAdminAuthenticated');
-        localStorage.removeItem('admin'); // Clean up any other potential items
+        localStorage.removeItem('admin');
         if (!window.location.pathname.includes('/admin/login')) {
           window.location.href = '/admin/login?error=SessionExpired';
         }
       } else {
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
-        localStorage.removeItem('token'); // Clean up any old manual tokens
+        localStorage.removeItem('token');
         if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
           window.location.href = '/auth?redirect=' + encodeURIComponent(window.location.pathname) + '&msg=SessionExpired';
         }
@@ -103,8 +104,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Token handling logic removed cleanly to rely entirely on HttpOnly cookies sent by the backend.
+// Token handling relies entirely on HttpOnly cookies sent by the backend.
 export const setAuthToken = () => {};
 export const setAdminToken = () => {};
 export default apiClient;
-

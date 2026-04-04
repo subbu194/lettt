@@ -57,7 +57,6 @@ async function start() {
     cors({
       origin: allowedOrigins
         ? (origin, callback) => {
-            // Normalize origin to remove trailing slash for comparison
             const normalizedOrigin = origin ? origin.replace(/\/$/, "") : "";
             
             if (!origin || allowedOrigins.includes(normalizedOrigin)) {
@@ -66,7 +65,7 @@ async function start() {
               callback(new Error(`CORS: origin ${origin} not allowed`));
             }
           }
-        : true, // development: allow any origin
+        : true,
       credentials: true,
     })
   );
@@ -104,10 +103,10 @@ async function start() {
   // Health route
   app.use("/api/v1", healthRoutes);
 
-  // Auth routes (standardized under /api/v1/auth)
+  // Auth routes (email/password for both users and admins)
   app.use("/api/v1/auth", authRoutes);
 
-  // User routes (profile management)
+  // User routes (profile management - requires authentication)
   app.use("/api/v1/user", userRoutes);
 
   // Resource routes

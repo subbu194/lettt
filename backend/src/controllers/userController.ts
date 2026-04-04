@@ -6,6 +6,7 @@ import { Ticket } from "../models/Ticket";
 import { AppError } from "../middleware/errorHandler";
 import { isStrongPassword } from "../utils/password";
 import { sanitizeEmail, validateEmail } from "../utils/emailValidator";
+import { computeIsProfileComplete } from "../utils/profileComplete";
 
 const updateProfileDetailsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
@@ -59,10 +60,8 @@ export const updateProfileDetails: RequestHandler = async (req, res, next) => {
     if (updates.pincode !== undefined) user.pincode = updates.pincode;
     if (updates.profileImage !== undefined) user.profileImage = updates.profileImage;
 
-    // Mark profile as complete if all required fields are filled
-    if (user.phone && user.address && user.city && user.pincode) {
-      user.isProfileComplete = true;
-    }
+    // Recompute profile completeness
+    user.isProfileComplete = computeIsProfileComplete(user);
 
     await user.save();
 

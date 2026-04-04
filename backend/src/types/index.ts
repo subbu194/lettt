@@ -18,6 +18,7 @@ export type SafeUser = {
   city?: string;
   pincode?: string;
   isProfileComplete?: boolean;
+  isEmailVerified?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };

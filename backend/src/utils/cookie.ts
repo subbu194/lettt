@@ -46,20 +46,19 @@ export const setAuthCookies = (
   // (old refresh tokens had restricted paths and sameSite: "strict")
   clearLegacyCookies(res, isProd, isAdmin);
 
-  // Access Token: Short Lived (15 minutes)
+  // Access Token: cookie lives 30 days (JWT inside expires in 15m, frontend auto-refreshes)
   res.cookie(accessKey, accessToken, {
     ...base,
     path: "/",
-    maxAge: 15 * 60 * 1000, 
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 
-  // Refresh Token: Long Lived (7 Days)
-  // Using path: "/" so the refresh token is sent on all requests.
-  // The endpoint itself is still protected by route-level middleware.
+  // Refresh Token: 30 days (rolling — re-issued on every refresh call)
+  // Users stay logged in until they manually logout.
   res.cookie(refreshKey, refreshToken, {
     ...base,
     path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000, 
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 };
 

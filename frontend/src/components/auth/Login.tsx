@@ -10,7 +10,11 @@ import { useUserStore } from '@/store/useUserStore';
 
 type AuthResponse = { user?: Record<string, unknown> };
 
-export function Login() {
+type LoginProps = {
+  onSuccess?: () => void;
+};
+
+export function Login({ onSuccess }: LoginProps) {
   const login = useUserStore((s) => s.login);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -27,11 +31,10 @@ export function Login() {
     setLoading(true);
     
     try {
-      // Backend uses httpOnly cookies for auth - no token in response body
       const resp = await apiClient.post<AuthResponse>('/auth/login', { email, password });
-      // Login successful if we get here (cookies are set automatically)
       login(resp.data?.user);
       setSuccess(true);
+      onSuccess?.();
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {

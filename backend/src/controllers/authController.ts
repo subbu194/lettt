@@ -7,6 +7,7 @@ import { validateEmail, sanitizeEmail } from "../utils/emailValidator";
 import { signAccessToken, signRefreshToken, verifyJwt } from "../utils/jwt";
 import { setAuthCookies, clearAuthCookies } from "../utils/cookie";
 import { logger } from "../utils/logger";
+import { computeIsProfileComplete } from "../utils/profileComplete";
 
 const emailSchema = z.string().email();
 
@@ -55,7 +56,7 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
     const existing = await User.findOne({ email: sanitizedEmail });
     if (existing) throw new AppError("Email already exists", 400);
 
-    const user = await User.create({ name, email: sanitizedEmail, password, role: "user" });
+    const user = await User.create({ name, email: sanitizedEmail, password, role: "user", isEmailVerified: true });
     const { accessToken, refreshToken } = createTokens(user, false);
     
     setAuthCookies(res, accessToken, refreshToken, false);
@@ -78,6 +79,9 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
     const ok = await user.comparePassword(password);
     if (!ok) throw new AppError("Invalid credentials", 401);
 
+    user.lastLogin = new Date();
+    await user.save();
+
     const { accessToken, refreshToken } = createTokens(user, false);
     setAuthCookies(res, accessToken, refreshToken, false);
 
@@ -98,6 +102,9 @@ export const adminLogin: RequestHandler = async (req: Request, res: Response, ne
     const ok = await user.comparePassword(password);
     if (!ok) throw new AppError("Invalid admin credentials", 401);
 
+    user.lastLogin = new Date();
+    await user.save();
+
     const { accessToken, refreshToken } = createTokens(user, true);
     setAuthCookies(res, accessToken, refreshToken, true);
 
@@ -109,7 +116,6 @@ export const adminLogin: RequestHandler = async (req: Request, res: Response, ne
 
 export const logout: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Determine context string from route or query to clear right cookies correctly
     const type = req.query.type as string; 
     if (type === 'admin') {
       clearAuthCookies(res, true);
@@ -214,6 +220,7 @@ export const updateProfile: RequestHandler = async (req: Request, res: Response,
     if (update.city !== undefined) user.city = update.city;
     if (update.pincode !== undefined) user.pincode = update.pincode;
 
+    user.isProfileComplete = computeIsProfileComplete(user);
     await user.save();
     return res.status(200).json({ user: user.toSafeJSON() });
   } catch (err) {
@@ -226,15 +233,17 @@ export const completeProfile: RequestHandler = async (req: Request, res: Respons
     if (!req.user) throw new AppError("Unauthorized", 401);
     const user = await User.findById(req.user.userId);
     if (!user) throw new AppError("Not found", 404);
-    
-    // Quick validation
-    if (!req.body.phone) throw new AppError("Phone missing", 400);
 
-    user.phone = req.body.phone;
-    user.address = req.body.address;
-    user.city = req.body.city;
-    user.pincode = req.body.pincode;
-    user.isProfileComplete = true;
+    const { phone, address, city, pincode } = req.body;
+
+    if (!address) throw new AppError("Address is required to complete your profile", 400);
+
+    if (phone) user.phone = phone;
+    if (address) user.address = address;
+    if (city) user.city = city;
+    if (pincode) user.pincode = pincode;
+
+    user.isProfileComplete = computeIsProfileComplete(user);
 
     await user.save();
     return res.status(200).json({ user: user.toSafeJSON() });

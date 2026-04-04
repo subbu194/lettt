@@ -9,17 +9,18 @@ import { useUserStore } from '@/store/useUserStore';
 
 type AuthResponse = { user?: Record<string, unknown> };
 
-export function Signup() {
+type SignupProps = {
+  onSuccess?: () => void;
+};
+
+export function Signup({ onSuccess }: SignupProps) {
   const { login } = useUserStore();
   
-  // Credentials step
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
-  
-
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,18 +58,16 @@ export function Signup() {
     }
     setLoading(true);
     try {
-      // Backend uses httpOnly cookies for auth - no token in response body
       const resp = await apiClient.post<AuthResponse>('/auth/signup', { name, email, password });
-      // Signup successful if we get here (cookies are set automatically)
       login(resp.data?.user);
       setSuccess(true);
+      onSuccess?.();
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <motion.div
