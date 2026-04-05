@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import { z } from "zod";
 import mongoose from "mongoose";
 import { Event } from "../models/Event";
+import { Ticket } from "../models/Ticket";
 import { AppError } from "../middleware/errorHandler";
 
 // ─────────────────────────────────────────────────────────────
@@ -46,6 +47,10 @@ function isValidObjectId(id: string): boolean {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ─────────────────────────────────────────────────────────────
 // PUBLIC: List events with pagination, filtering, and search
 // ─────────────────────────────────────────────────────────────
@@ -58,7 +63,7 @@ export const listEvents: RequestHandler = async (req, res, next) => {
     // Build filter object
     const filter: Record<string, unknown> = {};
     
-    if (venue) filter.venue = { $regex: venue, $options: "i" };
+    if (venue) filter.venue = { $regex: escapeRegex(venue), $options: "i" };
     if (featured !== undefined) filter.isFeatured = featured;
     
     // Filter for events with available seats
@@ -78,10 +83,11 @@ export const listEvents: RequestHandler = async (req, res, next) => {
     }
 
     if (search) {
+      const safe = escapeRegex(search);
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { venue: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { venue: { $regex: safe, $options: "i" } },
+        { description: { $regex: safe, $options: "i" } },
       ];
     }
 
@@ -216,7 +222,7 @@ export const getVenues: RequestHandler = async (req, res, next) => {
     
     if (search) {
       filter.venue = { 
-        $regex: search, 
+        $regex: escapeRegex(search), 
         $options: "i" 
       };
     }
@@ -344,6 +350,15 @@ export const deleteEvent: RequestHandler = async (req, res, next) => {
     if (!eventToDelete) throw new AppError("Event not found", 404);
 
     const deleted = await Event.findByIdAndDelete(id);
+
+    // Clean up associated tickets — cancel any active tickets for this event
+    const ticketCleanup = await Ticket.updateMany(
+      { eventId: id, status: "active" },
+      { $set: { status: "cancelled" } }
+    );
+    if (ticketCleanup.modifiedCount > 0) {
+      console.warn(`Cancelled ${ticketCleanup.modifiedCount} active tickets for deleted event ${id}`);
+    }
 
     // Automatically wipe all associated images from R2 Storage
     if (deleted) {
@@ -522,11 +537,13 @@ export const eventAutocomplete: RequestHandler = async (req, res, next) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    const safe = escapeRegex(q);
+    
     // Search in titles and venues for upcoming events only
     const results = await Event.find({
       $or: [
-        { title: { $regex: q, $options: "i" } },
-        { venue: { $regex: q, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { venue: { $regex: safe, $options: "i" } },
       ],
       date: { $gte: today },
       seatsLeft: { $gt: 0 },

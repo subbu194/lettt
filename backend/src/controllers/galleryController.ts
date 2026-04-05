@@ -119,27 +119,24 @@ export const createGalleryImage: RequestHandler = async (req, res, next) => {
 // ADMIN: Bulk upload gallery images
 // ─────────────────────────────────────────────────────────────
 
+const bulkCreateSchema = z.object({
+  images: z.array(z.object({
+    imageUrl: z.string().url("Each image must be a valid URL"),
+    category: z.string().trim().min(1).optional().default("General"),
+  })).min(1, "At least one image is required").max(20, "Maximum 20 images per batch"),
+});
+
 export const bulkCreateGalleryImages: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user || req.user.role !== "admin") {
       throw new AppError("Forbidden: Admin access required", 403);
     }
 
-    const { images } = req.body as {
-      images: { imageUrl: string; category?: string }[];
-    };
-
-    if (!Array.isArray(images) || images.length === 0) {
-      throw new AppError("At least one image is required", 400);
-    }
-
-    if (images.length > 20) {
-      throw new AppError("Maximum 20 images per batch", 400);
-    }
+    const { images } = bulkCreateSchema.parse(req.body);
 
     const docs = images.map((img) => ({
       imageUrl: img.imageUrl,
-      category: img.category?.trim() || "General",
+      category: img.category,
       createdBy: req.user!.userId,
     }));
 

@@ -7,6 +7,7 @@ import { AppError } from "../middleware/errorHandler";
 import { isStrongPassword } from "../utils/password";
 import { sanitizeEmail, validateEmail } from "../utils/emailValidator";
 import { computeIsProfileComplete } from "../utils/profileComplete";
+import { clearAuthCookies } from "../utils/cookie";
 
 const updateProfileDetailsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
@@ -153,6 +154,7 @@ export const updatePassword: RequestHandler = async (req, res, next) => {
     }
 
     user.password = newPassword;
+    user.tokenVersion += 1; // Revoke all existing sessions for security
     await user.save();
 
     return res.status(200).json({
@@ -189,6 +191,9 @@ export const deleteAccount: RequestHandler = async (req, res, next) => {
 
     // Delete the user account
     await User.findByIdAndDelete(req.user.userId);
+
+    // Clear auth cookies so the browser doesn't hold stale sessions
+    clearAuthCookies(res, false);
 
     return res.status(200).json({
       message: "Account deleted successfully"

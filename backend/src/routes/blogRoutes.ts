@@ -43,7 +43,7 @@ router.get("/admin/stats", authenticateAdmin, getBlogStats);
 router.post("/", authenticateAdmin, createBlog);
 
 // GET /api/v1/blogs/:id          → get by ID (admin uses this for the editor)
-router.get("/:id", getBlogById);
+router.get("/:id", authenticateAdmin, getBlogById);
 
 // PUT /api/v1/blogs/:id
 router.put("/:id", authenticateAdmin, updateBlog);

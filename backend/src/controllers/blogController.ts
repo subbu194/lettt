@@ -87,6 +87,10 @@ function isValidObjectId(id: string | undefined): id is string {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ─────────────────────────────────────────────────────────────
 // PUBLIC: List published blogs (paginated)
 // ─────────────────────────────────────────────────────────────
@@ -100,11 +104,12 @@ export const listBlogs: RequestHandler = async (req, res, next) => {
     if (tag) filter.tags = tag;
     if (featured !== undefined) filter.isFeatured = featured;
     if (search) {
+      const safe = escapeRegex(search);
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { excerpt: { $regex: search, $options: "i" } },
-        { subject: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { excerpt: { $regex: safe, $options: "i" } },
+        { subject: { $regex: safe, $options: "i" } },
+        { tags: { $regex: safe, $options: "i" } },
       ];
     }
 
@@ -196,10 +201,11 @@ export const adminListBlogs: RequestHandler = async (req, res, next) => {
     if (featured !== undefined) filter.isFeatured = featured;
     if (published !== undefined) filter.isPublished = published;
     if (search) {
+      const safe = escapeRegex(search);
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { excerpt: { $regex: search, $options: "i" } },
-        { subject: { $regex: search, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { excerpt: { $regex: safe, $options: "i" } },
+        { subject: { $regex: safe, $options: "i" } },
       ];
     }
 
@@ -314,6 +320,13 @@ export const deleteBlog: RequestHandler = async (req, res, next) => {
 
       if (blog.coverImage) urlsToDelete.push(blog.coverImage);
       if (blog.logo) urlsToDelete.push(blog.logo);
+
+      // Also delete extraImages from R2 storage
+      if (Array.isArray(blog.extraImages)) {
+        blog.extraImages.forEach(url => {
+          if (url) urlsToDelete.push(url);
+        });
+      }
       
       // Also delete any images embedded directly inside the blog's rich text content blocks
       if (Array.isArray(blog.content)) {

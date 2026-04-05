@@ -44,7 +44,7 @@ export const myTickets: RequestHandler = async (req, res, next) => {
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .populate("eventId", "title date time venue imageUrl")
+        .populate("eventId", "title date startTime venue coverImage")
         .lean(),
       Ticket.countDocuments(filter),
     ]);
@@ -56,9 +56,9 @@ export const myTickets: RequestHandler = async (req, res, next) => {
       const event = ticket.eventId as unknown as { 
         title: string; 
         date: Date; 
-        time: string; 
+        startTime: string; 
         venue: string; 
-        imageUrl: string;
+        coverImage: string;
       } | null;
       
       let effectiveStatus = ticket.status;
@@ -105,7 +105,7 @@ export const getTicketById: RequestHandler = async (req, res, next) => {
       _id: id, 
       userId: req.user.userId 
     })
-      .populate("eventId", "title description date time venue imageUrl price")
+      .populate("eventId", "title description date startTime venue coverImage ticketPrice")
       .populate("orderId", "totalAmount createdAt paymentStatus")
       .lean();
     
@@ -140,7 +140,7 @@ export const getTicketByTicketId: RequestHandler = async (req, res, next) => {
     const { ticketId } = req.params;
     
     const ticket = await Ticket.findOne({ ticketId })
-      .populate("eventId", "title date time venue")
+      .populate("eventId", "title date startTime venue")
       .populate("userId", "name email")
       .lean();
     
@@ -171,7 +171,7 @@ export const adminListTickets: RequestHandler = async (req, res, next) => {
       filter.eventId = new mongoose.Types.ObjectId(eventId);
     }
     if (search) {
-      filter.ticketId = { $regex: search, $options: "i" };
+      filter.ticketId = { $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" };
     }
     
     const sortDirection = sortOrder === "asc" ? 1 : -1;
@@ -181,7 +181,7 @@ export const adminListTickets: RequestHandler = async (req, res, next) => {
         .sort({ [sortBy]: sortDirection })
         .skip(skip)
         .limit(limit)
-        .populate("eventId", "title date time venue")
+        .populate("eventId", "title date startTime venue")
         .populate("userId", "name email")
         .lean(),
       Ticket.countDocuments(filter),

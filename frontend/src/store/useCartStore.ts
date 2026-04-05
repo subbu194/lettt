@@ -23,16 +23,18 @@ type CartState = {
 
 const STORAGE_KEY = 'Let the talent talk_cart';
 
-// Migrate legacy localStorage cart to sessionStorage
-const legacyCart = localStorage.getItem(STORAGE_KEY);
-if (legacyCart && !sessionStorage.getItem(STORAGE_KEY)) {
-  sessionStorage.setItem(STORAGE_KEY, legacyCart);
-  localStorage.removeItem(STORAGE_KEY);
+// Clean up any legacy sessionStorage cart data
+const legacySessionCart = sessionStorage.getItem(STORAGE_KEY);
+if (legacySessionCart && !localStorage.getItem(STORAGE_KEY)) {
+  localStorage.setItem(STORAGE_KEY, legacySessionCart);
+  sessionStorage.removeItem(STORAGE_KEY);
+} else if (legacySessionCart) {
+  sessionStorage.removeItem(STORAGE_KEY);
 }
 
 function loadInitial(): CartItem[] {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -47,7 +49,7 @@ function loadInitial(): CartItem[] {
 
 function persist(items: CartItem[]) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   } catch {
     // ignore
   }
@@ -55,7 +57,7 @@ function persist(items: CartItem[]) {
 
 function clearPersisted() {
   try {
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
   }

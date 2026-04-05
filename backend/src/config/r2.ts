@@ -13,7 +13,7 @@ export async function initializeR2() {
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
         console.error('\x1b[31m❌ R2 Configuration Error: Missing required environment variables\x1b[0m');
         console.error('\x1b[31m   Required: R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME\x1b[0m');
-        return null;
+        throw new Error('R2 Storage configuration missing: R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME are required');
     }
 
     try {
@@ -48,7 +48,7 @@ export async function initializeR2() {
             console.error(`\x1b[31m   └─ Bucket not found: "${bucketName}" does not exist\x1b[0m`);
         }
         
-        return null;
+        throw new Error(`R2 Storage initialization failed: ${error.message}`);
     }
 }
 

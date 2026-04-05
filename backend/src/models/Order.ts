@@ -23,6 +23,7 @@ export interface OrderDocument extends mongoose.Document {
   lastWebhookEventKey?: string;
   address: string;
   phone: string;
+  expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +52,8 @@ const OrderSchema = new Schema<OrderDocument>(
     lastWebhookEventKey: { type: String },
     address: { type: String, required: true },
     phone: { type: String, required: true },
+    // TTL field: only set for "created" orders, cleared when paid/failed
+    expiresAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
@@ -69,5 +72,8 @@ OrderSchema.index({ userId: 1, createdAt: -1 });
 OrderSchema.index({ paymentStatus: 1, createdAt: -1 });
 OrderSchema.index({ razorpayOrderId: 1 }, { sparse: true }); // Sparse because it's optional
 OrderSchema.index({ razorpayPaymentId: 1 }, { sparse: true, unique: true });
+// TTL: MongoDB auto-deletes documents when expiresAt is reached
+// Only "created" orders have expiresAt set, so only abandoned orders get deleted
+OrderSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0, sparse: true });
 
 export const Order = mongoose.model<OrderDocument>("Order", OrderSchema);

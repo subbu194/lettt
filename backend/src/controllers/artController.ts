@@ -51,6 +51,10 @@ function isValidObjectId(id: string): boolean {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // ─────────────────────────────────────────────────────────────
 // PUBLIC: List art with pagination, filtering, and search
 // ─────────────────────────────────────────────────────────────
@@ -74,10 +78,11 @@ export const listArt: RequestHandler = async (req, res, next) => {
     }
 
     if (search) {
+      const safe = escapeRegex(search);
       filter.$or = [
-        { title: { $regex: search, $options: "i" } },
-        { artist: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { artist: { $regex: safe, $options: "i" } },
+        { description: { $regex: safe, $options: "i" } },
       ];
     }
 
@@ -183,7 +188,7 @@ export const getCategories: RequestHandler = async (req, res, next) => {
     if (search) {
       filter.category = { 
         $nin: [null, ""],
-        $regex: search, 
+        $regex: escapeRegex(search), 
         $options: "i" 
       };
     }
@@ -471,10 +476,11 @@ export const artAutocomplete: RequestHandler = async (req, res, next) => {
     const { q, limit } = autocompleteSchema.parse(req.query);
     
     // Search in titles and artists
+    const safe = escapeRegex(q);
     const results = await Art.find({
       $or: [
-        { title: { $regex: q, $options: "i" } },
-        { artist: { $regex: q, $options: "i" } },
+        { title: { $regex: safe, $options: "i" } },
+        { artist: { $regex: safe, $options: "i" } },
       ],
       isAvailable: true,
     })

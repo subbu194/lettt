@@ -22,10 +22,15 @@ function arrayToCSV(data: any[]): string {
   // Add data rows
   for (const row of data) {
     const values = headers.map((header) => {
-      const value = row[header];
-      // Escape quotes and wrap in quotes if contains comma
-      const escaped = String(value ?? "").replace(/"/g, '""');
-      return escaped.includes(",") ? `"${escaped}"` : escaped;
+      let value = String(row[header] ?? "");
+      // CSV Injection prevention: prefix dangerous characters with a single quote
+      // so Excel/Sheets won't interpret them as formulas
+      if (/^[=+\-@\t\r]/.test(value)) {
+        value = `'${value}`;
+      }
+      // Escape quotes and always wrap in quotes for safety
+      const escaped = value.replace(/"/g, '""');
+      return `"${escaped}"`;
     });
     csvRows.push(values.join(","));
   }

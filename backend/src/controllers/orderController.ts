@@ -249,11 +249,14 @@ export const createOrder: RequestHandler = async (req, res, next) => {
       razorpayOrderId: order.id,
       address: finalAddress,
       phone,
+      // Auto-expire abandoned "created" orders after 30 minutes
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
     });
 
     return res.status(201).json({ 
       orderId: order.id, 
       amount, 
+      amountInPaise: amountPaise,
       currency: "INR", 
       keyId: getRazorpayKeyId(),
       message: "Order created successfully"
@@ -342,6 +345,7 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
     if (!safeSignatureCompare(digest, razorpay_signature)) {
       existingOrder.paymentStatus = "failed";
       existingOrder.razorpayPaymentId = razorpay_payment_id;
+      existingOrder.expiresAt = undefined;
       await existingOrder.save();
       throw new AppError("Payment verification failed. Please contact support if amount was deducted.", 400);
     }
@@ -400,7 +404,8 @@ export const verifyOrder: RequestHandler = async (req, res, next) => {
           paymentCapturedAt: new Date((payment.created_at || Math.floor(Date.now() / 1000)) * 1000),
           address: address?.trim() || existingOrder.address,
           phone: phone?.trim() || existingOrder.phone,
-        }
+        },
+        $unset: { expiresAt: 1 },
       },
       { session, returnDocument: 'after' }
     );
@@ -531,7 +536,8 @@ export const reconcileOrder: RequestHandler = async (req, res, next) => {
           paymentCapturedAt: new Date((matchedPayment.created_at || Math.floor(Date.now() / 1000)) * 1000),
           address: address?.trim() || existingOrder.address,
           phone: phone?.trim() || existingOrder.phone,
-        }
+        },
+        $unset: { expiresAt: 1 },
       },
       { session, returnDocument: 'after' }
     );
@@ -616,6 +622,7 @@ export const razorpayWebhook: RequestHandler = async (req, res, next) => {
             razorpayPaymentId: razorpayPaymentId,
             lastWebhookEventKey: eventKey,
           },
+          $unset: { expiresAt: 1 },
         }
       );
 
@@ -627,6 +634,21 @@ export const razorpayWebhook: RequestHandler = async (req, res, next) => {
     }
 
     session.startTransaction();
+
+    // Security checks on the authoritative order object BEFORE marking paid
+    // Read the order to verify amount matches before the atomic paid update
+    const orderToVerify = await Order.findOne({ razorpayOrderId }).session(session);
+    if (!orderToVerify) {
+      await session.abortTransaction();
+      return res.status(200).json({ received: true, ignored: true });
+    }
+
+    if (paymentEntity?.amount && paymentEntity.amount !== Math.round(orderToVerify.totalAmount * 100)) {
+      // Amount mismatch — do NOT mark as paid, log and abort
+      console.error(`Webhook amount mismatch for order ${razorpayOrderId}: expected ${Math.round(orderToVerify.totalAmount * 100)} paise, got ${paymentEntity.amount} paise`);
+      await session.abortTransaction();
+      return res.status(200).json({ received: true, error: "amount_mismatch" });
+    }
 
     const orderInTxn = await Order.findOneAndUpdate(
       { 
@@ -642,7 +664,8 @@ export const razorpayWebhook: RequestHandler = async (req, res, next) => {
           paymentCapturedAt: new Date(
             ((paymentEntity?.created_at || payload.created_at || Math.floor(Date.now() / 1000)) as number) * 1000
           )
-        }
+        },
+        $unset: { expiresAt: 1 },
       },
       { session, returnDocument: 'after' }
     );
@@ -657,11 +680,6 @@ export const razorpayWebhook: RequestHandler = async (req, res, next) => {
       
       await session.abortTransaction();
       return res.status(200).json({ received: true, ignored: true });
-    }
-
-    // Security checks on the authoritative order object
-    if (paymentEntity?.amount && paymentEntity.amount !== Math.round(orderInTxn.totalAmount * 100)) {
-      throw new AppError("Webhook payment amount mismatch", 400);
     }
 
     await fulfillPaidOrder(orderInTxn, session);
@@ -820,9 +838,9 @@ export const getOrderStats: RequestHandler = async (req, res, next) => {
       throw new AppError("Forbidden: Admin access required", 403);
     }
     
-    const today = new Date();
-    const startOfToday = new Date(today.setHours(0, 0, 0, 0));
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     
     const [
       totalOrders,

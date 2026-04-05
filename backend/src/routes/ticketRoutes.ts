@@ -17,7 +17,7 @@ const router = Router();
 // ─────────────────────────────────────────────────────────────
 router.get("/my-tickets", authenticateUser, myTickets);
 router.get("/my-tickets/:id", authenticateUser, getTicketById);
-router.get("/validate/:ticketId", getTicketByTicketId);
+router.get("/validate/:ticketId", authenticateAdmin, getTicketByTicketId);
 
 // ─────────────────────────────────────────────────────────────
 // Admin routes

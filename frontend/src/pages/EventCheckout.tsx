@@ -130,10 +130,10 @@ export default function EventCheckoutPage() {
         phone: phone.replace(/\s/g, ''),
       });
       
-      const { orderId, keyId, amount, currency } = resp.data as {
+      const { orderId, keyId, amountInPaise, currency } = resp.data as {
         orderId: string;
         keyId: string;
-        amount: number;
+        amountInPaise: number;
         currency: string;
       };
 
@@ -163,7 +163,7 @@ export default function EventCheckoutPage() {
       // 3. Open Razorpay checkout
       const rz = new (window as { Razorpay: new (config: unknown) => { open: () => void } }).Razorpay({
         key: keyId,
-        amount: Math.round(amount * 100),
+        amount: amountInPaise,
         currency,
         order_id: orderId,
         name: 'Let The Talent Talk',

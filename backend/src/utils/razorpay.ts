@@ -1,4 +1,3 @@
-import Razorpay from "razorpay";
 import { getRazorpayInstance as getInstanceFromConfig, getRazorpayKeyId as getKeyId } from "../config/razorpay";
 
 export function getRazorpayInstance() {
