@@ -4,6 +4,8 @@ import {
   getProfile,
   login,
   logout,
+  logoutAdmin,
+  logoutUser,
   signup,
   updateProfile,
   completeProfile,
@@ -20,19 +22,13 @@ router.post("/login", login);
 router.post("/register", signup);
 router.post("/refresh", refreshUserToken);
 
-router.post("/logout", (req, res, next) => {
-  req.query.type = "user";
-  logout(req, res, next);
-});
+router.post("/logout", logoutUser);
 
 // Admin auth
 router.post("/admin/login", adminLogin);
 router.post("/admin/refresh", refreshAdminToken);
 
-router.post("/admin/logout", (req, res, next) => {
-  req.query.type = "admin";
-  logout(req, res, next);
-});
+router.post("/admin/logout", logoutAdmin);
 
 // Token verification endpoints
 router.get("/verify", authenticateUser, (_req, res) => {

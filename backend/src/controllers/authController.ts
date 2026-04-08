@@ -132,6 +132,24 @@ export const logout: RequestHandler = async (req: Request, res: Response, next: 
   }
 };
 
+export const logoutUser: RequestHandler = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    clearAuthCookies(res, false);
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const logoutAdmin: RequestHandler = async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    clearAuthCookies(res, true);
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const refreshUserToken: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.cookies?.refreshToken;

@@ -2,13 +2,11 @@ import { useEffect, useState, useCallback } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAdminStore } from '@/store/useAdminStore';
-import { useUserStore } from '@/store/useUserStore';
 import apiClient from '@/api/client';
 import { Spinner } from '@/components/shared/Spinner';
 
 export function AdminRoute() {
   const { isAdminAuthenticated, logoutAdmin } = useAdminStore();
-  const { isAuthenticated } = useUserStore();
   const location = useLocation();
   const [status, setStatus] = useState<'loading' | 'valid' | 'invalid' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -62,11 +60,6 @@ export function AdminRoute() {
         <Spinner size="lg" />
       </div>
     );
-  }
-
-  // Logged-in normal users should not see admin entry points.
-  if (isAuthenticated && status !== 'valid') {
-    return <Navigate to="/" replace />;
   }
 
   // Auth failed - redirect to login

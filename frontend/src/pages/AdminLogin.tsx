@@ -5,7 +5,6 @@ import { getApiErrorMessage } from '@/api/error';
 import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { useAdminStore } from '@/store/useAdminStore';
-import { useUserStore } from '@/store/useUserStore';
 import { AuthBackground } from '@/components/auth/AuthBackground';
 import { Mail, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -15,27 +14,11 @@ type AuthResponse = { user?: Record<string, unknown> };
 export default function AdminLoginPage() {
   const navigate = useNavigate();
   const { loginAdmin } = useAdminStore();
-  const { isAuthenticated, logout } = useUserStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  const blockedByUserSession = isAuthenticated;
-
-  const forceClearUserAndContinue = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      await apiClient.post('/auth/logout');
-    } catch {
-      // Best effort; continue with local cleanup.
-    } finally {
-      logout();
-      setLoading(false);
-    }
-  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,69 +60,54 @@ export default function AdminLoginPage() {
                 </div>
 
                 <div className="p-6 sm:p-8">
-                  {blockedByUserSession ? (
-                    <div className="space-y-4">
-                      <div className="rounded-xl border border-red-200/40 bg-red-50/50 px-4 py-3 text-sm text-(--color-text)">
-                        <span className="font-semibold text-(--color-red)">Signed in as a customer.</span>{' '}
-                        Log out of your user session to open the admin console.
-                      </div>
-                      <Button variant="ghost" className="w-full" onClick={logout}>
-                        Log out user
-                      </Button>
-                      <Button variant="red" className="w-full" onClick={forceClearUserAndContinue} disabled={loading}>
-                        Force clear session
-                      </Button>
+                  <>
+                    <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-black/6 bg-white/60 p-3">
+                      <Mail size={16} aria-hidden />
+                      <span className="text-sm font-semibold text-(--color-text)">Email & Password</span>
                     </div>
-                  ) : (
-                    <>
-                      <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-black/6 bg-white/60 p-3">
-                        <Mail size={16} aria-hidden />
-                        <span className="text-sm font-semibold text-(--color-text)">Email & Password</span>
+
+                    <form className="space-y-4" onSubmit={onSubmit}>
+                      <div className="relative">
+                        <input
+                          className="peer h-14 w-full rounded-xl border border-black/12 bg-white/80 px-4 pt-5 pb-2 text-(--color-text) outline-none transition focus:border-red-200 focus:ring-2 focus:ring-(--color-red)/15"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          type="email"
+                          autoComplete="username"
+                          placeholder=" "
+                          required
+                        />
+                        <label className="pointer-events-none absolute left-4 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs">
+                          Work email
+                        </label>
                       </div>
 
-                      <form className="space-y-4" onSubmit={onSubmit}>
-                        <div className="relative">
-                          <input
-                            className="peer h-14 w-full rounded-xl border border-black/12 bg-white/80 px-4 pt-5 pb-2 text-(--color-text) outline-none transition focus:border-red-200 focus:ring-2 focus:ring-(--color-red)/15"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            type="email"
-                            autoComplete="username"
-                            placeholder=" "
-                            required
-                          />
-                          <label className="pointer-events-none absolute left-4 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs">
-                            Work email
-                          </label>
+                      <div className="relative">
+                        <input
+                          className="peer h-14 w-full rounded-xl border border-black/12 bg-white/80 px-4 pt-5 pb-2 text-(--color-text) outline-none transition focus:border-red-200 focus:ring-2 focus:ring-(--color-red)/15"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          type="password"
+                          autoComplete="current-password"
+                          placeholder=" "
+                          required
+                        />
+                        <label className="pointer-events-none absolute left-4 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs">
+                          Password
+                        </label>
+                      </div>
+
+                      {error ? (
+                        <div className="rounded-xl border border-red-200/40 bg-red-50/60 px-4 py-3 text-sm text-(--color-text)">
+                          {error}
                         </div>
+                      ) : null}
 
-                        <div className="relative">
-                          <input
-                            className="peer h-14 w-full rounded-xl border border-black/12 bg-white/80 px-4 pt-5 pb-2 text-(--color-text) outline-none transition focus:border-red-200 focus:ring-2 focus:ring-(--color-red)/15"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            type="password"
-                            autoComplete="current-password"
-                            placeholder=" "
-                            required
-                          />
-                          <label className="pointer-events-none absolute left-4 top-4 text-sm text-(--color-muted) transition-all peer-placeholder-shown:top-4 peer-focus:top-2 peer-focus:text-xs">
-                            Password
-                          </label>
-                        </div>
-
-                        {error ? (
-                          <div className="rounded-xl border border-red-200/40 bg-red-50/60 px-4 py-3 text-sm text-(--color-text)">
-                            {error}
-                          </div>
-                        ) : null}
-
-                        <Button variant="red" className="h-12 w-full text-base font-semibold" type="submit" disabled={loading}>
-                          {loading ? 'Signing in…' : 'Continue with email'}
-                        </Button>
-                      </form>
-                    </>
-                  )}
+                      <Button variant="red" className="h-12 w-full text-base font-semibold" type="submit" disabled={loading}>
+                        {loading ? 'Signing in…' : 'Continue with email'}
+                      </Button>
+                    </form>
+                  </>
                 </div>
               </Card>
             </motion.div>
