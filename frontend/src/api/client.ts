@@ -55,8 +55,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Determine if the failing request was an admin endpoint
+    // Determine if the failing request belongs to admin flows.
+    // Some admin-only endpoints do not include /admin in the URL path.
+    const isInAdminPanel = window.location.pathname.startsWith('/admin');
     const isAdminRequest =
+      isInAdminPanel ||
       originalRequest.url?.includes('/admin') ||
       originalRequest.url?.includes('/auth/admin');
     const refreshUrl = isAdminRequest ? '/auth/admin/refresh' : '/auth/refresh';

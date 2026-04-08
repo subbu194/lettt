@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Palette, Calendar, ShoppingBag, Ticket, TrendingUp,
+  Palette, Calendar, ShoppingBag, TrendingUp,
   Plus, Edit2, Trash2, Search, X, ChevronLeft,
   ChevronRight, LogOut, IndianRupee, AlertCircle,
   CheckCircle2, Clock, XCircle, RefreshCw, ImageIcon,
@@ -18,6 +18,9 @@ import { getApiErrorMessage } from '@/api/error';
 import { VideoFormModal } from './AdminDashboard_Videos';
 import { BlogsAdminTab } from './AdminDashboard_Blogs';
 import { GalleryAdminTab } from './AdminDashboard_Gallery';
+import { UsersAdminTab } from './AdminDashboard_Users';
+import { RevenueAdminTab } from './AdminDashboard_Revenue';
+import { BarChart, LineChart } from '@/components/admin/Charts';
 
 // ─────────────────────────────────────────────────────────────
 // Types
@@ -81,6 +84,7 @@ interface VideoItem {
 interface Stats {
   totalArts: number;
   totalEvents: number;
+  totalUsers: number;
   totalOrders: number;
   totalRevenue: number;
   activeTickets: number;
@@ -96,7 +100,7 @@ interface PaginationData {
   hasPrev: boolean;
 }
 
-type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos' | 'blogs' | 'gallery';
+type Tab = 'overview' | 'art' | 'events' | 'orders' | 'videos' | 'blogs' | 'gallery' | 'users' | 'revenue';
 
 // ─────────────────────────────────────────────────────────────
 // Animation Variants
@@ -122,7 +126,8 @@ function StatCard({
   value,
   trend,
   gradient,
-  delay = 0
+  delay = 0,
+  onClick,
 }: {
   icon: React.ElementType;
   label: string;
@@ -130,6 +135,7 @@ function StatCard({
   trend?: string;
   gradient: string;
   delay?: number;
+  onClick?: () => void;
 }) {
   return (
     <motion.div
@@ -137,7 +143,11 @@ function StatCard({
       initial="initial"
       animate="animate"
       transition={{ delay, duration: 0.4 }}
-      className="group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg hover:ring-black/10"
+      className={`group relative overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 transition-all hover:shadow-lg hover:ring-black/10 ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => (e.key === 'Enter' || e.key === ' ') && onClick() : undefined}
     >
       {/* Background gradient blur */}
       <div className={`absolute -right-8 -top-8 h-32 w-32 rounded-full ${gradient} opacity-20 blur-3xl transition-all group-hover:opacity-30`} />
@@ -1179,30 +1189,58 @@ function Pagination({
 
 export default function AdminDashboardPage() {
   const { logoutAdmin } = useAdminStore();
-  const [activeTab, setActiveTab] = useState<Tab>(() => {
+  const getTabFromUrl = useCallback((): Tab => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    const validTabs: Tab[] = ['overview', 'art', 'events', 'orders', 'videos', 'blogs', 'gallery'];
+    const validTabs: Tab[] = ['overview', 'art', 'events', 'orders', 'videos', 'blogs', 'gallery', 'users', 'revenue'];
     return (tab && validTabs.includes(tab as Tab)) ? (tab as Tab) : 'overview';
-  });
+  }, []);
 
-  // Keep URL in sync without triggering full page reloads
+  const [activeTab, setActiveTab] = useState<Tab>(() => getTabFromUrl());
+  const isHistoryNavigationRef = useRef(false);
+
+  // Sync tab state when user uses browser Back/Forward.
+  useEffect(() => {
+    const handlePopState = () => {
+      isHistoryNavigationRef.current = true;
+      setActiveTab(getTabFromUrl());
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [getTabFromUrl]);
+
+  // Keep URL in sync and preserve tab history entries for Back/Forward.
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (url.searchParams.get('tab') !== activeTab) {
-      url.searchParams.set('tab', activeTab);
-      window.history.replaceState({}, '', url.toString());
+    const currentTab = url.searchParams.get('tab');
+
+    if (currentTab === activeTab) {
+      return;
+    }
+
+    url.searchParams.set('tab', activeTab);
+
+    if (isHistoryNavigationRef.current) {
+      // When coming from Back/Forward, align current entry instead of creating a new one.
+      window.history.replaceState({ tab: activeTab }, '', url.toString());
+      isHistoryNavigationRef.current = false;
+    } else {
+      // User-initiated tab changes should create history entries.
+      window.history.pushState({ tab: activeTab }, '', url.toString());
     }
   }, [activeTab]);
 
   const [stats, setStats] = useState<Stats>({
     totalArts: 0,
     totalEvents: 0,
+    totalUsers: 0,
     totalOrders: 0,
     totalRevenue: 0,
     activeTickets: 0,
     recentOrders: 0,
   });
+  const [overviewRevenueTrend, setOverviewRevenueTrend] = useState<{ label: string; value: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Art state
@@ -1234,21 +1272,56 @@ export default function AdminDashboardPage() {
   // Fetch stats
   const fetchStats = useCallback(async () => {
     try {
-      const [artResp, eventResp, orderResp, ticketResp] = await Promise.all([
+      const [artResp, eventResp, orderResp, ticketResp, ticketBookingStatsResp, userResp] = await Promise.all([
         apiClient.get<{ pagination: { total: number } }>('/art?limit=1'),
         apiClient.get<{ pagination: { total: number } }>('/events?limit=1'),
-        apiClient.get<{ stats: { totalOrders: number; totalRevenue: number; recentOrders: number } }>('/art-orders/admin/stats').catch(() => ({ data: { stats: { totalOrders: 0, totalRevenue: 0, recentOrders: 0 } } })),
+        apiClient.get<{ stats: { totalOrders: number; totalRevenue: number; recentOrders: number; revenueByDay?: Array<{ date: string; total: number }> } }>('/art-orders/admin/stats').catch(() => ({ data: { stats: { totalOrders: 0, totalRevenue: 0, recentOrders: 0, revenueByDay: [] } } })),
         apiClient.get<{ stats: { activeTickets: number } }>('/tickets/admin/stats').catch(() => ({ data: { stats: { activeTickets: 0 } } })),
+        apiClient.get<{ stats: { totalRevenue: number; revenueByDay?: Array<{ date: string; total: number }> } }>('/ticket-bookings/admin/stats').catch(() => ({ data: { stats: { totalRevenue: 0, revenueByDay: [] } } })),
+        apiClient.get<{ pagination: { total: number } }>('/user/admin/all?page=1&limit=1').catch(() => ({ data: { pagination: { total: 0 } } })),
       ]);
+
+      const artRevenue = Number(orderResp.data?.stats?.totalRevenue || 0);
+      const eventRevenue = Number(ticketBookingStatsResp.data?.stats?.totalRevenue || 0);
 
       setStats({
         totalArts: artResp.data?.pagination?.total || 0,
         totalEvents: eventResp.data?.pagination?.total || 0,
+        totalUsers: userResp.data?.pagination?.total || 0,
         totalOrders: orderResp.data?.stats?.totalOrders || 0,
-        totalRevenue: orderResp.data?.stats?.totalRevenue || 0,
+        totalRevenue: artRevenue + eventRevenue,
         activeTickets: ticketResp.data?.stats?.activeTickets || 0,
         recentOrders: orderResp.data?.stats?.recentOrders || 0,
       });
+
+      const buildBuckets = () => {
+        const buckets = Array.from({ length: 14 }, (_, i) => {
+          const d = new Date();
+          d.setDate(d.getDate() - (13 - i));
+          const key = d.toISOString().slice(0, 10);
+          const label = d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+          return { key, label, value: 0 };
+        });
+        return new Map(buckets.map((bucket) => [bucket.key, bucket]));
+      };
+
+      const bucketMap = buildBuckets();
+
+      const artDaily = orderResp.data?.stats?.revenueByDay || [];
+      const eventDaily = ticketBookingStatsResp.data?.stats?.revenueByDay || [];
+
+      [...artDaily, ...eventDaily].forEach((entry) => {
+        const key = entry.date;
+        const bucket = bucketMap.get(key);
+        if (bucket) {
+          bucket.value += Number(entry.total) || 0;
+        }
+      });
+
+      setOverviewRevenueTrend(Array.from(bucketMap.values()).map(({ label, value }) => ({
+        label,
+        value: Math.round(value),
+      })));
     } catch (err) {
       console.error('Failed to fetch stats:', err);
     }
@@ -1379,6 +1452,8 @@ export default function AdminDashboardPage() {
 
   const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'users', label: 'Users & Signups', icon: Users },
+    { id: 'revenue', label: 'Revenue', icon: IndianRupee },
     { id: 'art', label: 'Art Gallery', icon: Palette },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
@@ -1465,57 +1540,103 @@ export default function AdminDashboardPage() {
                   {/* Page Header */}
                   <div>
                     <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Dashboard Overview</h1>
-                    <p className="mt-2 text-gray-500">Welcome back! Here's what's happening with your store.</p>
+                    <p className="mt-2 text-gray-500">Welcome to the central command for your website.</p>
                   </div>
 
-                  {/* Stats Grid */}
+                  {/* Minimal Stat Cards */}
                   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <StatCard
                       icon={IndianRupee}
                       label="Total Revenue"
                       value={`₹${stats.totalRevenue.toLocaleString('en-IN')}`}
-                      gradient="bg-linear-to-br from-emerald-500 to-teal-600"
+                      gradient="bg-linear-to-br from-gray-800 to-gray-900"
                       delay={0}
+                      onClick={() => setActiveTab('revenue')}
                     />
                     <StatCard
                       icon={ShoppingBag}
                       label="Total Orders"
                       value={stats.totalOrders}
                       trend={stats.recentOrders > 0 ? `+${stats.recentOrders} today` : undefined}
-                      gradient="bg-linear-to-br from-red-500 to-red-600"
+                      gradient="bg-linear-to-br from-indigo-500 to-indigo-600"
                       delay={0.1}
                     />
                     <StatCard
-                      icon={Palette}
-                      label="Art Pieces"
-                      value={stats.totalArts}
-                      gradient="bg-linear-to-br from-amber-500 to-orange-600"
+                      icon={Users}
+                      label="Active Users"
+                      value={stats.totalUsers}
+                      gradient="bg-linear-to-br from-emerald-500 to-teal-600"
                       delay={0.2}
+                      onClick={() => setActiveTab('users')}
                     />
                     <StatCard
                       icon={Calendar}
-                      label="Events"
+                      label="Total Events"
                       value={stats.totalEvents}
                       gradient="bg-linear-to-br from-rose-500 to-pink-600"
                       delay={0.3}
+                      onClick={() => setActiveTab('events')}
                     />
                   </div>
 
-                  {/* Quick Actions & Insights */}
+                  {/* Main Statistics Chart & Quick Actions */}
                   <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Main Chart */}
+                    <motion.div
+                      variants={fadeInUp}
+                      className="lg:col-span-2 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-indigo-500" />
+                          Revenue Trend (Last 14 Days)
+                        </h3>
+                        <span className="text-xs font-semibold px-2 py-1 bg-blue-50 text-blue-700 rounded-full">
+                          Real Data
+                        </span>
+                      </div>
+
+                      {overviewRevenueTrend.length > 0 ? (
+                        <LineChart
+                          data={overviewRevenueTrend}
+                          height={180}
+                          color="#2563eb"
+                        />
+                      ) : (
+                        <div className="flex h-45 items-center justify-center rounded-xl bg-gray-50 text-sm text-gray-500">
+                          Not enough revenue data yet
+                        </div>
+                      )}
+
+                      <div className="mt-6">
+                        <h4 className="mb-3 text-sm font-semibold text-gray-700">Business Snapshot</h4>
+                        <BarChart
+                          data={[
+                            { label: 'Orders', value: stats.totalOrders },
+                            { label: 'Users', value: stats.totalUsers },
+                            { label: 'Events', value: stats.totalEvents },
+                            { label: 'Active Tickets', value: stats.activeTickets },
+                          ]}
+                          height={150}
+                          color="#0ea5e9"
+                        />
+                      </div>
+                    </motion.div>
+
                     {/* Quick Actions Card */}
                     <motion.div
                       variants={fadeInUp}
-                      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+                      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm flex flex-col"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-4">
                         <h3 className="font-semibold text-gray-900">Quick Actions</h3>
-                        <Sparkles className="h-5 w-5 text-indigo-500" />
+                        <Sparkles className="h-5 w-5 text-amber-500" />
                       </div>
-                      <div className="mt-5 space-y-3">
+                      <p className="text-sm text-gray-500 mb-6">Easily manage your website content and sales from here.</p>
+                      <div className="space-y-4 mt-auto">
                         <button
                           onClick={() => { setActiveTab('art'); setArtModal({ open: true }); }}
-                          className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-amber-500 to-orange-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-amber-500/25 transition-all hover:shadow-amber-500/40"
+                          className="flex w-full items-center gap-3 rounded-xl bg-gray-900 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-gray-800 shadow-md"
                         >
                           <Plus className="h-5 w-5" />
                           Add New Artwork
@@ -1523,54 +1644,52 @@ export default function AdminDashboardPage() {
                         </button>
                         <button
                           onClick={() => { setActiveTab('events'); setEventModal({ open: true }); }}
-                          className="flex w-full items-center gap-3 rounded-xl bg-linear-to-r from-rose-500 to-pink-500 px-4 py-3 text-sm font-medium text-white shadow-lg shadow-rose-500/25 transition-all hover:shadow-rose-500/40"
+                          className="flex w-full items-center gap-3 rounded-xl bg-white border border-gray-200 px-4 py-3 text-sm font-medium text-gray-900 transition-all hover:bg-gray-50 shadow-sm"
                         >
-                          <Plus className="h-5 w-5" />
+                          <Plus className="h-5 w-5 text-gray-500" />
                           Create New Event
+                          <ArrowUpRight className="ml-auto h-4 w-4 text-gray-400" />
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('revenue'); }}
+                          className="flex w-full items-center gap-3 rounded-xl bg-indigo-50 px-4 py-3 text-sm font-medium text-indigo-700 transition-all hover:bg-indigo-100"
+                        >
+                          <TrendingUp className="h-5 w-5" />
+                          View Revenue Report
                           <ArrowUpRight className="ml-auto h-4 w-4" />
                         </button>
-                      </div>
-                    </motion.div>
-
-                    {/* Active Tickets Card */}
-                    <motion.div
-                      variants={fadeInUp}
-                      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">Active Tickets</h3>
-                        <Ticket className="h-5 w-5 text-emerald-500" />
-                      </div>
-                      <div className="mt-5 flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-50 to-teal-50">
-                          <Ticket className="h-8 w-8 text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="text-4xl font-bold text-gray-900">{stats.activeTickets}</p>
-                          <p className="text-sm text-gray-500">tickets available</p>
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Activity Card */}
-                    <motion.div
-                      variants={fadeInUp}
-                      className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-                    >
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-gray-900">Today's Activity</h3>
-                        <Activity className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <div className="mt-5 space-y-3">
-                        <div className="flex items-center justify-between rounded-xl bg-gray-50 p-3">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
-                              <ShoppingBag className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <span className="text-sm font-medium text-gray-600">New Orders</span>
-                          </div>
-                          <span className="text-lg font-bold text-gray-900">{stats.recentOrders}</span>
-                        </div>
+                        <button
+                          onClick={() => { setActiveTab('users'); }}
+                          className="flex w-full items-center gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700 transition-all hover:bg-emerald-100"
+                        >
+                          <Users className="h-5 w-5" />
+                          View Users
+                          <ArrowUpRight className="ml-auto h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('videos'); setVideoModal({ open: true }); }}
+                          className="flex w-full items-center gap-3 rounded-xl bg-violet-50 px-4 py-3 text-sm font-medium text-violet-700 transition-all hover:bg-violet-100"
+                        >
+                          <Video className="h-5 w-5" />
+                          Add Talk Show Video
+                          <ArrowUpRight className="ml-auto h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('blogs'); }}
+                          className="flex w-full items-center gap-3 rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 transition-all hover:bg-amber-100"
+                        >
+                          <BookOpen className="h-5 w-5" />
+                          Manage Blogs
+                          <ArrowUpRight className="ml-auto h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('gallery'); }}
+                          className="flex w-full items-center gap-3 rounded-xl bg-sky-50 px-4 py-3 text-sm font-medium text-sky-700 transition-all hover:bg-sky-100"
+                        >
+                          <ImageIcon className="h-5 w-5" />
+                          Manage Gallery
+                          <ArrowUpRight className="ml-auto h-4 w-4" />
+                        </button>
                       </div>
                     </motion.div>
                   </div>
@@ -2062,6 +2181,12 @@ export default function AdminDashboardPage() {
 
               {/* Gallery Tab */}
               {activeTab === 'gallery' && <GalleryAdminTab />}
+
+              {/* Users Tab */}
+              {activeTab === 'users' && <UsersAdminTab />}
+
+              {/* Revenue Tab */}
+              {activeTab === 'revenue' && <RevenueAdminTab />}
             </AnimatePresence>
           )}
         </div>

@@ -10,6 +10,68 @@ import { sanitizeEmail, validateEmail } from "../utils/emailValidator";
 import { computeIsProfileComplete } from "../utils/profileComplete";
 import { clearAuthCookies } from "../utils/cookie";
 
+const getAllUsersQuerySchema = z.object({
+  page: z.coerce.number().min(1).optional().default(1),
+  limit: z.coerce.number().min(1).max(100).optional().default(10),
+  search: z.string().trim().optional(),
+  role: z.enum(["user", "admin"]).optional(),
+  profile: z.enum(["all", "complete", "incomplete"]).optional().default("all"),
+  sortBy: z.enum(["createdAt", "name", "email"]).optional().default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+});
+
+function escapeRegex(input: string): string {
+  return input.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Admin: Get all users
+export const getAllUsers: RequestHandler = async (req, res, next) => {
+  try {
+    const { page, limit, search, role, profile, sortBy, sortOrder } = getAllUsersQuerySchema.parse(req.query);
+    const query: any = {};
+
+    if (role) {
+      query.role = role;
+    }
+
+    if (profile === "complete") {
+      query.isProfileComplete = true;
+    } else if (profile === "incomplete") {
+      query.isProfileComplete = false;
+    }
+
+    if (search) {
+      const safeSearch = escapeRegex(search);
+      query.$or = [
+        { name: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+      ];
+    }
+
+    const sortDirection = sortOrder === "asc" ? 1 : -1;
+
+    const total = await User.countDocuments(query);
+    const users = await User.find(query)
+      .sort({ [sortBy]: sortDirection })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.status(200).json({
+      users: users.map(u => u.toSafeJSON()),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const updateProfileDetailsSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
   phone: z.string().min(10, "Phone must be at least 10 characters").optional(),

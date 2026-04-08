@@ -566,6 +566,8 @@ export const getArtOrderStats: RequestHandler = async (req, res, next) => {
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfNinetyDays = new Date(now);
+    startOfNinetyDays.setDate(startOfNinetyDays.getDate() - 89);
 
     const [
       totalOrders,
@@ -578,6 +580,7 @@ export const getArtOrderStats: RequestHandler = async (req, res, next) => {
       todayOrders,
       todayRevenue,
       monthlyRevenue,
+      revenueByDay,
       topSellingArt,
     ] = await Promise.all([
       ArtOrder.countDocuments(),
@@ -601,6 +604,27 @@ export const getArtOrderStats: RequestHandler = async (req, res, next) => {
       ArtOrder.aggregate([
         { $match: { orderStatus: { $in: ["paid", "processing", "shipped", "delivered"] }, createdAt: { $gte: startOfMonth } } },
         { $group: { _id: null, total: { $sum: "$totalAmount" } } },
+      ]),
+      ArtOrder.aggregate([
+        {
+          $match: {
+            orderStatus: { $in: ["paid", "processing", "shipped", "delivered"] },
+            createdAt: { $gte: startOfNinetyDays },
+          },
+        },
+        {
+          $group: {
+            _id: {
+              $dateToString: {
+                format: "%Y-%m-%d",
+                date: "$createdAt",
+                timezone: "Asia/Kolkata",
+              },
+            },
+            total: { $sum: "$totalAmount" },
+          },
+        },
+        { $sort: { _id: 1 } },
       ]),
       ArtOrder.aggregate([
         { $match: { orderStatus: { $in: ["paid", "processing", "shipped", "delivered"] } } },
@@ -633,6 +657,10 @@ export const getArtOrderStats: RequestHandler = async (req, res, next) => {
         todayOrders,
         todayRevenue: todayRevenue[0]?.total || 0,
         monthlyRevenue: monthlyRevenue[0]?.total || 0,
+        revenueByDay: revenueByDay.map((entry) => ({
+          date: entry._id,
+          total: entry.total,
+        })),
       },
       topSellingArt,
     });

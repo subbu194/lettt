@@ -5,12 +5,16 @@ import {
   updateEmail,
   updatePassword,
   deleteAccount,
+  getAllUsers,
 } from "../controllers/userController";
-import { authenticateUser } from "../middleware/auth";
+import { authenticateUser, authenticateAdmin } from "../middleware/auth";
 
 const router = Router();
 
-// All routes require authentication
+// Admin routes (must be before generic authenticateUser middleware if we want to avoid double auth, or just handle it here)
+router.get("/admin/all", authenticateAdmin, getAllUsers);
+
+// All routes below require authentication
 router.use(authenticateUser);
 
 // Profile management
