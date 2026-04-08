@@ -12,21 +12,55 @@ type AdminState = {
 };
 
 const IS_ADMIN_KEY = 'isAdminAuthenticated';
+const ADMIN_KEY = 'admin';
+
+function loadInitialAdmin(): AdminLike | null {
+  try {
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    return parsed && typeof parsed === 'object' ? (parsed as AdminLike) : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistAdmin(admin: AdminLike | null) {
+  try {
+    if (admin) {
+      localStorage.setItem(ADMIN_KEY, JSON.stringify(admin));
+    } else {
+      localStorage.removeItem(ADMIN_KEY);
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
 
 const initialIsAdmin = localStorage.getItem(IS_ADMIN_KEY) === 'true';
+const initialAdmin = loadInitialAdmin();
 
 export const useAdminStore = create<AdminState>((set) => ({
   isAdminAuthenticated: initialIsAdmin,
-  admin: null,
+  admin: initialAdmin,
   loginAdmin: (admin) => {
     localStorage.setItem(IS_ADMIN_KEY, 'true');
+    persistAdmin(admin ?? null);
     set({ isAdminAuthenticated: true, admin: admin ?? null });
   },
-  logoutAdmin: () => {
+  logoutAdmin: async () => {
     localStorage.removeItem(IS_ADMIN_KEY);
+    persistAdmin(null);
     set({ isAdminAuthenticated: false, admin: null });
     // Clear HttpOnly cookies on backend
-    apiClient.post('/auth/admin/logout').catch(() => {});
+    try {
+      await apiClient.post('/auth/admin/logout');
+    } catch {
+      // Ignore errors - local state is cleared
+    }
   },
-  setAdmin: (admin) => set({ admin }),
+  setAdmin: (admin) => {
+    persistAdmin(admin);
+    set({ admin });
+  },
 }));

@@ -117,11 +117,11 @@ export const adminLogin: RequestHandler = async (req: Request, res: Response, ne
 export const logout: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const type = req.query.type as string; 
-    if (type === 'admin') {
-      clearAuthCookies(res, true);
-    } else {
-      clearAuthCookies(res, false);
-    }
+    const isAdmin = type === 'admin';
+    
+    // Clear ALL auth cookies regardless of logout type
+    clearAuthCookies(res, isAdmin);
+    
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
     next(err);

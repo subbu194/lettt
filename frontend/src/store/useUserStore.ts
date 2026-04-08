@@ -53,13 +53,17 @@ export const useUserStore = create<UserState>((set, get) => ({
     set({ isAuthenticated: true, user: user ?? null });
   },
   
-  logout: () => {
+  logout: async () => {
     useCartStore.getState().clearCart();
     localStorage.removeItem(IS_AUTH_KEY);
     persistUser(null);
     set({ isAuthenticated: false, user: null });
     // Attempt to hit backend logout to clear HttpOnly cookie
-    apiClient.post('/auth/logout').catch(() => {});
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Ignore errors - local state is cleared
+    }
   },
   
   setUser: (user) => {

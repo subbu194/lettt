@@ -1,14 +1,12 @@
 import { Router } from "express";
-import { 
-  createOrder, 
-  verifyOrder, 
-  reconcileOrder,
-  myOrders, 
-  getOrderById,
-  adminListOrders,
-  getOrderStats,
-  exportOrdersCSV,
-} from "../controllers/orderController";
+import {
+  createTicketBooking,
+  verifyTicketBooking,
+  myTicketBookings,
+  getTicketBookingById,
+  adminListTicketBookings,
+  getTicketBookingStats,
+} from "../controllers/ticketBookingController";
 import { authenticateAdmin, authenticateUser } from "../middleware/auth";
 
 const router = Router();
@@ -16,17 +14,15 @@ const router = Router();
 // ─────────────────────────────────────────────────────────────
 // User routes
 // ─────────────────────────────────────────────────────────────
-router.post("/create", authenticateUser, createOrder);
-router.post("/verify", authenticateUser, verifyOrder);
-router.post("/reconcile", authenticateUser, reconcileOrder);
-router.get("/my-orders", authenticateUser, myOrders);
-router.get("/my-orders/:id", authenticateUser, getOrderById);
+router.post("/create", authenticateUser, createTicketBooking);
+router.post("/verify", authenticateUser, verifyTicketBooking);
+router.get("/my-bookings", authenticateUser, myTicketBookings);
+router.get("/my-bookings/:id", authenticateUser, getTicketBookingById);
 
 // ─────────────────────────────────────────────────────────────
 // Admin routes
 // ─────────────────────────────────────────────────────────────
-router.get("/admin", authenticateAdmin, adminListOrders);
-router.get("/admin/stats", authenticateAdmin, getOrderStats);
-router.get("/admin/export-csv", authenticateAdmin, exportOrdersCSV);
+router.get("/admin", authenticateAdmin, adminListTicketBookings);
+router.get("/admin/stats", authenticateAdmin, getTicketBookingStats);
 
 export default router;

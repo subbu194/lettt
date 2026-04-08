@@ -94,16 +94,14 @@ export default function CheckoutPage() {
     try {
       const fullAddress = `${address}${city ? `, ${city}` : ''}${pincode ? ` - ${pincode}` : ''}`;
 
-      // 1. Create order on backend
-      const resp = await apiClient.post('/orders/create', {
+      // 1. Create art order on backend
+      const resp = await apiClient.post('/art-orders/create', {
         items: items.map((it) => ({ 
-          itemType: 'art', 
-          itemId: it.artId, 
-          title: `${it.name}${it.size ? ` - ${it.size}` : ''}`, 
+          artId: it.artId, 
           quantity: it.qty, 
-          price: it.price 
+          frameSize: it.size,
         })),
-        address: fullAddress,
+        shippingAddress: fullAddress,
         phone: phone.replace(/\s/g, ''),
       });
       
@@ -114,25 +112,7 @@ export default function CheckoutPage() {
         currency: string;
       };
 
-      const reconcilePendingOrder = async () => {
-        try {
-          const reconcileResp = await apiClient.post('/orders/reconcile', {
-            razorpay_order_id: orderId,
-            address: fullAddress,
-            phone: phone.replace(/\s/g, ''),
-          });
-
-          if (reconcileResp.data?.success) {
-            setSuccess(true);
-            clearCart();
-            setTimeout(() => {
-              navigate('/orders');
-            }, 2000);
-          }
-        } catch {
-          // Best-effort reconciliation when user closes checkout modal.
-        }
-      };
+      // Note: Art orders don't have reconcile endpoint yet, payment verification handles it
 
       // 2. Ensure Razorpay script
       const ok = await loadRazorpay();
@@ -158,12 +138,10 @@ export default function CheckoutPage() {
         }) => {
           try {
             setLoading(true);
-            const verify = await apiClient.post('/orders/verify', {
+            const verify = await apiClient.post('/art-orders/verify', {
               razorpay_order_id: payment.razorpay_order_id,
               razorpay_payment_id: payment.razorpay_payment_id,
               razorpay_signature: payment.razorpay_signature,
-              address: fullAddress,
-              phone: phone.replace(/\s/g, ''),
             });
             
             if (verify.data?.success) {
@@ -176,35 +154,13 @@ export default function CheckoutPage() {
           } catch (err) {
             const message = getApiErrorMessage(err);
 
-            if (message === 'Order not found for verification') {
-              try {
-                const reconcileResp = await apiClient.post('/orders/reconcile', {
-                  razorpay_order_id: payment.razorpay_order_id,
-                  address: fullAddress,
-                  phone: phone.replace(/\s/g, ''),
-                });
-
-                if (reconcileResp.data?.success) {
-                  setSuccess(true);
-                  clearCart();
-                  setTimeout(() => {
-                    navigate('/orders');
-                  }, 1500);
-                  return;
-                }
-              } catch {
-                // Fall through to surface the original verify error.
-              }
-            }
-
             setError(message);
           } finally {
             setLoading(false);
           }
         },
         modal: {
-          ondismiss: async () => {
-            await reconcilePendingOrder();
+          ondismiss: () => {
             setLoading(false);
           },
         },

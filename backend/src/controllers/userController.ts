@@ -1,7 +1,8 @@
 import type { RequestHandler } from "express";
 import { z } from "zod";
 import { User } from "../models/User";
-import { Order } from "../models/Order";
+import { ArtOrder } from "../models/ArtOrder";
+import { TicketBooking } from "../models/TicketBooking";
 import { Ticket } from "../models/Ticket";
 import { AppError } from "../middleware/errorHandler";
 import { isStrongPassword } from "../utils/password";
@@ -185,7 +186,8 @@ export const deleteAccount: RequestHandler = async (req, res, next) => {
 
     // Delete all user-related data
     await Promise.all([
-      Order.deleteMany({ userId: req.user.userId }),
+      ArtOrder.deleteMany({ userId: req.user.userId }),
+      TicketBooking.deleteMany({ userId: req.user.userId }),
       Ticket.deleteMany({ userId: req.user.userId }),
     ]);
 

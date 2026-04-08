@@ -117,16 +117,10 @@ export default function EventCheckoutPage() {
     setPaymentLoading(true);
     
     try {
-      // 1. Create order on backend
-      const resp = await apiClient.post('/orders/create', {
-        items: [{ 
-          itemType: 'event', 
-          itemId: event._id, 
-          title: event.title, 
-          quantity, 
-          price: event.ticketPrice 
-        }],
-        address: 'Digital Ticket - No shipping required',
+      // 1. Create ticket booking on backend
+      const resp = await apiClient.post('/ticket-bookings/create', {
+        eventId: event._id,
+        quantity,
         phone: phone.replace(/\s/g, ''),
       });
       
@@ -137,24 +131,7 @@ export default function EventCheckoutPage() {
         currency: string;
       };
 
-      const reconcilePendingOrder = async () => {
-        try {
-          const reconcileResp = await apiClient.post('/orders/reconcile', {
-            razorpay_order_id: orderId,
-            address: 'Digital Ticket - No shipping required',
-            phone: phone.replace(/\s/g, ''),
-          });
-
-          if (reconcileResp.data?.success) {
-            setSuccess(true);
-            setTimeout(() => {
-              navigate('/my-tickets');
-            }, 2000);
-          }
-        } catch {
-          // Best-effort reconciliation when user closes checkout modal.
-        }
-      };
+      // Note: Ticket bookings don't have reconcile endpoint yet, payment verification handles it
 
       // 2. Ensure Razorpay script
       const ok = await loadRazorpay();
@@ -180,12 +157,10 @@ export default function EventCheckoutPage() {
         }) => {
           try {
             setPaymentLoading(true);
-            const verify = await apiClient.post('/orders/verify', {
+            const verify = await apiClient.post('/ticket-bookings/verify', {
               razorpay_order_id: payment.razorpay_order_id,
               razorpay_payment_id: payment.razorpay_payment_id,
               razorpay_signature: payment.razorpay_signature,
-              address: 'Digital Ticket - No shipping required',
-              phone: phone.replace(/\s/g, ''),
             });
             
             if (verify.data?.success) {
@@ -197,34 +172,13 @@ export default function EventCheckoutPage() {
           } catch (err) {
             const message = getApiErrorMessage(err);
 
-            if (message === 'Order not found for verification') {
-              try {
-                const reconcileResp = await apiClient.post('/orders/reconcile', {
-                  razorpay_order_id: payment.razorpay_order_id,
-                  address: 'Digital Ticket - No shipping required',
-                  phone: phone.replace(/\s/g, ''),
-                });
-
-                if (reconcileResp.data?.success) {
-                  setSuccess(true);
-                  setTimeout(() => {
-                    navigate('/my-tickets');
-                  }, 1500);
-                  return;
-                }
-              } catch {
-                // Fall through to surface the original verify error.
-              }
-            }
-
             setError(message);
           } finally {
             setPaymentLoading(false);
           }
         },
         modal: {
-          ondismiss: async () => {
-            await reconcilePendingOrder();
+          ondismiss: () => {
             setPaymentLoading(false);
           },
         },

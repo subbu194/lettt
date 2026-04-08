@@ -80,18 +80,62 @@ function clearLegacyCookies(res: Response, isProd: boolean, isAdmin: boolean) {
 
 export const clearAuthCookies = (res: Response, isAdmin: boolean = false) => {
   const isProd = process.env.NODE_ENV === "production";
-  const accessKey = isAdmin ? "adminToken" : "token";
-  const refreshKey = isAdmin ? "adminRefreshToken" : "refreshToken";
   const base = getCookieOptions(isProd);
 
-  // Clear current cookies (new path: "/")
-  res.clearCookie(accessKey, { ...base, path: "/" });
-  res.clearCookie(refreshKey, { ...base, path: "/" });
+  // Helper to clear cookie with multiple attribute combinations
+  const clearCookieCombinations = (key: string) => {
+    // Current configuration
+    res.cookie(key, "", { ...base, path: "/", maxAge: 0, expires: new Date(0) });
+    
+    // Try without partitioned flag
+    if (isProd) {
+      res.cookie(key, "", { 
+        httpOnly: true, 
+        secure: true, 
+        sameSite: "none", 
+        domain: getCookieDomain(), 
+        path: "/", 
+        maxAge: 0, 
+        expires: new Date(0) 
+      });
+      
+      // Try with domain undefined
+      res.cookie(key, "", { 
+        httpOnly: true, 
+        secure: true, 
+        sameSite: "none", 
+        path: "/", 
+        maxAge: 0, 
+        expires: new Date(0) 
+      });
+    }
+    
+    // Development configuration
+    res.cookie(key, "", { 
+      httpOnly: true, 
+      secure: false, 
+      sameSite: "lax", 
+      path: "/", 
+      maxAge: 0, 
+      expires: new Date(0) 
+    });
+    
+    // Legacy configurations
+    res.clearCookie(key, { httpOnly: true, secure: isProd, sameSite: "strict", path: "/" });
+    res.clearCookie(key, { httpOnly: true, secure: isProd, sameSite: "lax", path: "/" });
+  };
 
-  // Also clear old cookies with legacy sameSite: "strict" attribute
-  res.clearCookie(accessKey, { httpOnly: true, secure: isProd, sameSite: "strict", path: "/" });
+  // ALWAYS clear ALL auth cookies to prevent orphaned sessions
+  // User cookies
+  clearCookieCombinations("token");
+  clearCookieCombinations("refreshToken");
+  
+  // Admin cookies
+  clearCookieCombinations("adminToken");
+  clearCookieCombinations("adminRefreshToken");
 
-  // Clear old path-restricted refresh cookies
-  clearLegacyCookies(res, isProd, isAdmin);
+  // Clear old path-restricted refresh cookies for both user and admin
+  clearLegacyCookies(res, isProd, false); // user
+  clearLegacyCookies(res, isProd, true);  // admin
 };
 

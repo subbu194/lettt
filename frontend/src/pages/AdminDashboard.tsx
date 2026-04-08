@@ -55,9 +55,14 @@ interface EventItem {
 interface OrderItem {
   _id: string;
   orderNumber?: string;
-  items: { itemType: string; title: string; quantity: number; price: number }[];
+  items: { artId: string; title: string; artist: string; image: string; quantity: number; unitPrice: number; frameSize?: string }[];
+  subtotal: number;
+  shippingFee: number;
   totalAmount: number;
-  paymentStatus: 'created' | 'paid' | 'failed';
+  orderStatus: 'created' | 'paid' | 'failed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  shippingAddress: string;
+  phone: string;
+  trackingNumber?: string;
   createdAt: string;
   user?: { name: string; email: string };
 }
@@ -1232,7 +1237,7 @@ export default function AdminDashboardPage() {
       const [artResp, eventResp, orderResp, ticketResp] = await Promise.all([
         apiClient.get<{ pagination: { total: number } }>('/art?limit=1'),
         apiClient.get<{ pagination: { total: number } }>('/events?limit=1'),
-        apiClient.get<{ stats: { totalOrders: number; totalRevenue: number; recentOrders: number } }>('/orders/admin/stats').catch(() => ({ data: { stats: { totalOrders: 0, totalRevenue: 0, recentOrders: 0 } } })),
+        apiClient.get<{ stats: { totalOrders: number; totalRevenue: number; recentOrders: number } }>('/art-orders/admin/stats').catch(() => ({ data: { stats: { totalOrders: 0, totalRevenue: 0, recentOrders: 0 } } })),
         apiClient.get<{ stats: { activeTickets: number } }>('/tickets/admin/stats').catch(() => ({ data: { stats: { activeTickets: 0 } } })),
       ]);
 
@@ -1289,7 +1294,7 @@ export default function AdminDashboardPage() {
       params.set('limit', '10');
       if (orderStatusFilter) params.set('status', orderStatusFilter);
 
-      const resp = await apiClient.get<{ orders: OrderItem[]; pagination: PaginationData }>(`/orders/admin?${params.toString()}`);
+      const resp = await apiClient.get<{ orders: OrderItem[]; pagination: PaginationData }>(`/art-orders/admin?${params.toString()}`);
       setOrders(resp.data?.orders || []);
       setOrderPagination(resp.data?.pagination || null);
     } catch (err) {
@@ -1426,7 +1431,7 @@ export default function AdminDashboardPage() {
         {/* Bottom section */}
         <div className="absolute bottom-0 left-0 right-0 border-t border-gray-100 p-4">
           <button
-            onClick={logoutAdmin}
+            onClick={async () => { await logoutAdmin(); window.location.href = '/admin/login'; }}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-red-50 hover:text-red-600"
           >
             <LogOut className="h-5 w-5" />
@@ -1944,7 +1949,7 @@ export default function AdminDashboardPage() {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <StatusBadge status={order.paymentStatus} size="md" />
+                            <StatusBadge status={order.orderStatus} size="md" />
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {new Date(order.createdAt).toLocaleDateString('en-IN', {

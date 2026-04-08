@@ -14,7 +14,6 @@ import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import artRoutes from "./routes/artRoutes";
 import eventRoutes from "./routes/eventRoutes";
-import orderRoutes from "./routes/orderRoutes";
 import ticketRoutes from "./routes/ticketRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import exportRoutes from "./routes/exportRoutes";
@@ -22,7 +21,8 @@ import talkShowRoutes from "./routes/talkShowRoutes";
 import blogRoutes from "./routes/blogRoutes";
 import galleryRoutes from "./routes/galleryRoutes";
 import searchRoutes from "./routes/searchRoutes";
-import { razorpayWebhook } from "./controllers/orderController";
+import ticketBookingRoutes from "./routes/ticketBookingRoutes";
+import artOrderRoutes from "./routes/artOrderRoutes";
 import { mongoSanitize } from "./middleware/mongoSanitize";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
@@ -77,28 +77,47 @@ async function start() {
   });
 
   // Body parsers
-  app.post("/api/v1/orders/webhook", express.raw({ type: "application/json" }), razorpayWebhook);
   app.use(express.json({ limit: "1mb" }));
   app.use(mongoSanitize);
   app.use(cookieParser());
 
   // Rate Limiting
-  const defaultLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { error: "Too many requests, please try again later" },
-  });
+  // Very relaxed for general browsing (no limit in development)
+  const defaultLimiter = process.env.NODE_ENV === "production" 
+    ? rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 1000, // Much higher for production
+        message: { error: "Too many requests, please try again later" },
+      })
+    : rateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 10000, // Effectively unlimited in development
+        message: { error: "Too many requests, please try again later" },
+      });
 
+  // Strict for auth endpoints (prevent brute force)
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: { error: "Brute-force protection: Too many login attempts" },
   });
 
+  // Moderate for payment endpoints
+  const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50,
+    message: { error: "Too many payment attempts, please try again later" },
+  });
+
+  // Apply rate limits
   app.use("/api/v1/", defaultLimiter);
   app.use("/api/v1/auth/login", authLimiter);
   app.use("/api/v1/auth/signup", authLimiter);
   app.use("/api/v1/auth/admin/login", authLimiter);
+  app.use("/api/v1/art-orders/create", paymentLimiter);
+  app.use("/api/v1/art-orders/verify", paymentLimiter);
+  app.use("/api/v1/ticket-bookings/create", paymentLimiter);
+  app.use("/api/v1/ticket-bookings/verify", paymentLimiter);
 
   // Health route
   app.use("/api/v1", healthRoutes);
@@ -112,7 +131,6 @@ async function start() {
   // Resource routes
   app.use("/api/v1/art", artRoutes);
   app.use("/api/v1/events", eventRoutes);
-  app.use("/api/v1/orders", orderRoutes);
   app.use("/api/v1/tickets", ticketRoutes);
   app.use("/api/v1/upload", uploadRoutes);
   app.use("/api/v1/export", exportRoutes);
@@ -120,6 +138,8 @@ async function start() {
   app.use("/api/v1/blogs", blogRoutes);
   app.use("/api/v1/gallery", galleryRoutes);
   app.use("/api/v1/search", searchRoutes);
+  app.use("/api/v1/ticket-bookings", ticketBookingRoutes);
+  app.use("/api/v1/art-orders", artOrderRoutes);
 
   app.get("/", (_req, res) => {
     res.send("Let The Talent Talk Backend is Running!");
