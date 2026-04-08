@@ -10,7 +10,7 @@ import {
   refreshUserToken,
   refreshAdminToken,
 } from "../controllers/authController";
-import { authenticateUser, authenticateAdmin, blockIfAuthenticatedAsUser } from "../middleware/auth";
+import { authenticateUser, authenticateAdmin } from "../middleware/auth";
 
 const router = Router();
 
@@ -26,7 +26,7 @@ router.post("/logout", (req, res, next) => {
 });
 
 // Admin auth
-router.post("/admin/login", blockIfAuthenticatedAsUser, adminLogin);
+router.post("/admin/login", adminLogin);
 router.post("/admin/refresh", refreshAdminToken);
 
 router.post("/admin/logout", (req, res, next) => {

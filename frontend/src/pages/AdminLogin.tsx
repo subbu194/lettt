@@ -24,6 +24,19 @@ export default function AdminLoginPage() {
 
   const blockedByUserSession = isAuthenticated;
 
+  const forceClearUserAndContinue = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Best effort; continue with local cleanup.
+    } finally {
+      logout();
+      setLoading(false);
+    }
+  };
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -72,6 +85,9 @@ export default function AdminLoginPage() {
                       </div>
                       <Button variant="ghost" className="w-full" onClick={logout}>
                         Log out user
+                      </Button>
+                      <Button variant="red" className="w-full" onClick={forceClearUserAndContinue} disabled={loading}>
+                        Force clear session
                       </Button>
                     </div>
                   ) : (

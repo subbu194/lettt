@@ -105,6 +105,10 @@ export const adminLogin: RequestHandler = async (req: Request, res: Response, ne
     user.lastLogin = new Date();
     await user.save();
 
+    // Clear any leftover user-session cookies before issuing admin cookies.
+    // This prevents stale user cookies from blocking admin access in production.
+    clearAuthCookies(res, false);
+
     const { accessToken, refreshToken } = createTokens(user, true);
     setAuthCookies(res, accessToken, refreshToken, true);
 
