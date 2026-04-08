@@ -60,7 +60,10 @@ export const signup: RequestHandler = async (req: Request, res: Response, next: 
     const { accessToken, refreshToken } = createTokens(user, false);
     
     setAuthCookies(res, accessToken, refreshToken, false);
-    return res.status(201).json({ user: user.toSafeJSON() });
+    return res.status(201).json({
+      user: user.toSafeJSON(),
+      tokens: { accessToken, refreshToken },
+    });
   } catch (err) {
     next(err);
   }
@@ -85,7 +88,10 @@ export const login: RequestHandler = async (req: Request, res: Response, next: N
     const { accessToken, refreshToken } = createTokens(user, false);
     setAuthCookies(res, accessToken, refreshToken, false);
 
-    return res.status(200).json({ user: user.toSafeJSON() });
+    return res.status(200).json({
+      user: user.toSafeJSON(),
+      tokens: { accessToken, refreshToken },
+    });
   } catch (err) {
     next(err);
   }
@@ -112,7 +118,10 @@ export const adminLogin: RequestHandler = async (req: Request, res: Response, ne
     const { accessToken, refreshToken } = createTokens(user, true);
     setAuthCookies(res, accessToken, refreshToken, true);
 
-    return res.status(200).json({ user: user.toSafeJSON() });
+    return res.status(200).json({
+      user: user.toSafeJSON(),
+      tokens: { accessToken, refreshToken },
+    });
   } catch (err) {
     next(err);
   }
@@ -152,7 +161,7 @@ export const logoutAdmin: RequestHandler = async (_req: Request, res: Response, 
 
 export const refreshUserToken: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.refreshToken;
+    const token = req.cookies?.refreshToken || (typeof req.body?.refreshToken === "string" ? req.body.refreshToken : undefined);
     const origin = req.headers.origin;
     
     logger.info(`[Auth] User refresh attempt - Origin: ${origin}, Cookie Present: ${!!token}`);
@@ -172,7 +181,11 @@ export const refreshUserToken: RequestHandler = async (req: Request, res: Respon
     const { accessToken, refreshToken } = createTokens(user, false);
     setAuthCookies(res, accessToken, refreshToken, false);
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     logger.warn(`[Auth] User refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     clearAuthCookies(res, false);
@@ -182,7 +195,7 @@ export const refreshUserToken: RequestHandler = async (req: Request, res: Respon
 
 export const refreshAdminToken: RequestHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.adminRefreshToken;
+    const token = req.cookies?.adminRefreshToken || (typeof req.body?.refreshToken === "string" ? req.body.refreshToken : undefined);
     const origin = req.headers.origin;
     
     logger.info(`[Auth] Admin refresh attempt - Origin: ${origin}, Cookie Present: ${!!token}`);
@@ -202,7 +215,11 @@ export const refreshAdminToken: RequestHandler = async (req: Request, res: Respo
     const { accessToken, refreshToken } = createTokens(user, true);
     setAuthCookies(res, accessToken, refreshToken, true);
 
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({
+      ok: true,
+      accessToken,
+      refreshToken,
+    });
   } catch (error) {
     logger.warn(`[Auth] Admin refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     clearAuthCookies(res, true);

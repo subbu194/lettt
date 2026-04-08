@@ -9,7 +9,10 @@ import { AuthBackground } from '@/components/auth/AuthBackground';
 import { Mail, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type AuthResponse = { user?: Record<string, unknown> };
+type AuthResponse = {
+  user?: Record<string, unknown>;
+  tokens?: { accessToken?: string; refreshToken?: string };
+};
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -26,7 +29,7 @@ export default function AdminLoginPage() {
     setLoading(true);
     try {
       const resp = await apiClient.post<AuthResponse>('/auth/admin/login', { email, password });
-      loginAdmin(resp.data?.user);
+      loginAdmin(resp.data?.user, resp.data?.tokens);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
       setError(getApiErrorMessage(err));

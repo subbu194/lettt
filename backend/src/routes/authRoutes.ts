@@ -3,7 +3,6 @@ import {
   adminLogin,
   getProfile,
   login,
-  logout,
   logoutAdmin,
   logoutUser,
   signup,
