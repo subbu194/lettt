@@ -17,7 +17,7 @@ const TicketSchema = new Schema<TicketDocument>(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true },
-    orderId: { type: Schema.Types.ObjectId, ref: "Order", required: true },
+    orderId: { type: Schema.Types.ObjectId, ref: "TicketBooking", required: true },
     ticketId: { type: String, required: true, unique: true },
     quantity: { type: Number, required: true, min: 1 },
     status: { type: String, enum: ["active", "used", "cancelled", "expired"], default: "active" },

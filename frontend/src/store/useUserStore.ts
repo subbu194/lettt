@@ -1,13 +1,15 @@
 import { create } from 'zustand';
+import axios from 'axios';
 import { useCartStore } from './useCartStore';
 import apiClient from '@/api/client';
+import { clearUserTokens, setUserTokens } from '@/api/client';
 
 type UserLike = Record<string, unknown>;
 
 type UserState = {
   isAuthenticated: boolean;
   user: UserLike | null;
-  login: (user?: UserLike) => void;
+  login: (user?: UserLike, tokens?: { accessToken?: string; refreshToken?: string }) => void;
   logout: () => void;
   setUser: (user: UserLike | null) => void;
   validateToken: () => Promise<boolean>;
@@ -46,20 +48,26 @@ export const useUserStore = create<UserState>((set, get) => ({
   isAuthenticated: initialIsAuth,
   user: initialUser,
   
-  login: (user) => {
+  login: (user, tokens) => {
     useCartStore.getState().clearCart();
     localStorage.setItem(IS_AUTH_KEY, 'true');
     persistUser(user ?? null);
+    setUserTokens(tokens);
     set({ isAuthenticated: true, user: user ?? null });
   },
   
-  logout: () => {
+  logout: async () => {
     useCartStore.getState().clearCart();
     localStorage.removeItem(IS_AUTH_KEY);
     persistUser(null);
+    clearUserTokens();
     set({ isAuthenticated: false, user: null });
     // Attempt to hit backend logout to clear HttpOnly cookie
-    apiClient.post('/auth/logout').catch(() => {});
+    try {
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Ignore errors - local state is cleared
+    }
   },
   
   setUser: (user) => {
@@ -70,7 +78,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   validateToken: async () => {
     const { logout } = get();
     
-    // Make API call to verify cookie with server
+    // Verify active session (cookie or token-header fallback).
     try {
       const response = await apiClient.get('/auth/verify');
       
@@ -80,8 +88,14 @@ export const useUserStore = create<UserState>((set, get) => ({
       }
 
       return true;
-    } catch {
-      // If verification fails on network error, don't logout
+    } catch (err) {
+      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+      if (status === 401 || status === 403) {
+        await logout();
+        return false;
+      }
+
+      // Network/server outage: keep local state and retry later.
       return false;
     }
   },

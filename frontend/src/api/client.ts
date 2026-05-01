@@ -4,6 +4,48 @@ import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:80';
 const API_PREFIX = '/api/v1';
 
+const USER_ACCESS_TOKEN_KEY = 'userAccessToken';
+const USER_REFRESH_TOKEN_KEY = 'userRefreshToken';
+const ADMIN_ACCESS_TOKEN_KEY = 'adminAccessToken';
+const ADMIN_REFRESH_TOKEN_KEY = 'adminRefreshTokenLS';
+
+function getToken(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function setToken(key: string, value?: string) {
+  try {
+    if (value) localStorage.setItem(key, value);
+    else localStorage.removeItem(key);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function setUserTokens(tokens?: { accessToken?: string; refreshToken?: string }) {
+  setToken(USER_ACCESS_TOKEN_KEY, tokens?.accessToken);
+  setToken(USER_REFRESH_TOKEN_KEY, tokens?.refreshToken);
+}
+
+export function clearUserTokens() {
+  setToken(USER_ACCESS_TOKEN_KEY);
+  setToken(USER_REFRESH_TOKEN_KEY);
+}
+
+export function setAdminTokens(tokens?: { accessToken?: string; refreshToken?: string }) {
+  setToken(ADMIN_ACCESS_TOKEN_KEY, tokens?.accessToken);
+  setToken(ADMIN_REFRESH_TOKEN_KEY, tokens?.refreshToken);
+}
+
+export function clearAdminTokens() {
+  setToken(ADMIN_ACCESS_TOKEN_KEY);
+  setToken(ADMIN_REFRESH_TOKEN_KEY);
+}
+
 const apiClient: AxiosInstance = axios.create({
   baseURL: `${BASE_URL}${API_PREFIX}`,
   withCredentials: true,
@@ -12,6 +54,29 @@ const apiClient: AxiosInstance = axios.create({
     Accept: 'application/json',
     'ngrok-skip-browser-warning': 'true',
   },
+});
+
+apiClient.interceptors.request.use((config) => {
+  const url = config.url ?? '';
+  const isInAdminPanel = window.location.pathname.startsWith('/admin');
+  const isAdminRequest =
+    isInAdminPanel ||
+    url.includes('/admin') ||
+    url.includes('/auth/admin');
+
+  if (isAdminRequest) {
+    const adminToken = getToken(ADMIN_ACCESS_TOKEN_KEY);
+    if (adminToken) {
+      config.headers['x-admin-authorization'] = `Bearer ${adminToken}`;
+    }
+  } else {
+    const userToken = getToken(USER_ACCESS_TOKEN_KEY);
+    if (userToken) {
+      config.headers.Authorization = `Bearer ${userToken}`;
+    }
+  }
+
+  return config;
 });
 
 // ─── Automatic Token Refresh Interceptor ──────────────────────
@@ -55,8 +120,11 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Determine if the failing request was an admin endpoint
+    // Determine if the failing request belongs to admin flows.
+    // Some admin-only endpoints do not include /admin in the URL path.
+    const isInAdminPanel = window.location.pathname.startsWith('/admin');
     const isAdminRequest =
+      isInAdminPanel ||
       originalRequest.url?.includes('/admin') ||
       originalRequest.url?.includes('/auth/admin');
     const refreshUrl = isAdminRequest ? '/auth/admin/refresh' : '/auth/refresh';
@@ -72,7 +140,27 @@ apiClient.interceptors.response.use(
     isRefreshing = true;
 
     try {
-      await apiClient.post(refreshUrl);
+      const refreshToken = isAdminRequest
+        ? getToken(ADMIN_REFRESH_TOKEN_KEY)
+        : getToken(USER_REFRESH_TOKEN_KEY);
+
+      const refreshResp = await apiClient.post<{ accessToken?: string; refreshToken?: string }>(
+        refreshUrl,
+        refreshToken ? { refreshToken } : {}
+      );
+
+      if (isAdminRequest) {
+        setAdminTokens({
+          accessToken: refreshResp.data?.accessToken,
+          refreshToken: refreshResp.data?.refreshToken,
+        });
+      } else {
+        setUserTokens({
+          accessToken: refreshResp.data?.accessToken,
+          refreshToken: refreshResp.data?.refreshToken,
+        });
+      }
+
       processQueue(null);
       // Retry the original request (cookies are now refreshed)
       return apiClient(originalRequest);
@@ -85,6 +173,7 @@ apiClient.interceptors.response.use(
       if (isAdminRequest) {
         localStorage.removeItem('isAdminAuthenticated');
         localStorage.removeItem('admin');
+        clearAdminTokens();
         if (!window.location.pathname.includes('/admin/login')) {
           window.location.href = '/admin/login?error=SessionExpired';
         }
@@ -92,6 +181,7 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('user');
         localStorage.removeItem('token');
+        clearUserTokens();
         if (!window.location.pathname.includes('/auth') && !window.location.pathname.includes('/login')) {
           window.location.href = '/auth?redirect=' + encodeURIComponent(window.location.pathname) + '&msg=SessionExpired';
         }

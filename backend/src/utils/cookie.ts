@@ -80,18 +80,37 @@ function clearLegacyCookies(res: Response, isProd: boolean, isAdmin: boolean) {
 
 export const clearAuthCookies = (res: Response, isAdmin: boolean = false) => {
   const isProd = process.env.NODE_ENV === "production";
-  const accessKey = isAdmin ? "adminToken" : "token";
-  const refreshKey = isAdmin ? "adminRefreshToken" : "refreshToken";
   const base = getCookieOptions(isProd);
 
-  // Clear current cookies (new path: "/")
-  res.clearCookie(accessKey, { ...base, path: "/" });
-  res.clearCookie(refreshKey, { ...base, path: "/" });
+  // Keep the response header footprint small to avoid proxy 502s
+  // from oversized Set-Cookie headers.
+  const clearCookie = (key: string) => {
+    res.cookie(key, "", {
+      ...base,
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+    });
 
-  // Also clear old cookies with legacy sameSite: "strict" attribute
-  res.clearCookie(accessKey, { httpOnly: true, secure: isProd, sameSite: "strict", path: "/" });
+    // Also clear a non-partitioned variant for older cookies.
+    res.cookie(key, "", {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? ("none" as const) : ("lax" as const),
+      domain: isProd ? getCookieDomain() : undefined,
+      path: "/",
+      maxAge: 0,
+      expires: new Date(0),
+    });
+  };
 
-  // Clear old path-restricted refresh cookies
-  clearLegacyCookies(res, isProd, isAdmin);
+  clearCookie("token");
+  clearCookie("refreshToken");
+  clearCookie("adminToken");
+  clearCookie("adminRefreshToken");
+
+  // Clear old path-restricted refresh cookies for both user and admin
+  clearLegacyCookies(res, isProd, false); // user
+  clearLegacyCookies(res, isProd, true);  // admin
 };
 

@@ -8,7 +8,10 @@ import { Button } from '@/components/shared/Button';
 import { Card } from '@/components/shared/Card';
 import { useUserStore } from '@/store/useUserStore';
 
-type AuthResponse = { user?: Record<string, unknown> };
+type AuthResponse = {
+  user?: Record<string, unknown>;
+  tokens?: { accessToken?: string; refreshToken?: string };
+};
 
 type LoginProps = {
   onSuccess?: () => void;
@@ -32,7 +35,7 @@ export function Login({ onSuccess }: LoginProps) {
     
     try {
       const resp = await apiClient.post<AuthResponse>('/auth/login', { email, password });
-      login(resp.data?.user);
+      login(resp.data?.user, resp.data?.tokens);
       setSuccess(true);
       onSuccess?.();
     } catch (err) {

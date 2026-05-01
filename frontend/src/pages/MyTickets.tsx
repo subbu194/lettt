@@ -23,7 +23,18 @@ interface EventInfo {
   title: string;
   date: string;
   venue: string;
-  images?: string[];
+  coverImage?: string;
+  startTime?: string;
+  description?: string;
+  ticketPrice?: number;
+}
+
+interface BookingInfo {
+  _id: string;
+  bookingNumber: string;
+  totalAmount: number;
+  bookingStatus: string;
+  createdAt: string;
 }
 
 interface TicketData {
@@ -32,8 +43,9 @@ interface TicketData {
   eventId: EventInfo;
   quantity: number;
   status: 'active' | 'used' | 'cancelled' | 'expired';
-  orderId: string;
-  purchasedAt: string;
+  effectiveStatus?: 'active' | 'used' | 'cancelled' | 'expired';
+  orderId: string | BookingInfo;
+  createdAt: string;
 }
 
 interface PaginationData {
@@ -111,9 +123,9 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
         <div className="flex flex-col md:flex-row">
           {/* Event Image */}
           <div className="relative h-48 w-full overflow-hidden md:h-auto md:w-48">
-            {event?.images?.[0] ? (
+            {event?.coverImage ? (
               <img
-                src={event.images[0]}
+                src={event.coverImage}
                 alt={event.title}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
@@ -146,7 +158,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
                   Ticket #{ticket.ticketId}
                 </p>
               </div>
-              <TicketStatusBadge status={ticket.status} />
+              <TicketStatusBadge status={ticket.effectiveStatus || ticket.status} />
             </div>
 
             {/* Event Info */}
@@ -208,7 +220,7 @@ function TicketCard({ ticket, onClick }: { ticket: TicketData; onClick: () => vo
 }
 
 // ─────────────────────────────────────────────────────────────
-// Ticket Detail Modal
+// Modern Gen-Z Style Ticket Detail Modal
 // ─────────────────────────────────────────────────────────────
 
 function TicketDetailModal({ 
@@ -238,164 +250,249 @@ function TicketDetailModal({
 
   const event = ticket?.eventId;
   const eventDate = event?.date ? new Date(event.date) : null;
+  const isUpcoming = eventDate ? eventDate > new Date() : false;
+  const daysUntilEvent = eventDate ? Math.ceil((eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 0;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-md"
       onClick={onClose}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.9, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        exit={{ opacity: 0, scale: 0.9, y: 40 }}
+        transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+        className="relative max-h-[95vh] w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="sticky top-0 flex items-center justify-between border-b border-black/4 bg-white p-5">
-          <h2 className="text-lg font-extrabold">Ticket Details</h2>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-gray-50"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-5">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
+        {loading ? (
+          <div className="flex min-h-[400px] items-center justify-center">
+            <div className="text-center">
               <Spinner size="lg" />
+              <p className="mt-4 text-sm text-gray-500">Loading your ticket...</p>
             </div>
-          ) : error ? (
-            <div className="flex items-center gap-2 rounded-xl bg-red-50 p-4 text-sm text-red-600">
-              <AlertCircle className="h-5 w-5" />
-              {error}
+          </div>
+        ) : error ? (
+          <div className="p-8">
+            <div className="flex flex-col items-center gap-4 rounded-2xl bg-red-50 p-6 text-center">
+              <AlertCircle className="h-12 w-12 text-red-500" />
+              <p className="text-red-700 font-medium">{error}</p>
+              <Button variant="ghost" onClick={onClose}>
+                Close
+              </Button>
             </div>
-          ) : ticket ? (
-            <div className="space-y-6">
-              {/* Event Image */}
-              <div className="relative aspect-video overflow-hidden rounded-xl">
-                {event?.images?.[0] ? (
+          </div>
+        ) : ticket ? (
+          <div className="flex flex-col max-h-[95vh]">
+            {/* Close Button - Fixed */}
+            <button
+              onClick={onClose}
+              className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/60"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            {/* Hero Image Section - Fixed Height */}
+            <div className="relative h-48 sm:h-64 shrink-0 overflow-hidden">
+              {event?.coverImage ? (
+                <>
                   <img
-                    src={event.images[0]}
+                    src={event.coverImage}
                     alt={event.title}
                     className="h-full w-full object-cover"
                   />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-red-700 via-red-600 to-red-700">
-                    <Ticket className="h-16 w-16 text-white/50" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                </>
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-red-600 via-red-700 to-red-900">
+                  <Ticket className="h-20 w-20 text-white/30" />
+                </div>
+              )}
+              
+              {/* Status Badge - Floating */}
+              <div className="absolute left-4 top-4">
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring' }}
+                >
+                  <TicketStatusBadge status={ticket.effectiveStatus || ticket.status} />
+                </motion.div>
+              </div>
+
+              {/* Event Title Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <h2 className="text-2xl sm:text-3xl font-black leading-tight text-white drop-shadow-lg">
+                    {event?.title || 'Event'}
+                  </h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
+                      <Ticket className="h-3 w-3" />
+                      {ticket.ticketId}
+                    </span>
+                    {isUpcoming && (ticket.effectiveStatus || ticket.status) === 'active' && daysUntilEvent > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-green-500/90 px-3 py-1 text-xs font-bold text-white">
+                        {daysUntilEvent === 1 ? '🔥 Tomorrow!' : `⏰ ${daysUntilEvent} days to go`}
+                      </span>
+                    )}
                   </div>
-                )}
-                <TicketStatusBadge status={ticket.status} />
+                </motion.div>
               </div>
+            </div>
 
-              {/* Event Title */}
-              <div>
-                <h3 className="text-xl font-extrabold">{event?.title || 'Event'}</h3>
-                <p className="mt-1 text-sm text-(--color-muted)">
-                  Ticket ID: {ticket.ticketId}
-                </p>
-              </div>
-
-              {/* Event Details */}
-              <div className="space-y-3 rounded-xl bg-gray-50 p-4">
-                {eventDate && (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-(--color-red)" />
-                      <div>
-                        <p className="font-semibold">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-6">
+                {/* Event Details Grid */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="grid grid-cols-2 sm:grid-cols-3 gap-4"
+                >
+                  {eventDate && (
+                    <>
+                      <div className="rounded-2xl bg-gradient-to-br from-red-50 to-orange-50 p-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
+                          <Calendar className="h-5 w-5 text-red-600" />
+                        </div>
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Date</p>
+                        <p className="mt-1 text-sm font-bold text-gray-900">
                           {eventDate.toLocaleDateString('en-IN', {
-                            weekday: 'long',
                             day: 'numeric',
-                            month: 'long',
+                            month: 'short',
                             year: 'numeric',
                           })}
                         </p>
                       </div>
+                      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100">
+                          <Clock className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Time</p>
+                        <p className="mt-1 text-sm font-bold text-gray-900">
+                          {event?.startTime || eventDate.toLocaleTimeString('en-IN', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  <div className="rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
+                      <Users className="h-5 w-5 text-green-600" />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Clock className="h-5 w-5 text-(--color-red)" />
-                      <p className="font-semibold">
-                        {eventDate.toLocaleTimeString('en-IN', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </>
-                )}
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-gray-500">Guests</p>
+                    <p className="mt-1 text-xl font-black text-gray-900">{ticket.quantity}</p>
+                  </div>
+                </motion.div>
+
+                {/* Venue */}
                 {event?.venue && (
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-(--color-red)" />
-                    <p className="font-semibold">{event.venue}</p>
-                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="mt-4 rounded-2xl bg-gradient-to-br from-purple-50 to-pink-50 p-4"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100">
+                        <MapPin className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Venue</p>
+                        <p className="mt-1 text-sm font-bold text-gray-900">{event.venue}</p>
+                      </div>
+                    </div>
+                  </motion.div>
                 )}
-              </div>
 
-              {/* Ticket Info */}
-              <div className="flex items-center justify-between rounded-xl border border-red-200 bg-red-50 p-4">
-                <div className="flex items-center gap-3">
-                  <Users className="h-6 w-6 text-(--color-red)" />
-                  <div>
-                    <p className="text-sm text-(--color-muted)">Number of Guests</p>
-                    <p className="text-2xl font-extrabold">{ticket.quantity}</p>
-                  </div>
-                </div>
-              </div>
+                {/* QR Code Section */}
+                {(ticket.effectiveStatus || ticket.status) === 'active' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="mt-6 flex flex-col sm:flex-row items-center gap-6 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-6"
+                  >
+                    <div className="relative shrink-0">
+                      <div className="flex h-32 w-32 sm:h-36 sm:w-36 items-center justify-center rounded-2xl bg-white shadow-lg">
+                        <QrCode className="h-20 w-20 sm:h-24 sm:w-24 text-gray-800" />
+                      </div>
+                      <motion.div
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                        className="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-green-500 text-white shadow-lg"
+                      >
+                        <CheckCircle2 className="h-5 w-5" />
+                      </motion.div>
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <p className="text-lg font-bold text-gray-900">Scan at Entry</p>
+                      <p className="mt-1 text-sm text-gray-500">Show this QR code to event staff for entry</p>
+                      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-green-100 px-4 py-2 text-sm font-bold text-green-700">
+                        <CheckCircle2 className="h-4 w-4" />
+                        Entry Pass Valid
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
 
-              {/* QR Code Placeholder */}
-              {ticket.status === 'active' && (
-                <div className="flex flex-col items-center rounded-xl bg-white border-2 border-dashed border-black/20 p-6">
-                  <div className="mb-3 flex h-32 w-32 items-center justify-center rounded-xl bg-gray-50">
-                    <QrCode className="h-16 w-16 text-(--color-muted)" />
-                  </div>
-                  <p className="text-sm font-semibold">Scan at Entry</p>
-                  <p className="text-xs text-(--color-muted)">Show this QR code to the event staff</p>
-                </div>
-              )}
+                {/* Purchase Info */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="mt-6 flex items-center justify-between border-t border-gray-100 pt-4 text-sm text-gray-500"
+                >
+                  <span>Purchased {new Date(ticket.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}</span>
+                  <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                    #{typeof ticket.orderId === 'string' ? ticket.orderId.slice(-8).toUpperCase() : (ticket.orderId as BookingInfo).bookingNumber}
+                  </span>
+                </motion.div>
 
-              {/* Purchase Info */}
-              <div className="text-center text-xs text-(--color-muted)">
-                <p>Purchased on {new Date(ticket.purchasedAt).toLocaleDateString('en-IN', {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}</p>
-                <p>Order: #{ticket.orderId.slice(-8).toUpperCase()}</p>
-              </div>
-
-              {/* Actions */}
-              {ticket.status === 'active' && (
-                <div className="flex gap-3">
-                  <Button variant="ghost" className="flex-1">
+                {/* Action Buttons */}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3"
+                >
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-bold text-gray-700 transition-all hover:bg-gray-200">
                     <Download className="h-4 w-4" />
-                    Download
-                  </Button>
-                  <Button variant="ghost" className="flex-1">
+                    Save
+                  </button>
+                  <button className="flex items-center justify-center gap-2 rounded-xl bg-gray-100 px-4 py-3 text-sm font-bold text-gray-700 transition-all hover:bg-gray-200">
                     <Share2 className="h-4 w-4" />
                     Share
-                  </Button>
-                </div>
-              )}
-
-              {/* View Event Link */}
-              {event?._id && (
-                <Link to={`/events/${event._id}`}>
-                  <Button variant="gold" className="w-full">
-                    <Maximize2 className="h-4 w-4" />
-                    View Event Details
-                  </Button>
-                </Link>
-              )}
+                  </button>
+                  {event?._id && (
+                    <Link to={`/events/${event._id}`} onClick={onClose} className="col-span-2">
+                      <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-red-700 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-red-500/25 transition-all hover:shadow-xl hover:shadow-red-500/30">
+                        <Maximize2 className="h-4 w-4" />
+                        View Event
+                      </button>
+                    </Link>
+                  )}
+                </motion.div>
+              </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </motion.div>
     </motion.div>
   );

@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import { AppError } from "../middleware/errorHandler";
-import { Order } from "../models/Order";
+import { ArtOrder } from "../models/ArtOrder";
+import { TicketBooking } from "../models/TicketBooking";
 import { Ticket } from "../models/Ticket";
 import { Art } from "../models/Art";
 import { Event } from "../models/Event";
@@ -39,7 +40,7 @@ function arrayToCSV(data: any[]): string {
 }
 
 // ─────────────────────────────────────────────────────────────
-// ADMIN: Export orders to CSV
+// ADMIN: Export art orders to CSV
 // ─────────────────────────────────────────────────────────────
 
 export const exportOrders: RequestHandler = async (req, res, next) => {
@@ -48,7 +49,7 @@ export const exportOrders: RequestHandler = async (req, res, next) => {
       throw new AppError("Forbidden: Admin access required", 403);
     }
 
-    const orders = await Order.find()
+    const orders = await ArtOrder.find()
       .populate("userId", "email name")
       .sort({ createdAt: -1 })
       .lean();
@@ -59,10 +60,13 @@ export const exportOrders: RequestHandler = async (req, res, next) => {
       CustomerEmail: order.userId?.email || "N/A",
       CustomerName: order.userId?.name || "N/A",
       TotalAmount: order.totalAmount,
-      PaymentStatus: order.paymentStatus,
-      Items: order.items.map((i: any) => `${i.title} (${i.quantity}x)`).join("; "),
+      Subtotal: order.subtotal,
+      ShippingFee: order.shippingFee,
+      OrderStatus: order.orderStatus,
+      Items: order.items.map((i: any) => `${i.title} by ${i.artist} (${i.quantity}x)`).join("; "),
       Phone: order.phone,
-      Address: order.address,
+      ShippingAddress: order.shippingAddress,
+      TrackingNumber: order.trackingNumber || "N/A",
       RazorpayOrderID: order.razorpayOrderId || "N/A",
       RazorpayPaymentID: order.razorpayPaymentId || "N/A",
       CreatedAt: new Date(order.createdAt).toISOString(),
@@ -71,7 +75,51 @@ export const exportOrders: RequestHandler = async (req, res, next) => {
     const csv = arrayToCSV(csvData);
 
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", `attachment; filename="orders-${Date.now()}.csv"`);
+    res.setHeader("Content-Disposition", `attachment; filename="art-orders-${Date.now()}.csv"`);
+    return res.send(csv);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// ADMIN: Export ticket bookings to CSV
+// ─────────────────────────────────────────────────────────────
+
+export const exportTicketBookings: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user || req.user.role !== "admin") {
+      throw new AppError("Forbidden: Admin access required", 403);
+    }
+
+    const bookings = await TicketBooking.find()
+      .populate("userId", "email name")
+      .populate("eventId", "title date venue")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const csvData = bookings.map((booking: any) => ({
+      BookingNumber: booking.bookingNumber || "N/A",
+      BookingID: booking._id,
+      CustomerEmail: booking.userId?.email || "N/A",
+      CustomerName: booking.userId?.name || "N/A",
+      EventTitle: booking.eventId?.title || "N/A",
+      EventDate: booking.eventId?.date ? new Date(booking.eventId.date).toISOString() : "N/A",
+      Venue: booking.eventId?.venue || "N/A",
+      Quantity: booking.quantity,
+      UnitPrice: booking.unitPrice,
+      TotalAmount: booking.totalAmount,
+      BookingStatus: booking.bookingStatus,
+      Phone: booking.phone,
+      RazorpayOrderID: booking.razorpayOrderId || "N/A",
+      RazorpayPaymentID: booking.razorpayPaymentId || "N/A",
+      CreatedAt: new Date(booking.createdAt).toISOString(),
+    }));
+
+    const csv = arrayToCSV(csvData);
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="ticket-bookings-${Date.now()}.csv"`);
     return res.send(csv);
   } catch (err) {
     next(err);
@@ -91,23 +139,30 @@ export const exportTickets: RequestHandler = async (req, res, next) => {
     const tickets = await Ticket.find()
       .populate("userId", "email name")
       .populate("eventId", "title date venue")
-      .populate("orderId", "orderNumber totalAmount")
       .sort({ createdAt: -1 })
       .lean();
 
-    const csvData = tickets.map((ticket: any) => ({
-      TicketID: ticket.ticketId,
-      CustomerEmail: ticket.userId?.email || "N/A",
-      CustomerName: ticket.userId?.name || "N/A",
-      EventTitle: ticket.eventId?.title || "N/A",
-      EventDate: ticket.eventId?.date ? new Date(ticket.eventId.date).toISOString() : "N/A",
-      Venue: ticket.eventId?.venue || "N/A",
-      Quantity: ticket.quantity,
-      Status: ticket.status,
-      OrderNumber: ticket.orderId?.orderNumber || "N/A",
-      OrderAmount: ticket.orderId?.totalAmount || 0,
-      PurchasedAt: new Date(ticket.createdAt).toISOString(),
-    }));
+    // Get booking info for each ticket
+    const bookingIds = tickets.map((t: any) => t.orderId).filter(Boolean);
+    const bookings = await TicketBooking.find({ _id: { $in: bookingIds } }).lean();
+    const bookingMap = new Map(bookings.map((b: any) => [b._id.toString(), b]));
+
+    const csvData = tickets.map((ticket: any) => {
+      const booking = bookingMap.get(ticket.orderId?.toString());
+      return {
+        TicketID: ticket.ticketId,
+        CustomerEmail: ticket.userId?.email || "N/A",
+        CustomerName: ticket.userId?.name || "N/A",
+        EventTitle: ticket.eventId?.title || "N/A",
+        EventDate: ticket.eventId?.date ? new Date(ticket.eventId.date).toISOString() : "N/A",
+        Venue: ticket.eventId?.venue || "N/A",
+        Quantity: ticket.quantity,
+        Status: ticket.status,
+        BookingNumber: booking?.bookingNumber || "N/A",
+        BookingAmount: booking?.totalAmount || 0,
+        PurchasedAt: new Date(ticket.createdAt).toISOString(),
+      };
+    });
 
     const csv = arrayToCSV(csvData);
 

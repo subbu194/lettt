@@ -106,7 +106,7 @@ export const getTicketById: RequestHandler = async (req, res, next) => {
       userId: req.user.userId 
     })
       .populate("eventId", "title description date startTime venue coverImage ticketPrice")
-      .populate("orderId", "totalAmount createdAt paymentStatus")
+      .populate("orderId", "totalAmount createdAt bookingStatus bookingNumber")
       .lean();
     
     if (!ticket) throw new AppError("Ticket not found", 404);

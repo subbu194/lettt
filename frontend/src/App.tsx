@@ -26,7 +26,7 @@ const ArtDetail = lazy(() => import('@/pages/ArtDetail'));
 const Artists = lazy(() => import('@/pages/Artists'));
 const ArtistDetail = lazy(() => import('@/pages/ArtistDetail'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
-const Orders = lazy(() => import('@/pages/Orders'));
+const ArtOrders = lazy(() => import('@/pages/ArtOrders'));
 const MyTickets = lazy(() => import('@/pages/MyTickets'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -71,7 +71,7 @@ function AppShell() {
               <Route path="/catalog" element={<Navigate to="/blog" replace />} />
               <Route path="/purchase" element={<Checkout />} />
               <Route path="/checkout" element={<Checkout />} />
-              <Route path="/orders" element={<Orders />} />
+              <Route path="/orders" element={<ArtOrders />} />
               <Route path="/my-tickets" element={<MyTickets />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/about" element={<About />} />

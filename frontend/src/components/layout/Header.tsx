@@ -124,7 +124,7 @@ export function Header() {
     return () => { isCancelled = true; };
   }, [debouncedSearch, searchScope]);
 
-  const handleLogout = () => { logout(); setUserMenuOpen(false); navigate('/'); };
+  const handleLogout = async () => { await logout(); setUserMenuOpen(false); navigate('/'); };
 
   const getInitials = () => {
     if (user && typeof user.name === 'string' && user.name) return user.name.charAt(0).toUpperCase();
