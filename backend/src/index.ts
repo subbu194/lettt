@@ -13,6 +13,7 @@ import healthRoutes from "./routes/health";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import artRoutes from "./routes/artRoutes";
+import artistRoutes from "./routes/artistRoutes";
 import eventRoutes from "./routes/eventRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import ticketRoutes from "./routes/ticketRoutes";
@@ -109,9 +110,10 @@ async function start() {
   // User routes (profile management - requires authentication)
   app.use("/api/v1/user", userRoutes);
 
-  // Resource routes
-  app.use("/api/v1/art", artRoutes);
-  app.use("/api/v1/events", eventRoutes);
+   // Resource routes
+   app.use("/api/v1/art", artRoutes);
+   app.use("/api/v1/artists", artistRoutes);
+   app.use("/api/v1/events", eventRoutes);
   app.use("/api/v1/orders", orderRoutes);
   app.use("/api/v1/tickets", ticketRoutes);
   app.use("/api/v1/upload", uploadRoutes);

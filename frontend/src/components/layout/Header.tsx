@@ -9,6 +9,7 @@ const navItems = [
   { label: 'Home', to: '/' },
   { label: 'Blog', to: '/blog' },
   { label: 'Art', to: '/art' },
+  { label: 'Artists', to: '/artists' },
   { label: 'Events', to: '/events' },
   { label: 'Talk Show', to: '/talkshow' },
   { label: 'Gallery', to: '/gallery' },
@@ -40,6 +41,7 @@ export function Header() {
   const searchScope = useMemo<SearchScope>(() => {
     if (location.pathname === '/') return 'all';
     if (location.pathname.startsWith('/art')) return 'art';
+    if (location.pathname.startsWith('/artists')) return 'artists';
     if (location.pathname.startsWith('/events') || location.pathname.startsWith('/event-checkout')) return 'events';
     if (location.pathname.startsWith('/talkshow')) return 'talkshow';
     if (location.pathname.startsWith('/gallery')) return 'gallery';
@@ -48,8 +50,9 @@ export function Header() {
   }, [location.pathname]);
 
   const searchPlaceholder = useMemo(() => {
-    if (searchScope === 'all') return 'Search art, events, blogs...';
+    if (searchScope === 'all') return 'Search art, artists, events...';
     if (searchScope === 'art') return 'Search art...';
+    if (searchScope === 'artists') return 'Search artists...';
     if (searchScope === 'events') return 'Search event...';
     if (searchScope === 'talkshow') return 'Search talk show...';
     if (searchScope === 'gallery') return 'Search gallery...';
@@ -145,6 +148,7 @@ export function Header() {
 
   const getTypeLabel = (type: SearchSuggestion['type']) => {
     if (type === 'art') return 'Art';
+    if (type === 'artist') return 'Artist';
     if (type === 'event') return 'Event';
     if (type === 'talkshow') return 'Talk Show';
     if (type === 'gallery') return 'Gallery';

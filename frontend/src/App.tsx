@@ -23,6 +23,8 @@ const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const BlogEditorPage = lazy(() => import('@/pages/AdminDashboard_Blogs').then(module => ({ default: module.BlogEditorPage })));
 const Art = lazy(() => import('@/pages/Art'));
 const ArtDetail = lazy(() => import('@/pages/ArtDetail'));
+const Artists = lazy(() => import('@/pages/Artists'));
+const ArtistDetail = lazy(() => import('@/pages/ArtistDetail'));
 const Checkout = lazy(() => import('@/pages/Checkout'));
 const Orders = lazy(() => import('@/pages/Orders'));
 const MyTickets = lazy(() => import('@/pages/MyTickets'));
@@ -60,6 +62,8 @@ function AppShell() {
               <Route path="/event-checkout/:id" element={<EventCheckout />} />
               <Route path="/art" element={<Art />} />
               <Route path="/art/:id" element={<ArtDetail />} />
+              <Route path="/artists" element={<Artists />} />
+              <Route path="/artists/:id" element={<ArtistDetail />} />
               <Route path="/talkshow" element={<TalkShow />} />
               <Route path="/gallery" element={<Gallery />} />
               <Route path="/blog" element={<Blog />} />
